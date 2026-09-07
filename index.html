@@ -44,6 +44,8 @@
     font-size: 14px;
   }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .status span#statusText { flex: 1; min-width: 0; }
+  .status button { flex: none; padding: 5px 11px; font-size: 13px; }
   .status.live .dot { background: var(--ok); }
   .status.fail .dot { background: var(--miss); }
 
@@ -186,7 +188,7 @@
   <h1>Notentrainer</h1>
   <p class="sub">Schritt 1 + 2 — MIDI-Eingang und Einzelnoten. Noch ohne Tempo und ohne Scrolling.</p>
 
-  <div class="status" id="status"><span class="dot"></span><span id="statusText">MIDI wird gesucht…</span></div>
+  <div class="status" id="status"><span class="dot"></span><span id="statusText">MIDI wird gesucht…</span><button id="connect" hidden>MIDI verbinden</button></div>
 
   <p class="rotate">Quer halten — im Hochformat wird das Notensystem zu klein.</p>
 
@@ -683,12 +685,18 @@ async function initMidi() {
     // falsche Richtung, wenn es gar keine Berechtigungsfrage ist.
     const why = (err && err.name) || "unbekannt";
     const hint = why === "NotAllowedError"
-      ? "In den Website-Einstellungen erlauben und neu laden."
+      ? "Tipp auf „MIDI verbinden“ — manche Browser fragen nur nach, "
+        + "wenn die Anfrage aus einer echten Nutzeraktion kommt."
       : why === "NotSupportedError"
         ? "Dieser Browser liefert kein MIDI aus - nimm Chrome."
         : "Unerwarteter Grund, siehe Meldung.";
     txt.textContent = "MIDI fehlgeschlagen — " + why
       + ((err && err.message) ? ": " + err.message : "") + " " + hint;
+
+    // Der Versuch beim Laden zaehlt nicht als Nutzeraktion. Die Schaltflaeche
+    // ruft dieselbe Funktion aus einem Tipp heraus auf - dann erscheint die
+    // Rueckfrage auch dort, wo sie an eine Geste gebunden ist.
+    document.getElementById("connect").hidden = false;
     return;
   }
 
@@ -698,6 +706,7 @@ async function initMidi() {
       input.onmidimessage = ({ data }) => onMidiMessage(data);
       names.push(input.name);
     }
+    document.getElementById("connect").hidden = true;
     if (names.length) {
       el.className = "status live";
       txt.textContent = "Verbunden: " + names.join(", ");
@@ -757,6 +766,13 @@ document.getElementById("reset").addEventListener("click", () => {
   renderPedals();
   renderPedalNote();
   nextNote();
+});
+
+document.getElementById("connect").addEventListener("click", () => {
+  document.getElementById("connect").hidden = true;
+  document.getElementById("status").className = "status";
+  document.getElementById("statusText").textContent = "MIDI wird gesucht…";
+  initMidi();   // synchron aus dem Klick heraus, damit die Geste zaehlt
 });
 
 // Im Querformat kostet die Adressleiste spürbar Höhe.
