@@ -711,8 +711,20 @@ async function initMidi() {
       el.className = "status live";
       txt.textContent = "Verbunden: " + names.join(", ");
     } else {
+      // Ausgaenge mitpruefen: Sieht das System einen Ausgang, aber keinen
+      // Eingang, dann liegt es nicht an Kabel oder Buchse - dann meldet sich
+      // das Piano zwar an, sendet aber nichts. Das trennt zwei sehr
+      // verschiedene Fehlersuchen voneinander.
+      const outs = [];
+      for (const out of access.outputs.values()) outs.push(out.name);
+
       el.className = "status";
-      txt.textContent = "Kein Gerät gefunden. E-Piano per USB anschließen und einschalten.";
+      txt.textContent = outs.length
+        ? "Nur Ausgang gefunden (" + outs.join(", ") + "), kein Eingang. "
+          + "Kabel und Buchse stimmen also - das Piano sendet nur nichts."
+        : "Kein Gerät gefunden. Kabel in die quadratische Buchse "
+          + "„USB TO HOST“, Piano einschalten, dann „MIDI "
+          + "verbinden“ antippen.";
     }
   };
 
