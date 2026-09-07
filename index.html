@@ -676,7 +676,19 @@ async function initMidi() {
     access = await navigator.requestMIDIAccess();
   } catch (err) {
     el.className = "status fail";
-    txt.textContent = "MIDI-Zugriff abgelehnt. Erlaube ihn im Schloss-Symbol der Adressleiste und lade neu.";
+    // Der Grund steckt in err.name und entscheidet, wo man suchen muss:
+    // NotAllowedError heisst wirklich abgelehnt, NotSupportedError heisst,
+    // dass dieser Browser MIDI trotz vorhandener Funktion nicht ausliefert.
+    // Vorher stand hier fuer jeden Fall "abgelehnt" - das schickt in die
+    // falsche Richtung, wenn es gar keine Berechtigungsfrage ist.
+    const why = (err && err.name) || "unbekannt";
+    const hint = why === "NotAllowedError"
+      ? "In den Website-Einstellungen erlauben und neu laden."
+      : why === "NotSupportedError"
+        ? "Dieser Browser liefert kein MIDI aus - nimm Chrome."
+        : "Unerwarteter Grund, siehe Meldung.";
+    txt.textContent = "MIDI fehlgeschlagen — " + why
+      + ((err && err.message) ? ": " + err.message : "") + " " + hint;
     return;
   }
 
