@@ -103,6 +103,8 @@
     color: var(--muted); margin: 0 0 16px;
   }
   .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 14px; }
+  /* display:flex wuerde das hidden-Attribut sonst ueberstimmen. */
+  .row[hidden] { display: none; }
   .row:last-child { margin-bottom: 0; }
   .row > label { width: 110px; flex: none; color: var(--muted); font-size: 14px; }
 
@@ -219,6 +221,19 @@
       </select>
     </div>
     <div class="row">
+      <label for="mode">Art</label>
+      <select id="mode">
+        <option value="single" selected>Einzeln — auf die Note warten</option>
+        <option value="run">Lauf — Noten kommen von rechts</option>
+      </select>
+    </div>
+    <div class="row" id="runRow" hidden>
+      <label for="bpm">Tempo</label>
+      <input type="range" id="bpm" min="30" max="180" value="60">
+      <span class="val" id="bpmVal">60</span>
+      <button id="run">Starten</button>
+    </div>
+    <div class="row">
       <label for="low">Von</label>
       <input type="range" id="low" min="21" max="108" value="60">
       <span class="val" id="lowVal">C4</span>
@@ -239,7 +254,7 @@
     <div class="figures">
       <div class="fig"><div class="n" id="figCount">0</div><div class="k">Noten</div></div>
       <div class="fig"><div class="n" id="figAcc">–</div><div class="k">Treffer</div></div>
-      <div class="fig"><div class="n" id="figTime">–</div><div class="k">Ø Reaktion</div></div>
+      <div class="fig"><div class="n" id="figTime">–</div><div class="k" id="figTimeK">Ø Reaktion</div></div>
     </div>
     <table>
       <thead><tr><th>Note</th><th>Gezeigt</th><th>Fehler</th><th>Ø ms</th></tr></thead>
@@ -296,6 +311,8 @@ const settings = {
   naming: "de",
   low: 60,
   high: 81,
+  mode: "single",   // "single" = warten, "run" = Noten laufen ein
+  bpm: 60,
 };
 
 let target = null;      // aktuelle Zielnote (MIDI-Nummer)
@@ -381,7 +398,7 @@ const ctx = canvas.getContext("2d");
 
 let W = 0, H = 0;                 // Zeichenfläche in CSS-Pixeln
 let GAP = 24;                     // Abstand zwischen zwei Notenlinien
-let LEFT = 0, RIGHT = 0, NOTE_X = 0, BOTTOM_Y = 0;
+let LEFT = 0, RIGHT = 0, NOTE_X = 0, NOW_X = 0, BOTTOM_Y = 0;
 
 // Unterste Linie: Violinschlüssel = E4, Bassschlüssel = G2
 const bottomDiatonic = () => settings.clef === "treble" ? (4 * 7 + 2) : (2 * 7 + 4);
@@ -418,14 +435,14 @@ function measure() {
   LEFT = Math.max(10, W * 0.03);
   RIGHT = W - LEFT;
   NOTE_X = LEFT + (RIGHT - LEFT) * 0.55;
+  // Die "Jetzt"-Linie braucht Abstand vom Schluessel, sonst laufen die Noten
+  // darueber. Deshalb ein Mindestabstand statt eines reinen Anteils.
+  NOW_X = LEFT + Math.max((RIGHT - LEFT) * 0.28, GAP * 5.5);
   return true;
 }
 
-function draw() {
-  // Beim allerersten Aufruf steht die Größe der Bühne noch nicht fest.
-  // Klappt auch das nicht, meldet sich der ResizeObserver später wieder.
-  if (!H && !measure()) return;
-
+// Notensystem und Schluessel - der Teil des Bildes, der sich nie bewegt.
+function drawStaff() {
   ctx.clearRect(0, 0, W, H);
   ctx.strokeStyle = "#14120f";
   ctx.fillStyle = "#14120f";
@@ -451,12 +468,17 @@ function draw() {
     ctx.fillText("\uD834\uDD22", LEFT + GAP * 0.25, BOTTOM_Y - GAP * 1.6);
   }
 
-  if (target === null) return;
+}
 
-  const s = spell(target);
+// Eine Note an beliebiger Stelle. Beide Betriebsarten zeichnen damit: die
+// Uebung setzt x fest, der Lauf leitet x aus der verbleibenden Zeit ab.
+function drawNote(midi, x, colour) {
+  const s = spell(midi);
   const step = s.diatonic - bottomDiatonic();
-  const x = NOTE_X;
   const y = yFor(s.diatonic);
+
+  ctx.strokeStyle = colour;
+  ctx.fillStyle = colour;
 
   // Hilfslinien
   ctx.lineWidth = Math.max(1, GAP * 0.08);
@@ -471,7 +493,6 @@ function draw() {
   if (step > 8)  for (let st = 10; st <= step; st += 2) drawLedger(st);
 
   // Notenkopf
-  ctx.fillStyle = flash === "ok" ? "#2f9e6a" : flash === "miss" ? "#c2453f" : "#14120f";
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(-0.32);
@@ -497,6 +518,165 @@ function draw() {
   }
 }
 
+// Verteiler zwischen den Betriebsarten. Alles, was bisher draw() gerufen
+// hat - Groessenaenderung, Einstellungen, neue Note -, funktioniert dadurch
+// unveraendert weiter.
+function draw() {
+  // Beim allerersten Aufruf steht die Größe der Bühne noch nicht fest.
+  // Klappt auch das nicht, meldet sich der ResizeObserver später wieder.
+  if (!H && !measure()) return;
+  drawStaff();
+
+  if (settings.mode === "run") { drawLane(); return; }
+  if (target === null) return;
+
+  drawNote(target, NOTE_X,
+    flash === "ok" ? "#2f9e6a" : flash === "miss" ? "#c2453f" : "#14120f");
+}
+
+/* --- Lauf: Noten kommen von rechts --------------------------------- *
+ * Jede Note bekommt beim Erzeugen einen Faelligkeitszeitpunkt. Das Bild
+ * leitet sich daraus ab (x aus der Restzeit) und die Wertung ebenso
+ * (Anschlag gegen Faelligkeit). Weil beides an derselben Zahl haengt,
+ * koennen Darstellung und Bewertung nicht auseinanderlaufen.
+ *
+ * Der Vorlauf wird in Schlaegen gemessen, nicht in Sekunden: So bleibt der
+ * Abstand der Noten auf dem Schirm gleich, und schnelleres Tempo bedeutet
+ * schnellere Bewegung statt gedraengter Noten.
+ * ------------------------------------------------------------------ */
+const WINDOW = 150;      // Trefferfenster in ms, siehe Fahrplan
+const LEAD_BEATS = 4;    // so viele Schlaege ist eine Note vorher sichtbar
+
+let lane = [];           // { midi, dueAt, state, playedAt, playedMidi }
+let running = false;
+let rafId = 0;
+let lastDue = 0;
+
+const beatMs = () => 60000 / settings.bpm;
+const leadMs = () => LEAD_BEATS * beatMs();
+
+// x-Position aus der Restzeit: faellig -> auf der Linie, weiter weg -> weiter rechts.
+function xForDue(dueAt, now) {
+  return NOW_X + ((dueAt - now) / leadMs()) * (RIGHT - NOW_X);
+}
+
+function spawn(now) {
+  const horizon = now + leadMs() + 500;
+  let guard = 0;
+  while (lastDue < horizon && guard++ < 64) {
+    const midi = pickNext();
+    if (midi === null) return;
+    lane.push({ midi, dueAt: lastDue, state: "pending", playedAt: 0, playedMidi: 0 });
+    lastDue += beatMs();
+  }
+}
+
+// Eine Zeile ins Ereignis-Log. Gleiche Form wie in der Uebung, dazu dueAt -
+// daraus wird spaeter die Abweichung gerechnet.
+function record(n, playedMidi, correct) {
+  events.push({
+    midi: n.midi,
+    shownAt: n.dueAt - leadMs(),
+    hitAt: n.playedAt,
+    dueAt: n.dueAt,
+    playedMidi,
+    correct,
+  });
+  renderStats();
+}
+
+function expire(now) {
+  for (const n of lane) {
+    if (n.state === "pending" && now > n.dueAt + WINDOW) {
+      n.state = "miss";
+      record(n, 0, false);
+    }
+  }
+  lane = lane.filter(n => xForDue(n.dueAt, now) > LEFT - GAP * 3);
+}
+
+// Anschlag der naechstliegenden offenen Note zuordnen.
+function judge(midi, now) {
+  let best = null, bestDiff = Infinity;
+  for (const n of lane) {
+    if (n.state !== "pending") continue;
+    const diff = Math.abs(n.dueAt - now);
+    if (diff < bestDiff) { bestDiff = diff; best = n; }
+  }
+  // Ausserhalb des Fensters gar nicht werten - sonst zaehlt jedes Warmspielen
+  // als Fehler.
+  if (!best || bestDiff > WINDOW) return;
+
+  best.playedAt = now;
+  best.playedMidi = midi;
+  best.state = midi === best.midi ? "hit" : "miss";
+  record(best, midi, best.state === "hit");
+
+  const fb = document.getElementById("feedback");
+  const off = Math.round(now - best.dueAt);
+  if (best.state === "hit") {
+    fb.className = "feedback ok";
+    fb.textContent = noteName(best.midi) + " — "
+      + (off > 0 ? "+" + off + " ms (spät)" : off < 0 ? off + " ms (früh)" : "genau");
+  } else {
+    fb.className = "feedback miss";
+    fb.textContent = "Gespielt: " + noteName(midi) + " — gesucht: " + noteName(best.midi);
+  }
+}
+
+function drawLane() {
+  const now = performance.now();
+
+  // Die "Jetzt"-Linie
+  ctx.strokeStyle = "#c2453f";
+  ctx.globalAlpha = 0.45;
+  ctx.lineWidth = Math.max(1.5, GAP * 0.09);
+  ctx.beginPath();
+  ctx.moveTo(NOW_X, BOTTOM_Y - 4 * GAP - GAP * 1.4);
+  ctx.lineTo(NOW_X, BOTTOM_Y + GAP * 1.4);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Links abschneiden, damit keine Note ueber den Schluessel laeuft.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(LEFT + GAP * 4.5, 0, W, H);
+  ctx.clip();
+  for (const n of lane) {
+    drawNote(n.midi, xForDue(n.dueAt, now),
+      n.state === "hit" ? "#2f9e6a" : n.state === "miss" ? "#c2453f" : "#14120f");
+  }
+  ctx.restore();
+}
+
+function tick() {
+  if (!running) return;
+  const now = performance.now();
+  spawn(now);
+  expire(now);
+  draw();
+  rafId = requestAnimationFrame(tick);
+}
+
+function startRun() {
+  if (running) return;
+  lane = [];
+  lastDue = performance.now() + leadMs();
+  running = true;
+  document.getElementById("run").textContent = "Anhalten";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("feedback").textContent = "Triff die Note, wenn sie die Linie erreicht.";
+  tick();
+}
+
+function stopRun() {
+  running = false;
+  cancelAnimationFrame(rafId);
+  const btn = document.getElementById("run");
+  if (btn) btn.textContent = "Starten";
+  draw();
+}
+
 /* --- Eingabe auswerten --------------------------------------------- */
 function onNoteOn(midi, velocity) {
   // Erst roh mitschreiben - unabhaengig davon, ob gerade eine Note ansteht.
@@ -504,6 +684,9 @@ function onNoteOn(midi, velocity) {
   sawNote = true;
   inputLog.push({ at: performance.now(), type: "on", midi, velocity });
   renderPedals();
+
+  // Im Lauf uebernimmt judge() - die Uebungslogik unten bleibt unberuehrt.
+  if (settings.mode === "run") { if (running) judge(midi, performance.now()); return; }
 
   if (target === null) return;
   const correct = midi === target;
@@ -573,6 +756,12 @@ function onMidiMessage(data) {
 }
 
 /* --- Statistik ------------------------------------------------------ */
+
+// In der Uebung ist die interessante Zahl die Reaktionszeit, im Lauf die
+// Abweichung von der Faelligkeit. Beides steckt in denselben Zeilen und
+// unterscheidet sich nur daran, ob dueAt gesetzt ist.
+const timing = e => typeof e.dueAt === "number" ? e.hitAt - e.dueAt : e.hitAt - e.shownAt;
+
 function renderStats() {
   const body = document.getElementById("statBody");
   const empty = document.getElementById("statEmpty");
@@ -591,9 +780,13 @@ function renderStats() {
   const hits = events.filter(e => e.correct);
   document.getElementById("figAcc").textContent =
     Math.round(100 * hits.length / events.length) + "%";
-  document.getElementById("figTime").textContent = hits.length
-    ? Math.round(hits.reduce((a, e) => a + (e.hitAt - e.shownAt), 0) / hits.length) + " ms"
-    : "\u2013";
+  // Vorzeichen nur im Lauf: "+40 ms" heisst zu spaet, "-40 ms" zu frueh.
+  const isRun = events.some(e => typeof e.dueAt === "number");
+  document.getElementById("figTimeK").textContent =
+    isRun ? "\u00d8 Abweichung" : "\u00d8 Reaktion";
+  const avg = hits.length ? hits.reduce((a, e) => a + timing(e), 0) / hits.length : null;
+  document.getElementById("figTime").textContent = avg === null ? "\u2013"
+    : (isRun && avg > 0 ? "+" : "") + Math.round(avg) + " ms";
 
   const byNote = new Map();
   for (const e of events) {
@@ -607,7 +800,7 @@ function renderStats() {
       midi,
       shown: list.length,
       errors: list.length - ok.length,
-      ms: ok.length ? Math.round(ok.reduce((a, e) => a + (e.hitAt - e.shownAt), 0) / ok.length) : null,
+      ms: ok.length ? Math.round(ok.reduce((a, e) => a + timing(e), 0) / ok.length) : null,
     };
   }).sort((a, b) => (b.errors / b.shown) - (a.errors / a.shown) || b.shown - a.shown);
 
@@ -767,9 +960,44 @@ document.getElementById("naming").addEventListener("change", e => {
   syncRange();
   renderStats();
 });
+/* --- Betriebsart und Tempo -------------------------------------------- */
+document.getElementById("mode").addEventListener("change", e => {
+  settings.mode = e.target.value;
+  stopRun();
+  document.getElementById("runRow").hidden = settings.mode !== "run";
+
+  const fb = document.getElementById("feedback");
+  fb.className = "feedback";
+  if (settings.mode === "run") {
+    target = null;
+    lane = [];
+    fb.textContent = "Tempo wählen und auf Starten tippen.";
+    draw();
+  } else {
+    fb.textContent = "Spiel die angezeigte Note auf dem E-Piano.";
+    nextNote();
+  }
+});
+
+const bpmEl = document.getElementById("bpm");
+bpmEl.addEventListener("input", () => {
+  settings.bpm = +bpmEl.value;
+  document.getElementById("bpmVal").textContent = settings.bpm;
+  // Beim Tempowechsel neu aufsetzen: Die bereits vergebenen Faelligkeiten
+  // passen sonst nicht mehr zum neuen Abstand, und die Noten wuerden
+  // springen.
+  if (running) { stopRun(); startRun(); }
+});
+
+document.getElementById("run").addEventListener("click", () => {
+  if (running) stopRun(); else startRun();
+});
+
 document.getElementById("reset").addEventListener("click", () => {
   events.length = 0;
   inputLog.length = 0;
+  lane = [];
+  if (running) { stopRun(); startRun(); }
   // Nur den Sitzungszaehler leeren. Der Zustand des Pedals bleibt - es ist
   // ja weiterhin oben oder unten -, und ob es stufenlos ist, ist eine
   // Eigenschaft des Geraets und keine Statistik.
