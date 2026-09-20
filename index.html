@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Notentrainer</title>
 <style>
   :root {
@@ -26,7 +28,9 @@
     font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
   }
 
-  .wrap { max-width: 820px; margin: 0 auto; }
+  /* 1100 statt 820: Ein iPad hat quer 1024 bis 1366 Punkte, das System darf
+     die Breite nutzen. Am PC bleibt es gleich, nur die Linien werden laenger. */
+  .wrap { max-width: 1100px; margin: 0 auto; }
 
   h1 {
     font: 400 30px/1.1 Georgia, "Iowan Old Style", serif;
@@ -55,7 +59,9 @@
     border-radius: 10px;
     padding: 8px;
     margin-bottom: 8px;
-    height: clamp(190px, 44vh, 420px);
+    /* Obergrenze 560 statt 420: Auf einem iPad im Notenstaender-Abstand ist
+       ein groesseres System der ganze Zweck des Geraets. */
+    height: clamp(190px, 46vh, 560px);
   }
   canvas { width: 100%; height: 100%; display: block; }
 
@@ -430,7 +436,7 @@ function measure() {
   const top = Math.max(hi + 3, 10);
   const bot = Math.min(lo - 3, -5);
 
-  GAP = Math.min(34, (2 * H) / (top - bot));
+  GAP = Math.min(44, (2 * H) / (top - bot));   // 44: Deckel fuer Tablet-Hoehen
   BOTTOM_Y = H / 2 + ((top + bot) / 2) * (GAP / 2);
   LEFT = Math.max(10, W * 0.03);
   RIGHT = W - LEFT;
@@ -1015,10 +1021,20 @@ document.getElementById("connect").addEventListener("click", () => {
   initMidi();   // synchron aus dem Klick heraus, damit die Geste zaehlt
 });
 
-// Im Querformat kostet die Adressleiste spürbar Höhe.
-document.getElementById("full").addEventListener("click", () => {
-  if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen().catch(() => {});
+// Im Querformat kostet die Adressleiste spürbar Höhe. WebKit auf dem iPad
+// kennt die Vollbild-API nur mit Präfix, App-eigene Browser oft gar nicht -
+// dann den Knopf ausblenden statt beim Klick einen Fehler zu werfen.
+const fullBtn = document.getElementById("full");
+const root = document.documentElement;
+if (!(root.requestFullscreen || root.webkitRequestFullscreen)) fullBtn.hidden = true;
+fullBtn.addEventListener("click", () => {
+  const active = document.fullscreenElement || document.webkitFullscreenElement;
+  if (active) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    return;
+  }
+  const p = (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+  if (p && p.catch) p.catch(() => {});   // die Präfix-Variante liefert kein Promise
 });
 
 // Drehen, Vollbild, Adressleiste beim Scrollen: alles ändert die Höhe.
