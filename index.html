@@ -903,19 +903,66 @@ function setStatus(kind, text) {
   document.getElementById("statusText").textContent = text;
 }
 
-// Bruecken liefern inputs/outputs nicht immer als Map. Alles annehmen, was
-// sich irgendwie durchlaufen laesst.
+// Bruecken liefern inputs/outputs nicht immer als Map. Auf dem iPad gab
+// values() etwas zurueck, das sich nicht ausbreiten liess. Darum eine
+// Kaskade: values() in jeder denkbaren Form, dann forEach, dann das Objekt
+// selbst. Jede Stufe darf scheitern, ohne die naechste zu verhindern.
+function asList(x) {
+  if (!x) return null;
+  if (Array.isArray(x)) return x;
+  if (typeof x[Symbol.iterator] === "function") return Array.from(x);
+  if (typeof x.next === "function") {                 // Iterator ohne Symbol
+    const out = [];
+    for (let r = x.next(); r && !r.done; r = x.next()) out.push(r.value);
+    return out;
+  }
+  if (typeof x.length === "number") return Array.from(x);
+  if (typeof x === "object") return Object.values(x);
+  return null;
+}
+
 function ports(coll) {
   if (!coll) return [];
-  if (typeof coll.values === "function") return [...coll.values()];
-  if (Array.isArray(coll)) return coll;
-  return Object.values(coll);
+  const isPort = p => p && typeof p === "object";
+  if (typeof coll.values === "function") {
+    try { const v = asList(coll.values()); if (v) return v.filter(isPort); } catch (e) { /* naechste Stufe */ }
+  }
+  if (typeof coll.forEach === "function") {
+    try { const out = []; coll.forEach(v => out.push(v)); return out.filter(isPort); } catch (e) { /* naechste Stufe */ }
+  }
+  const direct = asList(coll);
+  return direct ? direct.filter(isPort) : [];
+}
+
+// Beschreibt ein fremdes Objekt knapp - fuer die Statuszeile, wenn die Bruecke
+// etwas liefert, womit die Kaskade nichts anfangen kann.
+function describe(x) {
+  try {
+    const t = Object.prototype.toString.call(x);
+    const keys = x && typeof x === "object" ? Object.keys(x).slice(0, 6).join(",") : "";
+    let v = "-";
+    if (x && typeof x.values === "function") {
+      try { v = Object.prototype.toString.call(x.values()); } catch (e) { v = "wirft: " + e.message; }
+    }
+    return t + " keys[" + keys + "] values()->" + v + " size=" + (x && x.size);
+  } catch (e) { return "(nicht beschreibbar: " + e.message + ")"; }
+}
+
+// Handler anbinden, ohne ihn bei jedem statechange erneut zu registrieren.
+const boundPorts = new WeakSet();
+function listen(input) {
+  if (boundPorts.has(input)) return;
+  const handler = e => onMidiMessage(e.data || (e.detail && e.detail.data) || e);
+  let took = false;
+  try { input.onmidimessage = handler; took = input.onmidimessage === handler; } catch (e) { /* kein Setter */ }
+  if (!took && typeof input.addEventListener === "function") input.addEventListener("midimessage", handler);
+  boundPorts.add(input);
 }
 
 function bindMidi() {
   const names = [];
   for (const input of ports(midiAccess.inputs)) {
-    input.onmidimessage = ({ data }) => onMidiMessage(data);
+    listen(input);
     names.push(input.name || "MIDI-Eingang");
   }
   document.getElementById("connect").hidden = true;
@@ -932,7 +979,7 @@ function bindMidi() {
       + "„MIDI verbinden“ antippen.");
 }
 
-function failMidi(err) {
+function failMidi(err, shape) {
   const why = (err && err.name) || "unbekannt";
   const hint = why === "NotAllowedError"
     ? "Tipp auf „MIDI verbinden“ — manche Browser fragen nur nach, wenn die "
@@ -941,7 +988,8 @@ function failMidi(err) {
       ? "Dieser Browser liefert kein MIDI aus - nimm Chrome."
       : "Unerwarteter Grund, siehe Meldung.";
   setStatus("fail", "MIDI fehlgeschlagen — " + why
-    + ((err && err.message) ? ": " + err.message : "") + " " + hint);
+    + ((err && err.message) ? ": " + err.message : "") + " " + hint
+    + (shape !== undefined ? " Form von inputs: " + describe(shape) : ""));
   document.getElementById("connect").hidden = false;
 }
 
@@ -983,7 +1031,7 @@ async function initMidi() {
     bindMidi();
   } catch (err) {
     answered = true; clearTimeout(timer);
-    failMidi(err);
+    failMidi(err, midiAccess ? midiAccess.inputs : undefined);
   }
 }
 
