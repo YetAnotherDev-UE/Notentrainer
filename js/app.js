@@ -10,7 +10,7 @@ NT.app = (() => {
   const G = NT.game, MU = NT.music, N = NT.notation;
 
   const DEFAULTS = { clef: "treble", keys: "white", naming: "de", low: 60, high: 81, hand: "r", bpm: 80,
-    runLength: 24, phrases: 6, labels: true, ghost: true, sound: true, fx: true, shake: true, playback: "auto",
+    runLength: 24, phrases: 6, labels: "name", ghost: true, sound: true, fx: true, shake: true, playback: "auto",
     library: null, scaleRoot: 0, scaleType: "dur", scaleOctaves: 1 };
   const settings = Object.assign({}, DEFAULTS);
   const pieces = [];               // geparste Stücke (Starter + importierte)
@@ -229,10 +229,10 @@ NT.app = (() => {
 
   /* --- Einstellungen --------------------------------------------------------- */
   function syncSettingsUi() {
-    for (const k of ["clef", "keys", "naming", "hand", "playback", "scaleType"]) if ($("set-" + k)) $("set-" + k).value = settings[k];
+    for (const k of ["clef", "keys", "naming", "hand", "playback", "scaleType", "labels"]) if ($("set-" + k)) $("set-" + k).value = settings[k];
     $("set-scaleRoot").value = settings.scaleRoot;
     $("set-scaleOctaves").value = settings.scaleOctaves;
-    for (const k of ["labels", "ghost", "sound", "fx", "shake"]) $("set-" + k).checked = !!settings[k];
+    for (const k of ["ghost", "sound", "fx", "shake"]) $("set-" + k).checked = !!settings[k];
     $("set-low").value = settings.low; $("set-high").value = settings.high;
     $("set-runLength").value = settings.runLength; $("set-phrases").value = settings.phrases;
     $("lowVal").textContent = MU.name(settings.low, settings.naming); $("highVal").textContent = MU.name(settings.high, settings.naming);
@@ -242,10 +242,10 @@ NT.app = (() => {
   function saveSettings() { NT.store.kvSet("settings", settings); }
   function bindSettings() {
     const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
-    for (const k of ["clef", "keys", "naming", "hand", "playback", "scaleType"]) on("set-" + k, "change", e => { settings[k] = e.target.value; saveSettings(); if (k === "naming") syncSettingsUi(); });
+    for (const k of ["clef", "keys", "naming", "hand", "playback", "scaleType", "labels"]) on("set-" + k, "change", e => { settings[k] = e.target.value; saveSettings(); if (k === "naming") syncSettingsUi(); });
     on("set-scaleRoot", "change", e => { settings.scaleRoot = +e.target.value; saveSettings(); });
     on("set-scaleOctaves", "change", e => { settings.scaleOctaves = +e.target.value; saveSettings(); });
-    for (const k of ["labels", "ghost", "sound", "fx", "shake"]) on("set-" + k, "change", e => { settings[k] = e.target.checked; NT.synth.enabled = settings.sound; NT.synth.fx = settings.fx; saveSettings(); });
+    for (const k of ["ghost", "sound", "fx", "shake"]) on("set-" + k, "change", e => { settings[k] = e.target.checked; NT.synth.enabled = settings.sound; NT.synth.fx = settings.fx; saveSettings(); });
     const range = () => {
       let lo = +$("set-low").value, hi = +$("set-high").value;
       if (lo > hi) { if (document.activeElement === $("set-low")) hi = lo; else lo = hi; }
@@ -271,6 +271,8 @@ NT.app = (() => {
     N.attach($("staff"));
     await NT.store.open();
     Object.assign(settings, DEFAULTS, (await NT.store.kvGet("settings")) || {});
+    // Fruehere Fassung: Haken statt Auswahl.
+    if (typeof settings.labels === "boolean") settings.labels = settings.labels ? "name" : "off";
     progress = (await NT.store.kvGet("progress")) || { xp: 0 };
     device = (await NT.store.kvGet("device")) || { pedal: {} };
     await loadHistory();

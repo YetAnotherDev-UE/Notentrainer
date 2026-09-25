@@ -62,6 +62,11 @@ NT.game = (() => {
     return { midi, diatonic: s.diatonic, dur: dur || 1, accidental: s.alter === 1 ? "sharp" : s.alter === -1 ? "flat" : null, hand: settings.clef === "bass" ? "l" : "r" };
   };
 
+  // Beschriftung ueber der Note: "octave" = D4, "name" = D, "off" = nichts.
+  const labelsOn = () => !!settings.labels && settings.labels !== "off";
+  const labelFor = midi => settings.labels === "octave" ? MU.name(midi, settings.naming, S.preferFlat)
+    : settings.labels === "name" ? MU.shortName(midi, settings.naming, S.preferFlat) : null;
+
   /* --- Quellen: liefern Gruppen gleichzeitiger Noten mit Vorlauf in Schlägen --- */
   function randomSource(count) {
     let n = 0, last = null;
@@ -142,7 +147,7 @@ NT.game = (() => {
     return { above, below };
   }
   function buildSpec() {
-    const labels = !!settings.labels;
+    const labels = labelsOn();
     let staves, fifths = 0, time = null;
     if (S.mode === "phrase" || S.mode === "play") {
       const pieces = S.mode === "play" ? [S.piece] : S.pieces;
@@ -299,7 +304,7 @@ NT.game = (() => {
         const n = noteFromMidi(S.target, 1);
         const x = L.contentLeft + (L.right - L.contentLeft) * 0.42;
         const colour = S.flash === "ok" ? N.COL.ok : S.flash === "miss" ? N.COL.miss : N.COL.ink;
-        N.drawNote(L, 0, n, x, { colour, label: settings.labels ? MU.shortName(S.target, settings.naming, S.preferFlat) : null });
+        N.drawNote(L, 0, n, x, { colour, label: labelFor(S.target) });
         if (settings.ghost) N.drawGhost(L, 0, S.ghost, x, S.preferFlat);
       }
     } else {
@@ -326,7 +331,7 @@ NT.game = (() => {
         const anyMiss = pitched.find(n => n.state === "miss"), allHit = pitched.every(n => n.state === "hit");
         const colour = pitched.length === 1 ? colourOf(pitched[0]) : anyMiss ? N.COL.miss : allHit ? N.COL.ok : pitched.some(n => n.state === "played") ? N.COL.played : N.COL.ink;
         const top = pitched.reduce((a, b) => a.diatonic > b.diatonic ? a : b);
-        N.drawChord(L, g.si, pitched, x, { colour, label: settings.labels ? pitched.map(n => MU.shortName(n.midi, settings.naming, S.preferFlat)).join(" ") : null });
+        N.drawChord(L, g.si, pitched, x, { colour, label: labelsOn() ? pitched.map(n => labelFor(n.midi)).join(" ") : null });
         if (settings.ghost) for (const n of pitched) if (n.state === "miss" && n.playedMidi > 0) N.drawGhost(L, g.si, n.playedMidi, x, S.preferFlat);
         void top;
       }

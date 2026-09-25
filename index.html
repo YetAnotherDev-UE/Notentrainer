@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925c") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925d") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -293,7 +293,7 @@
     </div>
     <h2 class="sec display">Anzeige</h2>
     <div class="form">
-      <div class="setRow"><label>Notennamen</label><input type="checkbox" id="set-labels"><span class="small muted">Name über der Note (fürs Erste, später aus)</span></div>
+      <div class="setRow"><label>Notennamen</label><select id="set-labels"><option value="octave">Name + Oktave (D4)</option><option value="name">Nur Name (D)</option><option value="off">Keine</option></select></div>
       <div class="setRow"><label>Geisternote</label><input type="checkbox" id="set-ghost"><span class="small muted">Bei Fehlern die gespielte Note zeigen</span></div>
       <div class="setRow"><label>Wackeln</label><input type="checkbox" id="set-shake"><span class="small muted">Bild wackelt bei Fehlern. Aus, wenn es beim Lesen stört</span></div>
     </div>
@@ -315,14 +315,14 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260925c"></script>
-<script src="js/notation.js?v=20260925c"></script>
-<script src="js/store.js?v=20260925c"></script>
-<script src="js/midi.js?v=20260925c"></script>
-<script src="js/synth.js?v=20260925c"></script>
-<script src="js/musicxml.js?v=20260925c"></script>
-<script src="pieces/starter.js?v=20260925c"></script>
-<script src="js/game.js?v=20260925c"></script>
-<script src="js/app.js?v=20260925c"></script>
+<script src="js/music.js?v=20260925d"></script>
+<script src="js/notation.js?v=20260925d"></script>
+<script src="js/store.js?v=20260925d"></script>
+<script src="js/midi.js?v=20260925d"></script>
+<script src="js/synth.js?v=20260925d"></script>
+<script src="js/musicxml.js?v=20260925d"></script>
+<script src="pieces/starter.js?v=20260925d"></script>
+<script src="js/game.js?v=20260925d"></script>
+<script src="js/app.js?v=20260925d"></script>
 </body>
 </html>
