@@ -1,4 +1,4 @@
-/* starter.js: drei gemeinfreie Starter-Stücke als MusicXML-Text.
+/* starter.js: vier gemeinfreie Starter-Stücke als MusicXML-Text.
  * Der Text wird aus einer knappen Notation zusammengesetzt, damit die Datei
  * lesbar bleibt; der Parser sieht trotzdem echtes MusicXML und wird damit
  * genauso geprüft wie mit importierten Dateien.
@@ -78,5 +78,18 @@ NT.starterPieces = (() => {
       { rh: [["B4", 2], ["A4", 4]],                                   lh: [["D3", 2], ["D3", 2], ["D3", 2]] },
     ] };
 
-  return [entchen, freude, menuett].map(p => ({ id: p.id, title: p.title, composer: p.composer, xml: build(p) }));
+  // Das einfachste Stueck fuer beide Haende: links nur halbe Noten, keine Akkorde.
+  const haenschen = { id: "starter-haenschen", title: "Hänschen klein", composer: "Volkslied", fifths: 0, time: [2, 4], tempo: 84,
+    bars: [
+      { rh: [["G4", 2], ["E4", 2]], lh: [["C3", 4]] }, { rh: [["E4", 4]], lh: [["C3", 4]] },
+      { rh: [["F4", 2], ["D4", 2]], lh: [["G2", 4]] }, { rh: [["D4", 4]], lh: [["G2", 4]] },
+      { rh: [["C4", 2], ["D4", 2]], lh: [["C3", 4]] }, { rh: [["E4", 2], ["F4", 2]], lh: [["C3", 4]] },
+      { rh: [["G4", 2], ["G4", 2]], lh: [["G2", 4]] }, { rh: [["G4", 4]], lh: [["G2", 4]] },
+      { rh: [["G4", 2], ["E4", 2]], lh: [["C3", 4]] }, { rh: [["E4", 4]], lh: [["C3", 4]] },
+      { rh: [["F4", 2], ["D4", 2]], lh: [["G2", 4]] }, { rh: [["D4", 4]], lh: [["G2", 4]] },
+      { rh: [["C4", 2], ["E4", 2]], lh: [["C3", 4]] }, { rh: [["G4", 2], ["G4", 2]], lh: [["G2", 4]] },
+      { rh: [["C4", 4]], lh: [["C3", 4]] }, { rh: [["C4", 4]], lh: [["C3", 4]] },
+    ] };
+
+  return [haenschen, entchen, freude, menuett].map(p => ({ id: p.id, title: p.title, composer: p.composer, xml: build(p) }));
 })();
