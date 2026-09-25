@@ -70,11 +70,11 @@ NT.game = (() => {
   /* --- Quellen: liefern Gruppen gleichzeitiger Noten mit Vorlauf in Schlägen --- */
   function randomSource(count) {
     let n = 0, last = null;
-    return { next() { if (n >= count) return null; const m = pickWeighted(candidates(), last); if (m == null) return null; last = m; n++; return { notes: [noteFromMidi(m, 1)], advance: 1, bar: n % 4 === 1 }; } };
+    return { next() { if (n >= count) return null; const m = pickWeighted(candidates(), last); if (m == null) return null; last = m; n++; return { notes: [noteFromMidi(m, 1)], advance: 1, bar: false }; } };
   }
   function scaleSource(root, type, octaves) {
     const seq = MU.scale(root, type, octaves); let i = 0;
-    return { next() { if (i >= seq.length) return null; const m = seq[i++]; return { notes: [noteFromMidi(m, 1)], advance: 1, bar: (i - 1) % 4 === 0 }; }, length: seq.length };
+    return { next() { if (i >= seq.length) return null; const m = seq[i++]; return { notes: [noteFromMidi(m, 1)], advance: 1, bar: false }; }, length: seq.length };
   }
   // Phrasen: ein bis zwei Takte aus einem gewählten Stück, gewichtet nach
   // Fehlern je (Stück, Takt), gefiltert nach Hand und Tonumfang.
@@ -110,13 +110,15 @@ NT.game = (() => {
       const rests = pick.piece.notes.filter(n => n.isRest && n.measure >= pick.from && n.measure < pick.from + pick.measures.length && (hand === "both" || n.hand === hand));
       const byOnset = new Map();
       for (const n of pick.notes.concat(rests)) { const k = +(n.startBeat - start).toFixed(4); if (!byOnset.has(k)) byOnset.set(k, []); byOnset.get(k).push(n); }
-      const onsets = Array.from(byOnset.keys()).sort((a, b) => a - b);
+      // Zeitpunkte = Noteneinsaetze vereinigt mit Taktanfaengen, damit jeder
+      // Takt seinen Strich bekommt, auch wenn dort keine Note dieser Hand liegt.
+      const barSet = new Set(pick.measures.map(m => +(m.startBeat - start).toFixed(4)));
+      const onsets = Array.from(new Set([...byOnset.keys(), ...barSet])).sort((a, b) => a - b);
       const len = pick.measures.reduce((a, m) => a + m.lengthBeats, 0);
       onsets.forEach((k, i) => {
         const nextK = i + 1 < onsets.length ? onsets[i + 1] : len;
-        const group = byOnset.get(k).map(n => Object.assign({}, n, { dur: n.durBeats, piece: pick.piece.id, phraseFrom: pick.from }));
-        const barHere = pick.measures.some(m => Math.abs(m.startBeat - start - k) < 1e-6);
-        queue.push({ notes: group, advance: nextK - k, bar: barHere, title: i === 0 ? pick.piece.title + " · Takt " + (pick.from + 1) : null });
+        const group = (byOnset.get(k) || []).map(n => Object.assign({}, n, { dur: n.durBeats, piece: pick.piece.id, phraseFrom: pick.from }));
+        queue.push({ notes: group, advance: nextK - k, bar: barSet.has(k), title: i === 0 ? pick.piece.title + " · Takt " + (pick.from + 1) : null, pieceId: pick.piece.id });
       });
       // Luft zwischen Phrasen: ein Schlag Pause, danach Taktstrich.
       queue[queue.length - 1].advance += 1;
@@ -129,13 +131,13 @@ NT.game = (() => {
     const notes = NT.musicxml.notesFor(piece, hand).concat(piece.notes.filter(n => n.isRest && (hand === "both" || n.hand === hand)));
     const byOnset = new Map();
     for (const n of notes) { const k = +n.startBeat.toFixed(4); if (!byOnset.has(k)) byOnset.set(k, []); byOnset.get(k).push(n); }
-    const onsets = Array.from(byOnset.keys()).sort((a, b) => a - b); let i = 0;
+    const barSet = new Set(piece.measures.map(m => +m.startBeat.toFixed(4)));
+    const onsets = Array.from(new Set([...byOnset.keys(), ...barSet])).sort((a, b) => a - b); let i = 0;
     return { next() {
       if (i >= onsets.length) return null;
       const k = onsets[i], nextK = i + 1 < onsets.length ? onsets[i + 1] : piece.totalBeats;
-      const group = byOnset.get(k).map(n => Object.assign({}, n, { dur: n.durBeats, piece: piece.id }));
-      const bar = piece.measures.some(m => Math.abs(m.startBeat - k) < 1e-6);
-      i++; return { notes: group, advance: nextK - k, bar };
+      const group = (byOnset.get(k) || []).map(n => Object.assign({}, n, { dur: n.durBeats, piece: piece.id }));
+      i++; return { notes: group, advance: nextK - k, bar: barSet.has(k) };
     } };
   }
 
@@ -234,8 +236,8 @@ NT.game = (() => {
       if (!g) { S.spawnedAll = true; break; }
       const dueAt = S.t0 + S.lastBeat * beatMs();
       // Neue Phrase aus einem Stück mit anderer Tonart: Vorzeichnung nachziehen.
-      if (g.title && S.pieces && g.notes[0] && g.notes[0].piece) {
-        const p = S.pieces.find(q => q.id === g.notes[0].piece);
+      if (g.title && S.pieces && g.pieceId) {
+        const p = S.pieces.find(q => q.id === g.pieceId);
         if (p && S.spec && p.fifths !== S.spec.keyFifths) { S.spec.keyFifths = p.fifths; S.preferFlat = p.fifths < 0; S.L = N.layout(S.spec); }
       }
       if (g.bar) S.bars.push({ at: dueAt });
@@ -310,8 +312,9 @@ NT.game = (() => {
     } else {
       N.clipContent(L);
       for (const b of S.bars) {
-        const x = xFor(b.at, t);
-        N.drawBarline(L, x, N.COL.muted);
+        // Der Taktstrich steht mit Abstand vor der ersten Note des Takts, nicht auf ihr.
+        const x = xFor(b.at, t) - L.GAP * 1.6;
+        N.drawBarline(L, x, N.COL.ink);
         // Titel unter das letzte System, damit er den Notennamen nicht in die Quere kommt.
         if (b.title) { const c = N.ctx; c.font = `600 ${Math.round(L.GAP * 0.75)}px system-ui, sans-serif`; c.fillStyle = N.COL.muted; c.textAlign = "left"; c.fillText(b.title, x + L.GAP * 0.3, L.staves[L.staves.length - 1].bottomY + L.GAP * 1.9); }
       }
