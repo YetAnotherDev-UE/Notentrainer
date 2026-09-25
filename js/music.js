@@ -75,6 +75,19 @@ NT.music = (() => {
     const int = ["C♭", "G♭", "D♭", "A♭", "E♭", "B♭", "F", "C", "G", "D", "A", "E", "B", "F♯", "C♯"];
     return (naming === "de" ? de : int)[fifths + 7] + "-Dur";
   };
+  // Parallele Molltonart zur selben Vorzeichnung, fuers Tonart-Quiz.
+  const minorName = (fifths, naming) => {
+    const de  = ["as", "es", "b", "f", "c", "g", "d", "a", "e", "h", "fis", "cis", "gis", "dis", "ais"];
+    const int = ["a♭", "e♭", "b♭", "f", "c", "g", "d", "a", "e", "b", "f♯", "c♯", "g♯", "d♯", "a♯"];
+    return (naming === "de" ? de : int)[fifths + 7] + "-Moll";
+  };
+
+  /* --- Intervalle: nach Buchstabenabstand, nicht nach Halbtoenen -------- *
+   * 0 = Prime, 1 = Sekunde ... 7 = Oktave. Fuer das Lesen zaehlt der
+   * Abstand im System; ob die Terz gross oder klein ist, kommt spaeter.
+   * ------------------------------------------------------------------ */
+  const INTERVAL_NAMES = ["Prime", "Sekunde", "Terz", "Quarte", "Quinte", "Sexte", "Septime", "Oktave"];
+  const intervalName = steps => INTERVAL_NAMES[Math.min(7, Math.abs(steps))];
 
   /* --- Tonleitern ---------------------------------------------------- */
   const SCALES = {
@@ -107,5 +120,6 @@ NT.music = (() => {
   }
 
   return { LETTERS_DE, LETTERS_INT, isBlack, spell, midiOf, diatonicOf, name, shortName,
-           keySignature, keyAlterOf, fifthsOf, keyName, scale, SCALES, ROOT_NAMES, durationParts };
+           keySignature, keyAlterOf, fifthsOf, keyName, minorName, INTERVAL_NAMES, intervalName,
+           scale, SCALES, ROOT_NAMES, durationParts };
 })();

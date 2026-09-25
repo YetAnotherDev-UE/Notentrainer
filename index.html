@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925h") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925m") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -35,7 +35,7 @@
     animation: scrollStripes 8s linear infinite; will-change: transform;
   }
   @keyframes scrollStripes { from { transform: rotate(-10deg) translateY(0); } to { transform: rotate(-10deg) translateY(110px); } }
-  @media (prefers-reduced-motion: reduce) { body::before { animation: none; } .hero { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { body::before { animation: none; } .hero, .marker, .node.current, .menuBtn.story .skew::after { animation: none; } }
   .display { font-family: "Anton", "Avenir Next Condensed", "Bahnschrift", "Impact", "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: .02em; font-weight: 400; }
 
   .screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 14px 18px; overflow: auto; }
@@ -43,8 +43,8 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex: none; }
   .brand { font-size: 36px; line-height: 1; color: var(--c3); text-shadow: 0 3px 0 #b45309, 0 8px 18px rgba(0,0,0,.55); }
-  .title { font-size: 24px; line-height: 1; }
-  .midiChip { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; cursor: pointer; max-width: 46vw; }
+  .title { font-size: 24px; line-height: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .midiChip { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; cursor: pointer; max-width: 46vw; flex: none; }
   .midiChip i { width: 10px; height: 10px; border-radius: 50%; background: #9ca3af; flex: none; }
   .midiChip[data-kind=live] i { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
   .midiChip[data-kind=fail] i { background: var(--miss); }
@@ -55,22 +55,23 @@
   button { font: inherit; color: #fff; background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; box-shadow: 0 4px 0 #1e3a8a; transition: transform .08s; }
   button:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e3a8a; }
   button.ghostBtn { background: transparent; border: 1px solid var(--line); box-shadow: none; }
-  button.back { background: linear-gradient(180deg, #f472b6, #db2777); box-shadow: 0 4px 0 #9d174d; }
+  button.back { background: linear-gradient(180deg, #f472b6, #db2777); box-shadow: 0 4px 0 #9d174d; flex: none; }
   button.iconBtn { padding: 8px 10px; background: var(--card); box-shadow: none; border: 1px solid var(--line); }
+  button.gold { background: linear-gradient(180deg, #ffe066, #f0b400); color: #3b2a00; box-shadow: 0 4px 0 #a16207; }
+  button.green { background: linear-gradient(180deg, #5ee8b3, #12a874); box-shadow: 0 4px 0 #065f46; }
   .muted { color: var(--muted); } .small { font-size: 13px; }
   [hidden] { display: none !important; }
 
   /* --- Hauptmenue -------------------------------------------------- */
-  .homeGrid { flex: 1; display: grid; grid-template-columns: minmax(260px, 360px) 1fr minmax(240px, 320px); gap: 18px; align-items: center; min-height: 0; }
+  .homeGrid { flex: 1; display: grid; grid-template-columns: minmax(300px, 420px) 1fr minmax(240px, 320px); gap: 18px; align-items: center; min-height: 0; }
   .menu { display: flex; flex-direction: column; gap: 10px; }
   .menuBtn { background: none; border: 0; padding: 0; box-shadow: none; text-align: left; color: #fff; }
   .menuBtn:active { transform: none; }
-  .menuBtn .skew { display: block; transform: skewX(-10deg); padding: 9px 18px 9px 22px; border-radius: 8px; box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 12px 26px rgba(0,0,0,.35); transition: transform .08s, box-shadow .08s; }
+  .menuBtn .skew { display: block; transform: skewX(-10deg); padding: 9px 18px 9px 22px; border-radius: 8px; box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 12px 26px rgba(0,0,0,.35); transition: transform .08s, box-shadow .08s; position: relative; overflow: hidden; }
   .menuBtn:active .skew { transform: skewX(-10deg) translateY(5px); box-shadow: 0 1px 0 rgba(0,0,0,.35); }
   .menuBtn .lbl, .menuBtn small { display: block; transform: skewX(10deg); }
   .menuBtn .lbl { font-size: 26px; line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
   .menuBtn small { font-size: 12px; opacity: .92; }
-  .menu .menuBtn:nth-child(2n) { margin-left: 14px; }
   .c1 .skew { background: linear-gradient(180deg, #ff7cc0, #e0338a); }
   .c2 .skew { background: linear-gradient(180deg, #ffa25e, #e8621c); }
   .c3 .skew { background: linear-gradient(180deg, #ffe066, #f0b400); }
@@ -78,10 +79,27 @@
   .c5 .skew { background: linear-gradient(180deg, #b79bff, #7c3aed); }
   .c6 .skew { background: linear-gradient(180deg, #5ee8b3, #12a874); }
   .c7 .skew { background: linear-gradient(180deg, #86b8ff, #2563eb); }
+  .c8 .skew { background: linear-gradient(180deg, #f9a8d4, #be185d); }
+  /* Der grosse Abenteuer-Knopf: warmer Verlauf, ein Lichtstreifen wandert darueber. */
+  .menuBtn.story .skew { background: linear-gradient(120deg, #ff4fa3, #ff8a3d 55%, #ffd23f); padding: 14px 22px 12px 26px; }
+  .menuBtn.story .skew::after { content: ""; position: absolute; top: -40%; bottom: -40%; width: 60px; left: -80px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); transform: skewX(-20deg); animation: shine 4s ease-in-out infinite; }
+  @keyframes shine { 0%, 60% { left: -80px; } 100% { left: 120%; } }
+  .menuBtn.story .lbl { font-size: 34px; }
+  .menuBtn.story .row { display: flex; align-items: center; gap: 12px; transform: skewX(10deg); }
+  .menuBtn.story .row > div { flex: 1; min-width: 0; }
+  .menuBtn.story .lbl, .menuBtn.story small { transform: none; }
+  .storyStars { flex: none; background: rgba(0,0,0,.3); border-radius: 999px; padding: 6px 12px; font-size: 20px; color: #ffd23f; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  .modeGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+  .modeGrid .menuBtn .skew { padding: 7px 14px 7px 18px; }
+  .modeGrid .menuBtn .lbl { font-size: 21px; }
+  .modeGrid .menuBtn small { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .navRow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .navRow .menuBtn .skew { padding: 6px 12px 6px 16px; }
+  .navRow .menuBtn .lbl { font-size: 17px; }
   /* background-clip: text malt nur innerhalb der Box. Der Schluessel ragt 1,10 em
      ueber die Grundlinie, die bei line-height 1.5 nur 0,75 em unter dem Rand
      liegt - der Innenabstand oben holt den Rest. */
-  .hero { font-family: "NotenSymbole"; font-size: min(40vh, 30vw); line-height: 1.5; padding: .42em .05em .02em; text-align: center; user-select: none;
+  .hero { font-family: "NotenSymbole"; font-size: min(40vh, 24vw); line-height: 1.5; padding: .42em .05em .02em; text-align: center; user-select: none;
     background: linear-gradient(180deg, #fff3a0 0%, #ffb020 50%, #ff5c3d 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 14px 24px rgba(0,0,0,.55)); animation: float 5s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-10px) rotate(-2deg); } }
@@ -92,6 +110,54 @@
   .xpbar, .progress { height: 10px; background: rgba(255,255,255,.12); border-radius: 999px; overflow: hidden; }
   .xpbar > div, .progress > div { height: 100%; width: 0; background: linear-gradient(90deg, #2dd4ff, #a78bfa); transition: width .5s; }
   .xpbar { margin: 8px 0 4px; }
+  .todayRow { display: flex; align-items: center; gap: 12px; }
+  .ring { width: 64px; height: 64px; flex: none; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 7; }
+  .ring .bg { stroke: rgba(255,255,255,.12); }
+  .ring .fg { stroke: #34d399; stroke-linecap: round; stroke-dasharray: 163.4; stroke-dashoffset: 163.4; transition: stroke-dashoffset .6s; }
+  .ring.done .fg { stroke: #ffd23f; }
+  .todayRow b { font-size: 22px; }
+  .todayRow .streakDays { color: var(--c3); }
+
+  /* --- Abenteuer-Karte ---------------------------------------------- */
+  .storyTotal { font-size: 20px; color: #ffd23f; text-shadow: 0 2px 0 rgba(0,0,0,.4); white-space: nowrap; }
+  .mapScroll { flex: 1; min-height: 0; overflow: auto; border-radius: 18px; background: rgba(0,0,0,.2); border: 1px solid var(--line); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .map { position: relative; width: 100%; }
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .world { position: absolute; left: 3%; right: 3%; border-radius: 60px; opacity: .5; }
+  .worldBanner { position: absolute; left: 50%; transform: translate(-50%, -50%) skewX(-8deg); padding: 6px 26px; border-radius: 12px; color: #fff; text-align: center;
+    background: linear-gradient(180deg, var(--wa), var(--wb)); box-shadow: 0 5px 0 rgba(0,0,0,.35), 0 12px 24px rgba(0,0,0,.4); border: 2px solid rgba(255,255,255,.7); z-index: 2; white-space: nowrap; }
+  .worldBanner .display { font-size: 22px; line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+  .worldBanner small { display: block; font-size: 11px; opacity: .92; }
+  .deco { position: absolute; font-size: 28px; opacity: .2; pointer-events: none; user-select: none; color: #fff; }
+  .node { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid rgba(255,255,255,.85); padding: 0;
+    background: linear-gradient(180deg, var(--wa), var(--wb)); color: #fff; font-size: 24px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 12px 22px rgba(0,0,0,.35); z-index: 3; transition: transform .1s; }
+  .node:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+  .node.locked { background: linear-gradient(180deg, #6b7280, #374151); color: #cbd5e1; border-color: rgba(255,255,255,.35); }
+  .node.locked::after { content: "🔒"; position: absolute; font-size: 15px; right: -7px; top: -7px; }
+  .node.boss { width: 78px; height: 78px; margin: -39px 0 0 -39px; font-size: 30px; border-width: 4px; border-color: #ffd23f; }
+  .node.boss:not(.locked)::before { content: "👑"; position: absolute; top: -22px; font-size: 22px; }
+  .node .stars { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); font-size: 16px; line-height: 1; letter-spacing: -1px; color: rgba(255,255,255,.3); white-space: nowrap; text-shadow: 0 1px 0 rgba(0,0,0,.6); }
+  .node .stars b { color: #ffd23f; font-weight: 400; }
+  .node.current { animation: nodePulse 1.6s ease-in-out infinite; }
+  @keyframes nodePulse { 0%, 100% { box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 0 0 0 rgba(255,210,63,.75); } 50% { box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 0 0 16px rgba(255,210,63,0); } }
+  .marker { position: absolute; width: 46px; height: 46px; margin: -98px 0 0 -23px; border-radius: 50% 50% 50% 6px; background: #fff; color: #e0338a; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; z-index: 4; box-shadow: 0 8px 18px rgba(0,0,0,.4); animation: bob 1.2s ease-in-out infinite; pointer-events: none; transform: rotate(-45deg); }
+  .marker span { transform: rotate(45deg); }
+  @keyframes bob { 50% { margin-top: -108px; } }
+  .modal { position: fixed; inset: 0; background: rgba(3,12,32,.72); display: flex; align-items: center; justify-content: center; z-index: 8; padding: 16px; backdrop-filter: blur(4px); }
+  .levelCard { width: min(560px, 100%); max-height: 100%; overflow: auto; background: #0b2150; border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 30px 60px rgba(0,0,0,.6); animation: popIn .25s cubic-bezier(.34,1.4,.64,1); }
+  @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+  .levelHead { padding: 16px 20px; background: linear-gradient(180deg, var(--wa), var(--wb)); border-radius: 22px 22px 0 0; }
+  .levelHead .display { font-size: 30px; line-height: 1; text-shadow: 0 2px 0 rgba(0,0,0,.3); }
+  .levelHead .small { opacity: .95; }
+  .levelBody { padding: 14px 20px 18px; }
+  .goalRow { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .goal { background: rgba(0,0,0,.25); border-radius: 10px; padding: 6px 10px; font-size: 13px; }
+  .goal b { color: #ffd23f; font-weight: 400; }
+  .levelBody .actions { display: flex; gap: 10px; margin-top: 14px; }
+  .levelBody .actions button:first-child { flex: 1; font-size: 18px; }
 
   /* --- Spielbildschirm --------------------------------------------- */
   .hud { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 10px; align-items: center; margin-bottom: 8px; flex: none; }
@@ -103,10 +169,14 @@
   .pop { animation: pop .25s; }
   @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }
   .progress > div { background: linear-gradient(90deg, #34d399, #ffd23f); }
-  .stage { flex: 1; min-height: 180px; background: var(--paper); border-radius: 14px; padding: 8px; box-shadow: 0 0 0 4px rgba(255,255,255,.08), 0 22px 44px rgba(0,0,0,.45); }
+  .stage { position: relative; flex: 1; min-height: 180px; background: var(--paper); border-radius: 14px; padding: 8px; box-shadow: 0 0 0 4px rgba(255,255,255,.08), 0 22px 44px rgba(0,0,0,.45); }
   canvas { width: 100%; height: 100%; display: block; }
   .shake { animation: shake .3s; }
   @keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+  /* Einzaehler: grosse Ziffer hinter den Noten, halb durchsichtig. */
+  .countIn { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; font-size: min(40vh, 220px); line-height: 1; color: rgba(224,51,138,.24); }
+  .countIn span { animation: countPop .45s ease-out; }
+  @keyframes countPop { from { transform: scale(1.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .bar { display: flex; align-items: center; gap: 12px; min-height: 30px; margin: 8px 0 4px; flex: none; }
   .feedback { flex: 1; min-width: 0; font: 500 17px Georgia, "Iowan Old Style", serif; color: var(--muted); }
   .feedback.ok { color: #4ade80; } .feedback.miss { color: #fb7185; }
@@ -120,15 +190,31 @@
   .controls input[type=range] { flex: 1; accent-color: #ffd23f; }
   .rotate { display: none; color: var(--muted); font-size: 13px; }
 
+  /* --- Quiz ---------------------------------------------------------- */
+  .quizHead { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex: none; flex-wrap: wrap; }
+  .quizPrompt { font: 500 18px Georgia, serif; flex: 1; min-width: 200px; }
+  .answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; margin-top: 10px; flex: none; }
+  .ans { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; background: linear-gradient(180deg, #5ee2ff, #0ea5c9); box-shadow: 0 4px 0 #0c4a6e; border-radius: 12px; }
+  .ans .display { font-size: 22px; line-height: 1; }
+  .ans small { font-size: 11px; opacity: .9; }
+  .ans.ok { background: linear-gradient(180deg, #5ee8b3, #12a874); box-shadow: 0 4px 0 #065f46; }
+  .ans.miss { background: linear-gradient(180deg, #fb7185, #dc2626); box-shadow: 0 4px 0 #7f1d1d; }
+  .ans.dim { opacity: .45; }
+
   /* --- Ergebnis ----------------------------------------------------- */
-  .resultCard { margin: auto; max-width: 680px; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px 26px; text-align: center; backdrop-filter: blur(8px); }
-  .resultCard h1 { font-size: 44px; margin: 0 0 12px; color: var(--c3); text-shadow: 0 3px 0 #b45309; }
+  .resultCard { margin: auto; max-width: 700px; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 18px 26px 22px; text-align: center; backdrop-filter: blur(8px); }
+  .resultCard h1 { font-size: 44px; margin: 0 0 4px; color: var(--c3); text-shadow: 0 3px 0 #b45309; }
+  .resSub { color: var(--muted); margin: 0 0 8px; }
+  .starRow { display: flex; justify-content: center; gap: 12px; font-size: 66px; line-height: 1; margin: 4px 0 8px; }
+  .starRow span { color: rgba(255,255,255,.16); transform: scale(.6); opacity: .7; transition: transform .4s cubic-bezier(.34,1.56,.64,1), color .2s, opacity .2s; text-shadow: 0 4px 0 rgba(0,0,0,.35); }
+  .starRow span.lit { color: #ffd23f; transform: scale(1); opacity: 1; filter: drop-shadow(0 0 14px rgba(255,210,63,.7)); }
   .figRow { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .fig { flex: 1; min-width: 110px; background: rgba(0,0,0,.22); border-radius: 14px; padding: 10px; text-align: center; }
   .fig b { display: block; font-size: 32px; line-height: 1; }
   .fig span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
   .fig.ok b { color: #4ade80; } .fig.miss b { color: #fb7185; } .fig.xp b { color: var(--c4); } .fig.streak b { color: var(--c3); }
-  .resultCard .actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+  .resultCard .actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .resultCard .actions .gold, .resultCard .actions .green { font-size: 17px; }
 
   /* --- Statistik, Bibliothek, Einstellungen ------------------------- */
   .pageBody { display: flex; flex-direction: column; gap: 14px; max-width: 980px; width: 100%; margin: 0 auto; }
@@ -148,7 +234,7 @@
   .piece { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
   .piece.sel { border-color: var(--c4); box-shadow: 0 0 0 1px var(--c4) inset; }
   .piece label { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; cursor: pointer; }
-  .piece .actions { margin-top: 8px; display: flex; gap: 8px; }
+  .piece .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
   .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
   .setRow { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; }
   .setRow label { width: 130px; flex: none; color: var(--muted); font-size: 14px; }
@@ -183,22 +269,51 @@
   </header>
   <div class="homeGrid">
     <nav class="menu">
-      <button class="menuBtn c1" data-mode="single"><span class="skew"><span class="lbl display">Einzeln</span><small>Note sehen, Taste treffen</small></span></button>
-      <button class="menuBtn c2" data-mode="run"><span class="skew"><span class="lbl display">Lauf</span><small>Noten kommen von rechts, im Takt treffen</small></span></button>
-      <button class="menuBtn c3" data-mode="phrase"><span class="skew"><span class="lbl display">Stücke</span><small>Phrasen aus echten Stücken, mit Rhythmus</small></span></button>
-      <button class="menuBtn c4" data-mode="scale"><span class="skew"><span class="lbl display">Tonleiter</span><small>Gleichmäßig rauf und runter</small></span></button>
-      <button class="menuBtn c5" data-go="stats"><span class="skew"><span class="lbl display">Statistik</span><small>Verlauf, Schwächen, Level</small></span></button>
-      <button class="menuBtn c6" data-go="library"><span class="skew"><span class="lbl display">Bibliothek</span><small>Stücke wählen, importieren, anhören</small></span></button>
-      <button class="menuBtn c7" data-go="settings"><span class="skew"><span class="lbl display">Einstellungen</span><small>Schlüssel, Umfang, Hand, Klang</small></span></button>
+      <button class="menuBtn story" id="storyBtn"><span class="skew"><span class="row"><div><span class="lbl display">Abenteuer</span><small id="storyHint">Welt 1 · Level 1: Zwei Töne</small></div><span class="storyStars display" id="storyStars">★ 0</span></span></span></button>
+      <div class="modeGrid">
+        <button class="menuBtn c1" data-mode="single"><span class="skew"><span class="lbl display">Einzeln</span><small>Note sehen, Taste treffen</small></span></button>
+        <button class="menuBtn c2" data-mode="run"><span class="skew"><span class="lbl display">Lauf</span><small>Noten kommen von rechts</small></span></button>
+        <button class="menuBtn c4" data-mode="interval"><span class="skew"><span class="lbl display">Intervalle</span><small>Bewegung lesen, nicht Namen</small></span></button>
+        <button class="menuBtn c8" data-mode="rhythm"><span class="skew"><span class="lbl display">Rhythmus</span><small>Nur der Zeitpunkt zählt</small></span></button>
+        <button class="menuBtn c3" data-mode="phrase"><span class="skew"><span class="lbl display">Stücke</span><small>Phrasen aus echten Stücken</small></span></button>
+        <button class="menuBtn c6" data-mode="scale"><span class="skew"><span class="lbl display">Tonleiter</span><small>Gleichmäßig rauf und runter</small></span></button>
+        <button class="menuBtn c5" data-mode="ear"><span class="skew"><span class="lbl display">Gehör</span><small>Ton hören, Taste finden</small></span></button>
+        <button class="menuBtn c7" data-mode="quiz"><span class="skew"><span class="lbl display">Quiz</span><small>Ohne Klavier, auch unterwegs</small></span></button>
+      </div>
+      <div class="navRow">
+        <button class="menuBtn c6" data-go="library"><span class="skew"><span class="lbl display">Bibliothek</span></span></button>
+        <button class="menuBtn c5" data-go="stats"><span class="skew"><span class="lbl display">Statistik</span></span></button>
+        <button class="menuBtn c7" data-go="settings"><span class="skew"><span class="lbl display">Einstellungen</span></span></button>
+      </div>
     </nav>
     <div class="hero" aria-hidden="true">&#xE050;</div>
     <aside class="cards">
-      <div class="card"><div class="cardHead display c3">Level <b id="homeLevel">1</b></div><div class="xpbar"><div id="homeXpBar"></div></div><div class="small muted" id="homeXp">0 / 100 XP</div></div>
-      <div class="card"><div class="cardHead display c4">Verlauf</div><div class="small" id="homeTotals"></div></div>
-      <div class="card"><div class="cardHead display c6">Verbindung</div><div class="small" id="midiDetail"></div><button id="connectBtn" hidden style="margin-top:8px">MIDI verbinden</button></div>
+      <div class="card"><div class="cardHead display c3">Level <b id="homeLevel">1</b></div><div class="xpbar"><div id="homeXpBar"></div></div><div class="small muted" id="homeXp">0 / 100 XP</div><div class="small muted" id="homeTotals" style="margin-top:6px"></div></div>
+      <div class="card">
+        <div class="cardHead display c6">Heute</div>
+        <div class="todayRow">
+          <svg class="ring" id="todayRing" viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="26"></circle><circle class="fg" id="ringFill" cx="32" cy="32" r="26"></circle></svg>
+          <div><b id="todayCount">0</b> <span class="muted">/ <span id="todayGoal">100</span> Noten</span><br><span class="streakDays" id="streakDays">Serie: 0 Tage</span></div>
+        </div>
+        <p class="small" id="recoText" style="margin:10px 0 8px"></p>
+        <div class="btnRow"><button id="recoBtn" class="green">Los</button><button class="ghostBtn" id="warmBtn">Aufwärmen</button></div>
+      </div>
+      <div class="card"><div class="cardHead display c4">Verbindung</div><div class="small" id="midiDetail"></div><button id="connectBtn" hidden style="margin-top:8px">MIDI verbinden</button></div>
     </aside>
   </div>
 </section>
+
+<!-- Abenteuer: Karte -->
+<section class="screen" id="screen-story">
+  <header class="topbar">
+    <button class="back" data-go="home">Zurück</button>
+    <div class="title display">Abenteuer</div>
+    <div class="storyTotal display" id="storyTotal">★ 0</div>
+    <div class="midiChip" data-kind="busy"><i></i><span></span></div>
+  </header>
+  <div class="mapScroll" id="mapScroll"><div class="map" id="map"></div></div>
+</section>
+<div class="modal" id="levelModal" hidden><div class="levelCard" id="levelCard"></div></div>
 
 <!-- Spielen -->
 <section class="screen" id="screen-play">
@@ -215,16 +330,34 @@
     <div class="hudItem c2"><b class="display" id="hudXp">+0</b><span>XP</span></div>
     <div class="progress"><div id="hudProgress"></div></div>
   </div>
-  <div class="stage" id="stage"><canvas id="staff"></canvas></div>
-  <div class="bar"><div class="feedback" id="feedback"></div><div class="chips" id="chips"></div></div>
+  <div class="stage" id="stage"><canvas id="staff"></canvas><div class="countIn display" id="countIn" hidden></div></div>
+  <div class="bar"><div class="feedback" id="feedback"></div><button id="hearBtn" hidden>Nochmal hören</button><div class="chips" id="chips"></div></div>
   <div class="controls" id="tempoRow"><label>Tempo</label><input type="range" id="tempo" min="30" max="200" value="80"><b id="tempoVal">80</b><span class="small muted">Schläge/min</span></div>
   <p class="rotate">Quer halten: im Hochformat ist das System zu klein.</p>
+</section>
+
+<!-- Quiz -->
+<section class="screen" id="screen-quiz">
+  <header class="topbar">
+    <button class="back" id="quizStopBtn">Beenden</button>
+    <div class="title display">Quiz · <span id="quizKindTitle">Notennamen</span></div>
+    <select id="quizKind" style="margin-left:auto"><option value="note">Notennamen</option><option value="key">Tonarten</option><option value="interval">Intervalle</option></select>
+    <div class="midiChip" data-kind="busy" style="margin-left:0"><i></i><span></span></div>
+  </header>
+  <div class="quizHead"><div class="quizPrompt" id="quizPrompt"></div><div class="small muted" id="quizScore"></div></div>
+  <div class="progress" style="flex:none;margin-bottom:8px"><div id="quizProgress"></div></div>
+  <div class="stage" id="quizStage"><canvas id="quizStaff"></canvas></div>
+  <div class="answers" id="quizAnswers"></div>
+  <div class="bar"><div class="feedback" id="quizFeedback"></div></div>
 </section>
 
 <!-- Ergebnis -->
 <section class="screen" id="screen-results">
   <div class="resultCard">
     <h1 class="display" id="resTitle">Stark!</h1>
+    <p class="resSub" id="resSub" hidden></p>
+    <div class="starRow" id="resStars" hidden><span>★</span><span>★</span><span>★</span></div>
+    <p class="small muted" id="resGoal" hidden style="margin:0 0 10px"></p>
     <div class="figRow">
       <div class="fig ok"><b class="display" id="resHits">0</b><span>Treffer</span></div>
       <div class="fig miss"><b class="display" id="resMisses">0</b><span>Fehler</span></div>
@@ -234,11 +367,18 @@
     </div>
     <p id="resTiming" class="muted" style="margin:14px 0 4px"></p>
     <p id="resEven" class="muted small" hidden></p>
+    <p id="resLadder" class="small" hidden style="color:var(--c3)"></p>
     <div style="margin:12px 0 6px" class="display" id="resLevel">Level 1</div>
     <div class="xpbar"><div id="resLevelBar"></div></div>
-    <p class="small muted" style="margin:14px 0 4px">Noch schwach:</p>
-    <div class="chips" id="resWeak" style="justify-content:center"></div>
-    <div class="actions"><button id="againBtn">Nochmal</button><button class="ghostBtn" data-go="home">Menü</button></div>
+    <div id="resWeakWrap"><p class="small muted" style="margin:14px 0 4px">Noch schwach:</p><div class="chips" id="resWeak" style="justify-content:center"></div></div>
+    <div class="actions">
+      <button id="nextBtn" class="gold" hidden>Nächstes Level</button>
+      <button id="planBtn" class="green" hidden>Weiter</button>
+      <button id="againBtn">Nochmal</button>
+      <button id="retryBtn" hidden>Fehler üben</button>
+      <button id="mapBtn" class="ghostBtn" hidden>Karte</button>
+      <button class="ghostBtn" data-go="home">Menü</button>
+    </div>
   </div>
 </section>
 
@@ -288,7 +428,7 @@
     </div>
     <p class="small muted" id="libEmpty" hidden>Noch keine Stücke.</p>
     <div id="pieceList"></div>
-    <p class="small muted">Angehakte Stücke liefern die Phrasen für „Stücke“. Eigene Stücke: in MuseScore als unkomprimiertes MusicXML (.musicxml) exportieren und hier importieren. Gekaufte Noten bleiben auf diesem Gerät.</p>
+    <p class="small muted">Angehakte Stücke liefern die Phrasen für „Stücke“. „Ganz spielen“ wertet das Stück von vorn bis hinten. Eigene Stücke: in MuseScore als unkomprimiertes MusicXML (.musicxml) exportieren und hier importieren; Fingersätze aus der Datei werden über den Noten angezeigt. Gekaufte Noten bleiben auf diesem Gerät.</p>
   </div>
 </section>
 
@@ -296,6 +436,7 @@
 <section class="screen" id="screen-settings">
   <header class="topbar"><button class="back" data-go="home">Zurück</button><div class="title display">Einstellungen</div></header>
   <div class="pageBody">
+    <p class="small muted" style="margin:0">Gilt für das freie Üben. Im Abenteuer legt jedes Level Schlüssel, Umfang, Tasten und Tempo selbst fest.</p>
     <h2 class="sec display">Noten</h2>
     <div class="form">
       <div class="setRow"><label>Schlüssel</label><select id="set-clef"><option value="treble">Violinschlüssel</option><option value="bass">Bassschlüssel</option></select></div>
@@ -307,6 +448,22 @@
       <div class="setRow"><label>Tempo</label><input type="range" id="set-bpm" min="30" max="200" value="80"><span class="val" id="bpmVal">80</span></div>
       <div class="setRow"><label>Noten je Lauf</label><input type="number" id="set-runLength" min="8" max="99" value="24"></div>
       <div class="setRow"><label>Phrasen je Lauf</label><input type="number" id="set-phrases" min="2" max="30" value="6"></div>
+    </div>
+    <h2 class="sec display">Üben</h2>
+    <div class="form">
+      <div class="setRow"><label>Metronom</label><input type="checkbox" id="set-metronome"><span class="small muted">Klick auf jedem Schlag, betont am Taktanfang</span></div>
+      <div class="setRow"><label>Einzähler</label><input type="checkbox" id="set-countIn"><span class="small muted">Ein Takt Klicks vor der ersten Note</span></div>
+      <div class="setRow"><label>Vorausschau</label><select id="set-lookahead"><option value="0">Aus</option><option value="1">Note verschwindet 1 Schlag vorher</option><option value="2">Note verschwindet 2 Schläge vorher</option></select></div>
+      <div class="setRow"><label>Tempo-Leiter</label><input type="checkbox" id="set-tempoLadder"><span class="small muted">Ab 90 % nächste Runde 5 schneller, unter 70 % 5 langsamer</span></div>
+      <div class="setRow"><label>Tagesziel</label><input type="number" id="set-dailyGoal" min="0" max="2000" step="10" value="100"><span class="small muted">Noten je Tag, 0 = aus</span></div>
+    </div>
+    <h2 class="sec display">Intervalle und Rhythmus</h2>
+    <div class="form">
+      <div class="setRow"><label>Intervalle bis</label><select id="set-intervalMax"><option value="3">Terz</option><option value="5">Quinte</option><option value="8">Oktave</option></select></div>
+      <div class="setRow"><label>Rhythmus: Takte</label><input type="number" id="set-rhythmBars" min="2" max="32" value="8"></div>
+      <div class="setRow"><label>Notenwerte</label><select id="set-rhythmSet"><option value="1">Viertel, Halbe</option><option value="2">Viertel, Halbe, Ganze</option><option value="3">Mit Achteln</option><option value="4">Mit punktierten Vierteln</option><option value="5">Alles</option></select></div>
+      <div class="setRow"><label>Pausen</label><input type="checkbox" id="set-rhythmRests"><span class="small muted">Im Rhythmus auch Pausen</span></div>
+      <div class="setRow"><label>Quiz: Fragen</label><input type="number" id="set-quizCount" min="5" max="60" value="20"></div>
     </div>
     <h2 class="sec display">Anzeige</h2>
     <div class="form">
@@ -332,15 +489,17 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260925h"></script>
-<script src="js/notation.js?v=20260925h"></script>
-<script src="js/store.js?v=20260925h"></script>
-<script src="js/midi.js?v=20260925h"></script>
-<script src="js/synth.js?v=20260925h"></script>
-<script src="js/musicxml.js?v=20260925h"></script>
-<script src="js/charts.js?v=20260925h"></script>
-<script src="pieces/starter.js?v=20260925h"></script>
-<script src="js/game.js?v=20260925h"></script>
-<script src="js/app.js?v=20260925h"></script>
+<script src="js/music.js?v=20260925m"></script>
+<script src="js/notation.js?v=20260925m"></script>
+<script src="js/store.js?v=20260925m"></script>
+<script src="js/midi.js?v=20260925m"></script>
+<script src="js/synth.js?v=20260925m"></script>
+<script src="js/musicxml.js?v=20260925m"></script>
+<script src="js/charts.js?v=20260925m"></script>
+<script src="pieces/starter.js?v=20260925m"></script>
+<script src="js/story.js?v=20260925m"></script>
+<script src="js/quiz.js?v=20260925m"></script>
+<script src="js/game.js?v=20260925m"></script>
+<script src="js/app.js?v=20260925m"></script>
 </body>
 </html>

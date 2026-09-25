@@ -60,14 +60,33 @@ NT.synth = (() => {
     if (kind === "hit") { o.type = "sine"; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(1320, t + 0.08); }
     else if (kind === "miss") { o.type = "square"; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(140, t + 0.12); }
     else if (kind === "streak") { o.type = "sine"; o.frequency.setValueAtTime(1046, t); o.frequency.setValueAtTime(1318, t + 0.06); o.frequency.setValueAtTime(1568, t + 0.12); }
+    else if (kind === "star") { o.type = "triangle"; o.frequency.setValueAtTime(1318, t); o.frequency.exponentialRampToValueAtTime(2093, t + 0.1); }
+    else if (kind === "win") { o.type = "triangle"; [523, 659, 784, 1047].forEach((f, i) => o.frequency.setValueAtTime(f, t + i * 0.11)); }
+    else if (kind === "lose") { o.type = "triangle"; o.frequency.setValueAtTime(392, t); o.frequency.setValueAtTime(311, t + 0.18); }
     else { o.type = "sine"; o.frequency.setValueAtTime(660, t); }
+    const len = kind === "streak" ? 0.3 : kind === "win" ? 0.62 : kind === "lose" ? 0.42 : 0.16;
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(kind === "miss" ? 0.08 : 0.06, t + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === "streak" ? 0.3 : 0.16));
-    o.start(t); o.stop(t + 0.32);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.start(t); o.stop(t + len + 0.05);
   }
 
-  return { unlock, noteOn, noteOff, allOff, blip,
+  // Metronom: kurzer heller Tick, die Betonung eine Terz hoeher und lauter.
+  // Laeuft unabhaengig von "Synth an", das betrifft nur das Abspielen.
+  function click(accent, when) {
+    const a = ctx(); if (!a) return;
+    const t = Math.max(a.currentTime, when || a.currentTime);
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = "sine"; o.frequency.value = accent ? 1975 : 1568;
+    o.connect(g); g.connect(master);
+    g.gain.setValueAtTime(accent ? 0.5 : 0.32, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (accent ? 0.06 : 0.04));
+    o.start(t); o.stop(t + 0.08);
+  }
+  // performance.now()-Millisekunden auf die Zeitachse des AudioContext.
+  function timeFor(perfMs) { const a = ctx(); if (!a) return 0; return a.currentTime + (perfMs - performance.now()) / 1000; }
+
+  return { unlock, noteOn, noteOff, allOff, blip, click, timeFor,
            set enabled(v) { enabled = !!v; if (!enabled) allOff(); }, get enabled() { return enabled; },
            set fx(v) { fxEnabled = !!v; }, get fx() { return fxEnabled; },
            get context() { return ac; } };

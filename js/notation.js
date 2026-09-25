@@ -26,7 +26,7 @@ NT.notation = (() => {
     digitW: 1.88, dotW: 0.4, lineW: 0.065, ledgerW: 0.09, barW: 0.16,
   };
   const COL = { ink: "#14120f", ok: "#16a34a", miss: "#dc2626", ghost: "#dc2626",
-                now: "#f43f5e", muted: "#8b93a5", played: "#2563eb", label: "#475569" };
+                now: "#f43f5e", muted: "#8b93a5", played: "#2563eb", label: "#475569", finger: "#7c3aed" };
 
   const bottomDiatonic = clef => clef === "treble" ? 30 : 18;   // E4 bzw. G2
 
@@ -57,7 +57,7 @@ NT.notation = (() => {
     const staves = spec.staves.map(s => {
       // Reserven: Violinschlüssel ragt 2.8 Halbschritte über Linie 5 und 3.3
       // unter Linie 1; Notenkopf plus Luft = 2; Beschriftung nochmal 3.
-      const above = Math.max(3, (s.above || 0) + 2) + (spec.labels ? 3 : 0);
+      const above = Math.max(3, (s.above || 0) + 2) + (spec.labels ? 3 : 0) + (spec.fingers ? 2 : 0);
       const below = Math.max(3.5, (s.below || 0) + 2);
       return { clef: s.clef, bd: bottomDiatonic(s.clef), above, below };
     });
@@ -195,11 +195,26 @@ NT.notation = (() => {
       const acc = note.accidental;
       glyph(G[acc], x - (M.accW[acc] + 0.22) * GAP, y, GAP * 4, colour);
     }
+    // Fingersatz aus der Datei: kleine Ziffer ueber der Note; ein Notenname
+    // rueckt dann noch eine Zeile hoeher.
+    let labelY = topY - GAP * 0.45;
+    if (o.finger) {
+      ctx.font = `600 ${Math.round(GAP * 0.8)}px "Segoe UI", system-ui, sans-serif`;
+      ctx.textBaseline = "alphabetic"; ctx.textAlign = "center"; ctx.fillStyle = COL.finger;
+      ctx.fillText(String(o.finger), x + w / 2, labelY);
+      ctx.textAlign = "start";
+      labelY -= GAP * 0.95;
+    }
     if (o.label) {
-      ctx.font = `700 ${Math.round(GAP * 0.95)}px "Segoe UI", system-ui, sans-serif`;
+      let size = Math.round(GAP * 0.95);
+      ctx.font = `700 ${size}px "Segoe UI", system-ui, sans-serif`;
+      // Lange Beschriftungen (Intervallnamen) schrumpfen, damit sie nicht in
+      // die Nachbarnote laufen; Viertel stehen im Lauf 3,4 Abstaende auseinander.
+      const maxW = GAP * 3.1, w0 = ctx.measureText(o.label).width;
+      if (w0 > maxW) { size = Math.max(Math.round(GAP * 0.55), Math.floor(size * maxW / w0)); ctx.font = `700 ${size}px "Segoe UI", system-ui, sans-serif`; }
       ctx.textBaseline = "alphabetic"; ctx.textAlign = "center";
       ctx.fillStyle = o.labelColour || COL.label;
-      ctx.fillText(o.label, x + w / 2, topY - GAP * 0.45);
+      ctx.fillText(o.label, x + w / 2, labelY);
       ctx.textAlign = "start";
     }
     if (o.alpha != null) ctx.restore();
@@ -276,10 +291,18 @@ NT.notation = (() => {
     drawNote(L, si, { diatonic: s.diatonic, dur: 1, accidental: acc }, x + L.GAP * 1.5, { colour: COL.ghost, alpha: 0.4 });
   }
 
+  // Freier Text im System, z. B. das Fragezeichen beim Gehoertraining.
+  function drawText(L, text, x, y, sizeGaps, colour, align) {
+    ctx.font = `700 ${Math.round(L.GAP * (sizeGaps || 1))}px "Segoe UI", system-ui, sans-serif`;
+    ctx.textBaseline = "middle"; ctx.textAlign = align || "center"; ctx.fillStyle = colour || COL.muted;
+    ctx.fillText(text, x, y);
+    ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+  }
+
   // Welcher Staff für eine Note im Klaviersystem: nach Hand, sonst nach Höhe.
   const staffFor = (L, note) => L.staves.length === 1 ? 0 : (note.hand === "l" ? 1 : note.hand === "r" ? 0 : (note.midi < 60 ? 1 : 0));
 
   return { G, M, COL, attach, layout, yFor, drawStaves, clipContent, unclip, drawNote, drawChord,
-           drawRest, drawBarline, drawNowLine, drawGhost, staffFor, bottomDiatonic,
+           drawRest, drawBarline, drawNowLine, drawGhost, drawText, staffFor, bottomDiatonic,
            get ctx() { return ctx; }, get canvas() { return canvas; } };
 })();

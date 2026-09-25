@@ -69,6 +69,8 @@ NT.musicxml = (() => {
             const acc = text(el, "accidental");
             n.accidental = acc === "sharp" || acc === "flat" || acc === "natural" ? acc : null;
             const tie = el.querySelector(":scope > tie[type=stop]"); n.tiedFrom = !!tie;
+            // Fingersatz, wenn die Datei einen vorgibt (MIDI kann ihn nicht messen).
+            const fg = text(el, "notations > technical > fingering"); if (fg && /^\d$/.test(fg)) n.finger = +fg;
           }
           notes.push(n);
           lastNote = n;
