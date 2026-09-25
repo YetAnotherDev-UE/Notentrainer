@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925o") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925q") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -130,15 +130,16 @@
   .worldBanner .display { font-size: 22px; line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
   .worldBanner small { display: block; font-size: 11px; opacity: .92; }
   .deco { position: absolute; font-size: 28px; opacity: .2; pointer-events: none; user-select: none; color: #fff; }
-  .node { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid rgba(255,255,255,.85); padding: 0;
+  /* Deckende Raender: durch einen halbdurchsichtigen Rand scheint sonst der dunkle Pfadschatten. */
+  .node { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid #f4f6ff; padding: 0;
     background: linear-gradient(180deg, var(--wa), var(--wb)); color: #fff; font-size: 24px; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 12px 22px rgba(0,0,0,.35); z-index: 3; transition: transform .1s; }
   .node:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
-  .node.locked { background: linear-gradient(180deg, #6b7280, #374151); color: #cbd5e1; border-color: rgba(255,255,255,.35); }
-  .node.locked::after { content: "🔒"; position: absolute; font-size: 15px; right: -7px; top: -7px; }
+  .node.locked { background: linear-gradient(180deg, #6b7280, #374151); color: #cbd5e1; border-color: #a9b2c3; }
+  .node.locked::after { content: "🔒"; position: absolute; font-size: 22px; right: -12px; top: -12px; }
   .node.boss { width: 78px; height: 78px; margin: -39px 0 0 -39px; font-size: 30px; border-width: 4px; border-color: #ffd23f; }
   .node.boss:not(.locked)::before { content: "👑"; position: absolute; top: -22px; font-size: 22px; }
-  .node .stars { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); font-size: 16px; line-height: 1; letter-spacing: -1px; color: rgba(255,255,255,.3); white-space: nowrap; text-shadow: 0 1px 0 rgba(0,0,0,.6); }
+  .node .stars { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); font-size: 24px; line-height: 1; letter-spacing: -2px; color: rgba(255,255,255,.3); white-space: nowrap; text-shadow: 0 2px 0 rgba(0,0,0,.6); }
   .node .stars b { color: #ffd23f; font-weight: 400; }
   .node.current { animation: nodePulse 1.6s ease-in-out infinite; }
   @keyframes nodePulse { 0%, 100% { box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 0 0 0 rgba(255,210,63,.75); } 50% { box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 0 0 16px rgba(255,210,63,0); } }
@@ -489,17 +490,17 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260925o"></script>
-<script src="js/notation.js?v=20260925o"></script>
-<script src="js/store.js?v=20260925o"></script>
-<script src="js/midi.js?v=20260925o"></script>
-<script src="js/synth.js?v=20260925o"></script>
-<script src="js/musicxml.js?v=20260925o"></script>
-<script src="js/charts.js?v=20260925o"></script>
-<script src="pieces/starter.js?v=20260925o"></script>
-<script src="js/story.js?v=20260925o"></script>
-<script src="js/quiz.js?v=20260925o"></script>
-<script src="js/game.js?v=20260925o"></script>
-<script src="js/app.js?v=20260925o"></script>
+<script src="js/music.js?v=20260925q"></script>
+<script src="js/notation.js?v=20260925q"></script>
+<script src="js/store.js?v=20260925q"></script>
+<script src="js/midi.js?v=20260925q"></script>
+<script src="js/synth.js?v=20260925q"></script>
+<script src="js/musicxml.js?v=20260925q"></script>
+<script src="js/charts.js?v=20260925q"></script>
+<script src="pieces/starter.js?v=20260925q"></script>
+<script src="js/story.js?v=20260925q"></script>
+<script src="js/quiz.js?v=20260925q"></script>
+<script src="js/game.js?v=20260925q"></script>
+<script src="js/app.js?v=20260925q"></script>
 </body>
 </html>

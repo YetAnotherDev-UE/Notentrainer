@@ -142,7 +142,7 @@ NT.app = (() => {
   function renderMap() {
     const wrap = $("mapScroll"), map = $("map");
     const W = wrap.clientWidth || 800; mapWidth = W;
-    const LV = ST.LEVELS, STEP = 110, BANNER = 120, PAD = 80;
+    const LV = ST.LEVELS, STEP = 110, BANNER = 130, PAD = 110;
     const A = Math.min(250, W * 0.3), cx = W / 2;
     // Level 1 liegt unten, es geht nach oben; vor jeder neuen Welt ein Banner.
     const yUp = []; let acc = PAD, lastW = null;
@@ -156,7 +156,8 @@ NT.app = (() => {
     let html = "";
     ST.WORLDS.forEach((w, wi) => {
       const f = LV.indexOf(w.levels[0]), l = LV.indexOf(w.levels[w.levels.length - 1]);
-      const bannerY = wi === 0 ? pos[f].y + STEP * 0.62 : pos[f].y + STEP / 2 + BANNER / 2 - 6;
+      // Sterne haengen bis etwa 60 px unter der Knotenmitte; das Banner beginnt darunter.
+      const bannerY = wi === 0 ? pos[f].y + 100 : pos[f].y + STEP / 2 + BANNER / 2;
       const top = pos[l].y - STEP * 0.62, bottom = bannerY + 44;
       html += `<div class="world" style="top:${top}px;height:${bottom - top}px;background:linear-gradient(180deg,${rgba(w.colors[0], .38)},${rgba(w.colors[1], .16)})"></div>`;
       // Deko: feste Pseudozufallsplätze je Welt, damit die Karte nicht flackert.
