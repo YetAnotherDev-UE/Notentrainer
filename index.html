@@ -286,6 +286,18 @@
 <script>
 "use strict";
 
+// Unerwartete Fehler in die Statuszeile statt nur in die Konsole - auf dem
+// iPad gibt es keine Konsole, und ein stummes Einfrieren ist nicht zu deuten.
+window.addEventListener("error", e => {
+  const el = document.getElementById("status"), t = document.getElementById("statusText");
+  if (el && t) { el.className = "status fail"; t.textContent = "Fehler: " + (e.message || e.type); }
+});
+window.addEventListener("unhandledrejection", e => {
+  const el = document.getElementById("status"), t = document.getElementById("statusText");
+  const r = e.reason;
+  if (el && t) { el.className = "status fail"; t.textContent = "Fehler: " + ((r && r.message) || r); }
+});
+
 /* ------------------------------------------------------------------ *
  * Event-Log: eine Zeile pro gezeigter Note. Alle Statistiken werden
  * daraus berechnet, nichts wird vorab aggregiert.
@@ -874,81 +886,105 @@ function renderPedalNote() {
   }).join(" · ");
 }
 
-/* --- MIDI ----------------------------------------------------------- */
-async function initMidi() {
-  const el = document.getElementById("status");
-  const txt = document.getElementById("statusText");
+/* --- MIDI ----------------------------------------------------------- *
+ * Drei Wege, auf denen es scheitern kann, jeder mit eigener Meldung:
+ * 1. requestMIDIAccess fehlt - kein Web MIDI, oder kein Secure Context.
+ * 2. Die Anfrage wird abgelehnt (NotAllowedError) oder anders verworfen.
+ * 3. Die Anfrage antwortet gar nicht. Das passiert in App-Browsern mit
+ *    eigener MIDI-Bruecke (iPad), solange die App auf eine Freigabe wartet.
+ *    Ohne Zeitlimit stuende hier ewig "wird gesucht", und die Schaltflaeche
+ *    zum Neuversuch erschiene nie. Eine spaete Antwort zaehlt trotzdem.
+ * ------------------------------------------------------------------ */
+const MIDI_TIMEOUT = 4000;
+let midiAccess = null;
 
-  // Web MIDI gibt es nur im Secure Context. Eine LAN-Adresse ist keiner,
-  // und dann fehlt requestMIDIAccess — was sich wie ein alter Browser
-  // anfühlt, aber keiner ist. Darum beide Fälle getrennt melden.
+function setStatus(kind, text) {
+  document.getElementById("status").className = "status" + (kind ? " " + kind : "");
+  document.getElementById("statusText").textContent = text;
+}
+
+// Bruecken liefern inputs/outputs nicht immer als Map. Alles annehmen, was
+// sich irgendwie durchlaufen laesst.
+function ports(coll) {
+  if (!coll) return [];
+  if (typeof coll.values === "function") return [...coll.values()];
+  if (Array.isArray(coll)) return coll;
+  return Object.values(coll);
+}
+
+function bindMidi() {
+  const names = [];
+  for (const input of ports(midiAccess.inputs)) {
+    input.onmidimessage = ({ data }) => onMidiMessage(data);
+    names.push(input.name || "MIDI-Eingang");
+  }
+  document.getElementById("connect").hidden = true;
+  if (names.length) { setStatus("live", "Verbunden: " + names.join(", ")); return; }
+
+  // Ausgaenge mitpruefen: Sieht das System einen Ausgang, aber keinen Eingang,
+  // liegt es nicht an Kabel oder Buchse - dann meldet sich das Geraet an,
+  // sendet aber nichts. Das trennt zwei verschiedene Fehlersuchen.
+  const outs = ports(midiAccess.outputs).map(o => o.name || "MIDI-Ausgang");
+  setStatus("", outs.length
+    ? "Nur Ausgang gefunden (" + outs.join(", ") + "), kein Eingang. Kabel und "
+      + "Buchse stimmen also - das Instrument sendet nur nichts."
+    : "Kein Gerät gefunden. Interface anstecken, Piano einschalten, dann "
+      + "„MIDI verbinden“ antippen.");
+}
+
+function failMidi(err) {
+  const why = (err && err.name) || "unbekannt";
+  const hint = why === "NotAllowedError"
+    ? "Tipp auf „MIDI verbinden“ — manche Browser fragen nur nach, wenn die "
+      + "Anfrage aus einer echten Nutzeraktion kommt."
+    : why === "NotSupportedError"
+      ? "Dieser Browser liefert kein MIDI aus - nimm Chrome."
+      : "Unerwarteter Grund, siehe Meldung.";
+  setStatus("fail", "MIDI fehlgeschlagen — " + why
+    + ((err && err.message) ? ": " + err.message : "") + " " + hint);
+  document.getElementById("connect").hidden = false;
+}
+
+async function initMidi() {
   if (!navigator.requestMIDIAccess) {
-    el.className = "status fail";
-    txt.textContent = isSecureContext
+    setStatus("fail", isSecureContext
       ? "Dieser Browser kennt kein Web MIDI. Nimm Chrome oder Edge."
       : location.origin + " gilt nicht als sicher, darum ist Web MIDI hier "
         + "abgeschaltet. Diese Adresse in chrome://flags unter „Insecure "
-        + "origins treated as secure“ eintragen und Chrome neu starten.";
+        + "origins treated as secure“ eintragen und Chrome neu starten.");
     return;
   }
 
-  let access;
-  try {
-    access = await navigator.requestMIDIAccess();
-  } catch (err) {
-    el.className = "status fail";
-    // Der Grund steckt in err.name und entscheidet, wo man suchen muss:
-    // NotAllowedError heisst wirklich abgelehnt, NotSupportedError heisst,
-    // dass dieser Browser MIDI trotz vorhandener Funktion nicht ausliefert.
-    // Vorher stand hier fuer jeden Fall "abgelehnt" - das schickt in die
-    // falsche Richtung, wenn es gar keine Berechtigungsfrage ist.
-    const why = (err && err.name) || "unbekannt";
-    const hint = why === "NotAllowedError"
-      ? "Tipp auf „MIDI verbinden“ — manche Browser fragen nur nach, "
-        + "wenn die Anfrage aus einer echten Nutzeraktion kommt."
-      : why === "NotSupportedError"
-        ? "Dieser Browser liefert kein MIDI aus - nimm Chrome."
-        : "Unerwarteter Grund, siehe Meldung.";
-    txt.textContent = "MIDI fehlgeschlagen — " + why
-      + ((err && err.message) ? ": " + err.message : "") + " " + hint;
+  // Eine Bruecke (App-Browser) ist an fehlendem "native code" erkennbar.
+  // Das sagt bei Problemen sofort, welcher Weg gerade genommen wird.
+  const bridged = !/native code/.test(String(navigator.requestMIDIAccess));
+  setStatus("", "MIDI wird gesucht…" + (bridged ? " (MIDI-Brücke der App erkannt)" : ""));
 
-    // Der Versuch beim Laden zaehlt nicht als Nutzeraktion. Die Schaltflaeche
-    // ruft dieselbe Funktion aus einem Tipp heraus auf - dann erscheint die
-    // Rueckfrage auch dort, wo sie an eine Geste gebunden ist.
+  let request;
+  try { request = Promise.resolve(navigator.requestMIDIAccess()); }
+  catch (err) { failMidi(err); return; }        // synchron geworfen
+
+  let answered = false;
+  const timer = setTimeout(() => {
+    if (answered) return;
+    setStatus("fail", "Keine Antwort auf die MIDI-Anfrage nach "
+      + (MIDI_TIMEOUT / 1000) + " s. In der App die MIDI-Freigabe prüfen "
+      + "(Zahnrad), dann „MIDI verbinden“ antippen.");
     document.getElementById("connect").hidden = false;
-    return;
+  }, MIDI_TIMEOUT);
+
+  try {
+    const access = await request;
+    answered = true; clearTimeout(timer);
+    if (!access || !("inputs" in access)) throw new Error("Antwort ohne inputs (" + typeof access + ")");
+    midiAccess = access;
+    try { access.onstatechange = bindMidi; } catch (e) { /* Bruecke ohne Setter */ }
+    if (typeof access.addEventListener === "function") access.addEventListener("statechange", bindMidi);
+    bindMidi();
+  } catch (err) {
+    answered = true; clearTimeout(timer);
+    failMidi(err);
   }
-
-  const bind = () => {
-    const names = [];
-    for (const input of access.inputs.values()) {
-      input.onmidimessage = ({ data }) => onMidiMessage(data);
-      names.push(input.name);
-    }
-    document.getElementById("connect").hidden = true;
-    if (names.length) {
-      el.className = "status live";
-      txt.textContent = "Verbunden: " + names.join(", ");
-    } else {
-      // Ausgaenge mitpruefen: Sieht das System einen Ausgang, aber keinen
-      // Eingang, dann liegt es nicht an Kabel oder Buchse - dann meldet sich
-      // das Piano zwar an, sendet aber nichts. Das trennt zwei sehr
-      // verschiedene Fehlersuchen voneinander.
-      const outs = [];
-      for (const out of access.outputs.values()) outs.push(out.name);
-
-      el.className = "status";
-      txt.textContent = outs.length
-        ? "Nur Ausgang gefunden (" + outs.join(", ") + "), kein Eingang. "
-          + "Kabel und Buchse stimmen also - das Piano sendet nur nichts."
-        : "Kein Gerät gefunden. Kabel in die quadratische Buchse "
-          + "„USB TO HOST“, Piano einschalten, dann „MIDI "
-          + "verbinden“ antippen.";
-    }
-  };
-
-  access.onstatechange = bind;
-  bind();
 }
 
 /* --- Bedienelemente -------------------------------------------------- */
