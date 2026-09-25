@@ -668,7 +668,7 @@ NT.app = (() => {
     window.addEventListener("error", e => alertBox("Fehler: " + (e.message || e.type)));
     window.addEventListener("unhandledrejection", e => alertBox("Fehler: " + ((e.reason && e.reason.message) || e.reason)));
 
-    document.fonts.load('10px "NotenSymbole"').catch(() => {}).then(() => { if (current === "play") G.draw(); if (current === "quiz") NT.quiz.draw(); });
+    Promise.all([document.fonts.load('10px "NotenSymbole"'), document.fonts.load('700 10px "Baloo 2"')]).catch(() => {}).then(() => { if (current === "play") G.draw(); if (current === "quiz") NT.quiz.draw(); if (current === "stats") renderChart(); });
     renderChips(); syncSettingsUi(); show("home");
     NT.midi.init();
   }

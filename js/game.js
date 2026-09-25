@@ -432,7 +432,7 @@ NT.game = (() => {
         const x = xFor(b.at, t) - L.GAP * 1.6;
         N.drawBarline(L, x, N.COL.ink);
         // Titel unter das letzte System, damit er den Notennamen nicht in die Quere kommt.
-        if (b.title) { const c = N.ctx; c.font = `600 ${Math.round(L.GAP * 0.75)}px system-ui, sans-serif`; c.fillStyle = N.COL.muted; c.textAlign = "left"; c.fillText(b.title, x + L.GAP * 0.3, L.staves[L.staves.length - 1].bottomY + L.GAP * 1.9); }
+        if (b.title) { const c = N.ctx; c.font = `600 ${Math.round(L.GAP * 0.75)}px "Baloo 2", "Segoe UI", system-ui, sans-serif`; c.fillStyle = N.COL.muted; c.textAlign = "left"; c.fillText(b.title, x + L.GAP * 0.3, L.staves[L.staves.length - 1].bottomY + L.GAP * 1.9); }
       }
       // Gruppen gleicher Fälligkeit je Staff -> Akkord
       const groups = new Map();

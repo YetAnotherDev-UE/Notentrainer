@@ -18,6 +18,8 @@ NT.notation = (() => {
     digits: Array.from({ length: 10 }, (_, i) => cp(0xE080 + i)),
   };
   const FONT = '"NotenSymbole"';
+  // Beschriftungen in derselben Schrift wie die Oberflaeche (Baloo 2, sonst Systemschrift).
+  const UI = '"Baloo 2", "Segoe UI", system-ui, sans-serif';
   // Aus der Schrift gemessen, in Zwischenräumen.
   const M = {
     headW: 1.18, wholeW: 1.688, clefW: 2.74,
@@ -199,7 +201,7 @@ NT.notation = (() => {
     // rueckt dann noch eine Zeile hoeher.
     let labelY = topY - GAP * 0.45;
     if (o.finger) {
-      ctx.font = `600 ${Math.round(GAP * 0.8)}px "Segoe UI", system-ui, sans-serif`;
+      ctx.font = `600 ${Math.round(GAP * 0.8)}px ${UI}`;
       ctx.textBaseline = "alphabetic"; ctx.textAlign = "center"; ctx.fillStyle = COL.finger;
       ctx.fillText(String(o.finger), x + w / 2, labelY);
       ctx.textAlign = "start";
@@ -207,11 +209,11 @@ NT.notation = (() => {
     }
     if (o.label) {
       let size = Math.round(GAP * 0.95);
-      ctx.font = `700 ${size}px "Segoe UI", system-ui, sans-serif`;
+      ctx.font = `700 ${size}px ${UI}`;
       // Lange Beschriftungen (Intervallnamen) schrumpfen, damit sie nicht in
       // die Nachbarnote laufen; Viertel stehen im Lauf 3,4 Abstaende auseinander.
       const maxW = GAP * 3.1, w0 = ctx.measureText(o.label).width;
-      if (w0 > maxW) { size = Math.max(Math.round(GAP * 0.55), Math.floor(size * maxW / w0)); ctx.font = `700 ${size}px "Segoe UI", system-ui, sans-serif`; }
+      if (w0 > maxW) { size = Math.max(Math.round(GAP * 0.55), Math.floor(size * maxW / w0)); ctx.font = `700 ${size}px ${UI}`; }
       ctx.textBaseline = "alphabetic"; ctx.textAlign = "center";
       ctx.fillStyle = o.labelColour || COL.label;
       ctx.fillText(o.label, x + w / 2, labelY);
@@ -293,7 +295,7 @@ NT.notation = (() => {
 
   // Freier Text im System, z. B. das Fragezeichen beim Gehoertraining.
   function drawText(L, text, x, y, sizeGaps, colour, align) {
-    ctx.font = `700 ${Math.round(L.GAP * (sizeGaps || 1))}px "Segoe UI", system-ui, sans-serif`;
+    ctx.font = `700 ${Math.round(L.GAP * (sizeGaps || 1))}px ${UI}`;
     ctx.textBaseline = "middle"; ctx.textAlign = align || "center"; ctx.fillStyle = colour || COL.muted;
     ctx.fillText(text, x, y);
     ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";

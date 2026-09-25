@@ -10,6 +10,7 @@ NT.charts = (() => {
   const COL = { line: "#2dd4ff", fill: "rgba(45,212,255,.18)", grid: "rgba(255,255,255,.10)", axis: "rgba(255,255,255,.28)",
                 text: "#a9bbe0", bar: "#a78bfa", accent: "#ffd23f", zero: "rgba(255,255,255,.45)" };
   const PAD = { l: 50, r: 18, t: 22, b: 34 };
+  const UI = '"Baloo 2", "Segoe UI", system-ui, sans-serif';
 
   function prepare(canvas) {
     const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
@@ -30,7 +31,7 @@ NT.charts = (() => {
   };
 
   function empty(c, W, H, text) {
-    c.fillStyle = COL.text; c.font = "14px system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillStyle = COL.text; c.font = "500 14px " + UI; c.textAlign = "center"; c.textBaseline = "middle";
     c.fillText(text || "Noch nicht genug Daten. Spiel ein paar Runden.", W / 2, H / 2);
   }
 
@@ -53,7 +54,7 @@ NT.charts = (() => {
     const xOf = i => spec.type === "bars" ? x0 + slot * (i + 0.5) : n === 1 ? (x0 + x1) / 2 : x0 + (i / (n - 1)) * (x1 - x0);
 
     // Raster und y-Beschriftung
-    c.font = "11px system-ui, sans-serif"; c.textBaseline = "middle"; c.textAlign = "right";
+    c.font = "500 11px " + UI; c.textBaseline = "middle"; c.textAlign = "right";
     const ticks = 4;
     for (let i = 0; i <= ticks; i++) {
       const v = lo + (hi - lo) * i / ticks, y = yOf(v);
@@ -93,7 +94,7 @@ NT.charts = (() => {
       pts.forEach((q, i) => { c.fillStyle = q.color || spec.color || COL.line; c.beginPath(); c.arc(xOf(i), yOf(q.value), i === n - 1 ? 4.5 : 3, 0, Math.PI * 2); c.fill(); });
       // letzter Wert beschriftet
       const last = pts[n - 1];
-      c.font = "700 12px system-ui, sans-serif"; c.fillStyle = "#ffffff"; c.textAlign = "right"; c.textBaseline = "bottom";
+      c.font = "700 12px " + UI; c.fillStyle = "#ffffff"; c.textAlign = "right"; c.textBaseline = "bottom";
       c.fillText(nice(last.value, spec.unit), xOf(n - 1) - 2, yOf(last.value) - 8);
     }
   }

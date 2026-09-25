@@ -8,12 +8,12 @@
 <title>Notentrainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925r") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925s") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -23,7 +23,8 @@
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
-    margin: 0; color: var(--ink); font: 15px/1.45 system-ui, "Segoe UI", sans-serif; overflow: hidden;
+    /* Baloo 2 fuer alles Kleine (Wunsch vom 2026-09-25), Anton nur fuer Titel. Ohne Netz greift die Systemschrift. */
+    margin: 0; color: var(--ink); font: 500 15px/1.45 "Baloo 2", system-ui, "Segoe UI", sans-serif; overflow: hidden;
     background: radial-gradient(120% 90% at 50% 0%, #1d55bd 0%, #0e3479 42%, #071a3c 100%);
   }
   /* Streifen wandern langsam quer zu ihrer Richtung. Eine Periode ist 110 px,
@@ -52,7 +53,7 @@
   @keyframes pulse { 50% { opacity: .3; } }
   .midiChip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  button { font: inherit; color: #fff; background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; box-shadow: 0 4px 0 #1e3a8a; transition: transform .08s; }
+  button { font: inherit; font-weight: 600; color: #fff; background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; box-shadow: 0 4px 0 #1e3a8a; transition: transform .08s; }
   button:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e3a8a; }
   button.ghostBtn { background: transparent; border: 1px solid var(--line); box-shadow: none; }
   button.back { background: linear-gradient(180deg, #f472b6, #db2777); box-shadow: 0 4px 0 #9d174d; flex: none; }
@@ -71,7 +72,7 @@
   .menuBtn:active .skew { transform: skewX(-10deg) translateY(5px); box-shadow: 0 1px 0 rgba(0,0,0,.35); }
   .menuBtn .lbl, .menuBtn small { display: block; transform: skewX(10deg); }
   .menuBtn .lbl { font-size: 26px; line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
-  .menuBtn small { font-size: 12px; opacity: .92; }
+  .menuBtn small { font-size: 12px; opacity: .92; font-weight: 600; }
   .c1 .skew { background: linear-gradient(180deg, #ff7cc0, #e0338a); }
   .c2 .skew { background: linear-gradient(180deg, #ffa25e, #e8621c); }
   .c3 .skew { background: linear-gradient(180deg, #ffe066, #f0b400); }
@@ -157,7 +158,7 @@
   .levelHead .small { opacity: .95; }
   .levelBody { padding: 14px 20px 18px; }
   .goalRow { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
-  .goal { background: rgba(0,0,0,.25); border-radius: 10px; padding: 6px 10px; font-size: 13px; }
+  .goal { background: rgba(0,0,0,.25); border-radius: 10px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
   .goal b { color: #ffd23f; font-weight: 400; }
   .levelBody .actions { display: flex; gap: 10px; margin-top: 14px; }
   .levelBody .actions button:first-child { flex: 1; font-size: 18px; }
@@ -167,7 +168,7 @@
   .hud.hidden { visibility: hidden; }
   .hudItem { display: flex; flex-direction: column; align-items: center; min-width: 72px; padding: 5px 10px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
   .hudItem b { font-size: 26px; line-height: 1; }
-  .hudItem span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .hudItem span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
   .hudItem.c1 b { color: var(--c1); } .hudItem.c2 b { color: var(--c2); } .hudItem.c3 b { color: var(--c3); } .hudItem.c4 b { color: var(--c4); }
   .pop { animation: pop .25s; }
   @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }
@@ -181,10 +182,10 @@
   .countIn span { animation: countPop .45s ease-out; }
   @keyframes countPop { from { transform: scale(1.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .bar { display: flex; align-items: center; gap: 12px; min-height: 30px; margin: 8px 0 4px; flex: none; }
-  .feedback { flex: 1; min-width: 0; font: 500 17px Georgia, "Iowan Old Style", serif; color: var(--muted); }
+  .feedback { flex: 1; min-width: 0; font-size: 17px; font-weight: 600; color: var(--muted); }
   .feedback.ok { color: #4ade80; } .feedback.miss { color: #fb7185; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); background: rgba(0,0,0,.22); white-space: nowrap; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--muted); background: rgba(0,0,0,.22); white-space: nowrap; }
   .chip i { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
   .chip.on { color: #fff; border-color: #34d399; } .chip.on i { background: #34d399; box-shadow: 0 0 8px #34d399; }
   .chip.miss { color: #fff; background: rgba(239,68,68,.35); border-color: #ef4444; }
@@ -195,7 +196,7 @@
 
   /* --- Quiz ---------------------------------------------------------- */
   .quizHead { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex: none; flex-wrap: wrap; }
-  .quizPrompt { font: 500 18px Georgia, serif; flex: 1; min-width: 200px; }
+  .quizPrompt { font-size: 18px; font-weight: 600; flex: 1; min-width: 200px; }
   .answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; margin-top: 10px; flex: none; }
   .ans { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; background: linear-gradient(180deg, #5ee2ff, #0ea5c9); box-shadow: 0 4px 0 #0c4a6e; border-radius: 12px; }
   .ans .display { font-size: 22px; line-height: 1; }
@@ -214,7 +215,7 @@
   .figRow { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .fig { flex: 1; min-width: 110px; background: rgba(0,0,0,.22); border-radius: 14px; padding: 10px; text-align: center; }
   .fig b { display: block; font-size: 32px; line-height: 1; }
-  .fig span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .fig span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
   .fig.ok b { color: #4ade80; } .fig.miss b { color: #fb7185; } .fig.xp b { color: var(--c4); } .fig.streak b { color: var(--c3); }
   .resultCard .actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
   .resultCard .actions .gold, .resultCard .actions .green { font-size: 17px; }
@@ -223,13 +224,13 @@
   .pageBody { display: flex; flex-direction: column; gap: 14px; max-width: 980px; width: 100%; margin: 0 auto; }
   h2.sec { margin: 8px 0 0; font-size: 20px; color: var(--c4); }
   #statNotes .bar { display: grid; grid-template-columns: 56px 1fr 56px minmax(90px, 160px); align-items: center; gap: 10px; margin: 3px 0; min-height: 0; }
-  #statNotes .name { font: 600 15px Georgia, serif; } #statNotes .pct { text-align: right; font-variant-numeric: tabular-nums; } #statNotes .n { color: var(--muted); font-size: 12px; }
+  #statNotes .name { font-weight: 700; font-size: 15px; } #statNotes .pct { text-align: right; font-variant-numeric: tabular-nums; } #statNotes .n { color: var(--muted); font-size: 12px; }
   .chartBox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
   .chartBox canvas { width: 100%; height: 240px; display: block; }
   .chartHead { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
   .track { height: 12px; background: rgba(255,255,255,.12); border-radius: 999px; overflow: hidden; } .fill { height: 100%; }
   #statSessions .row { display: flex; gap: 12px; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-  .tag { padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: 12px; }
+  .tag { padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: 12px; font-weight: 600; }
   .btnRow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .fileBtn { position: relative; overflow: hidden; display: inline-block; }
   .fileBtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -240,7 +241,7 @@
   .piece .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
   .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
   .setRow { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; }
-  .setRow label { width: 130px; flex: none; color: var(--muted); font-size: 14px; }
+  .setRow label { width: 130px; flex: none; color: var(--muted); font-size: 14px; font-weight: 600; }
   /* Auswahlfelder nehmen sonst die Breite ihrer laengsten Option und laufen ueber die Karte hinaus. */
   .setRow select, .setRow input[type=number] { flex: 1 1 auto; min-width: 0; max-width: 100%; }
   .setRow input[type=range] { flex: 1; accent-color: #2dd4ff; }
@@ -492,17 +493,17 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260925r"></script>
-<script src="js/notation.js?v=20260925r"></script>
-<script src="js/store.js?v=20260925r"></script>
-<script src="js/midi.js?v=20260925r"></script>
-<script src="js/synth.js?v=20260925r"></script>
-<script src="js/musicxml.js?v=20260925r"></script>
-<script src="js/charts.js?v=20260925r"></script>
-<script src="pieces/starter.js?v=20260925r"></script>
-<script src="js/story.js?v=20260925r"></script>
-<script src="js/quiz.js?v=20260925r"></script>
-<script src="js/game.js?v=20260925r"></script>
-<script src="js/app.js?v=20260925r"></script>
+<script src="js/music.js?v=20260925s"></script>
+<script src="js/notation.js?v=20260925s"></script>
+<script src="js/store.js?v=20260925s"></script>
+<script src="js/midi.js?v=20260925s"></script>
+<script src="js/synth.js?v=20260925s"></script>
+<script src="js/musicxml.js?v=20260925s"></script>
+<script src="js/charts.js?v=20260925s"></script>
+<script src="pieces/starter.js?v=20260925s"></script>
+<script src="js/story.js?v=20260925s"></script>
+<script src="js/quiz.js?v=20260925s"></script>
+<script src="js/game.js?v=20260925s"></script>
+<script src="js/app.js?v=20260925s"></script>
 </body>
 </html>
