@@ -959,14 +959,25 @@ function listen(input) {
   boundPorts.add(input);
 }
 
+// iOS meldet seine Netzwerk-MIDI-Sitzung ("Session 1") als ganz normalen
+// Eingang, macOS seinen IAC-Bus. Das sind keine Instrumente - "Verbunden"
+// waere die falsche Botschaft, solange nichts Echtes dranhaengt.
+const isVirtualPort = name => /^session \d+$/i.test(name) || /network|virtual|virtuell|iac/i.test(name);
+
 function bindMidi() {
-  const names = [];
+  const real = [], virtual = [];
   for (const input of ports(midiAccess.inputs)) {
     listen(input);
-    names.push(input.name || "MIDI-Eingang");
+    const name = input.name || "MIDI-Eingang";
+    (isVirtualPort(name) ? virtual : real).push(name);
   }
   document.getElementById("connect").hidden = true;
-  if (names.length) { setStatus("live", "Verbunden: " + names.join(", ")); return; }
+  if (real.length) { setStatus("live", "Verbunden: " + real.join(", ")); return; }
+  if (virtual.length) {
+    setStatus("", "Bereit, aber kein Instrument: nur " + virtual.join(", ")
+      + " (virtueller MIDI-Anschluss des Systems). Interface anstecken.");
+    return;
+  }
 
   // Ausgaenge mitpruefen: Sieht das System einen Ausgang, aber keinen Eingang,
   // liegt es nicht an Kabel oder Buchse - dann meldet sich das Geraet an,
