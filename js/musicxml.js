@@ -1,9 +1,9 @@
-/* musicxml.js — MusicXML (partwise, unkomprimiert) -> Stückmodell.
+/* musicxml.js: MusicXML (partwise, unkomprimiert) -> Stückmodell.
  * Eine Note = Tonhöhe, Beginn und Dauer in Viertelschlägen, Hand (aus dem
  * Staff), Stimme, Takt, Vorzeichen wie notiert. <backup>/<forward> setzen die
  * Zeit innerhalb des Takts zurück bzw. vor, so entstehen zwei Hände und
  * mehrere Stimmen; <chord/> hängt eine Note an die vorige, ohne die Zeit zu
- * bewegen. .mxl (gezippt) wird nicht gelesen — vorher entpacken oder als
+ * bewegen. .mxl (gezippt) wird nicht gelesen, vorher entpacken oder als
  * .musicxml speichern. */
 "use strict";
 window.NT = window.NT || {};

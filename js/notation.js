@@ -1,4 +1,4 @@
-/* notation.js — Notensystem auf Canvas.
+/* notation.js: Notensystem auf Canvas.
  * Alle Maße in Zwischenräumen (GAP = Abstand zweier Notenlinien). Die Glyphen
  * kommen aus der eingebetteten Schrift (Bravura-Subset, SMuFL): Schriftgröße
  * = Höhe des Fünfliniensystems = 4 * GAP, Nullpunkt jedes Glyphs auf seiner
@@ -41,7 +41,7 @@ NT.notation = (() => {
   }
 
   /* --- Layout -------------------------------------------------------- *
-   * spec.staves: [{ clef, above, below }] — above/below in Halbschritten
+   * spec.staves: [{ clef, above, below }], above/below in Halbschritten
    * über Linie 5 bzw. unter Linie 1, die der Inhalt braucht.
    * spec.keyFifths, spec.time ({beats, beatType} | null), spec.labels (bool)
    * Ergebnis L beschreibt alles, was zum Zeichnen nötig ist.

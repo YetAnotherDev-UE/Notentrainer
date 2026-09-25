@@ -1,4 +1,4 @@
-/* midi.js — Web MIDI, robust gegen Brücken, die den Standard nur ungefähr
+/* midi.js: Web MIDI, robust gegen Brücken, die den Standard nur ungefähr
  * nachbauen (App-Browser auf dem iPad). Drei Wege, auf denen es scheitern
  * kann, jeder mit eigener Meldung: fehlende API, Ablehnung, keine Antwort.
  * Eingänge werden alle angebunden; virtuelle Systemanschlüsse („Session 1",
@@ -47,18 +47,18 @@ NT.midi = (() => {
     if (virtual.length) return onStatus("idle", "Bereit, aber kein Instrument: nur " + virtual.join(", ") + " (virtueller Anschluss). Interface anstecken.", { real, virtual });
     const outs = ports(access.outputs).map(o => o.name || "Ausgang");
     onStatus("idle", outs.length
-      ? "Nur Ausgang gefunden (" + outs.join(", ") + "), kein Eingang — das Instrument sendet nichts."
+      ? "Nur Ausgang gefunden (" + outs.join(", ") + "), kein Eingang. Das Instrument sendet nichts."
       : "Kein Gerät gefunden. Interface anstecken, Piano einschalten, dann „MIDI verbinden“.", { real, virtual });
   }
 
   function fail(err, shape) {
     const why = (err && err.name) || "unbekannt";
-    const hint = why === "NotAllowedError" ? "Tipp auf „MIDI verbinden“ — manche Browser fragen nur aus einer Nutzeraktion heraus."
-      : why === "NotSupportedError" ? "Dieser Browser liefert kein MIDI aus — nimm Chrome."
+    const hint = why === "NotAllowedError" ? "Tipp auf „MIDI verbinden“, manche Browser fragen nur aus einer Nutzeraktion heraus."
+      : why === "NotSupportedError" ? "Dieser Browser liefert kein MIDI aus. Nimm Chrome."
       : "Unerwarteter Grund, siehe Meldung.";
     let shapeText = "";
     if (shape !== undefined) { try { shapeText = " Form von inputs: " + Object.prototype.toString.call(shape) + " keys[" + Object.keys(shape || {}).slice(0, 6).join(",") + "]"; } catch (e) {} }
-    onStatus("fail", "MIDI fehlgeschlagen — " + why + ((err && err.message) ? ": " + err.message : "") + " " + hint + shapeText, { retry: true });
+    onStatus("fail", "MIDI fehlgeschlagen (" + why + ")" + ((err && err.message) ? ": " + err.message : "") + " " + hint + shapeText, { retry: true });
   }
 
   async function init() {

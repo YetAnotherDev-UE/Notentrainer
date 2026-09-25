@@ -1,8 +1,8 @@
-/* store.js — IndexedDB: Ereignisse, roher Eingabestrom, Sitzungen, Stücke,
+/* store.js: IndexedDB: Ereignisse, roher Eingabestrom, Sitzungen, Stücke,
  * Schlüssel/Wert. Schreibzugriffe werden gesammelt und alle 400 ms in einer
  * Transaktion weggeschrieben; ein stufenloses Pedal erzeugt sonst Dutzende
  * Transaktionen pro Sekunde. Fehlt IndexedDB (privater Modus), läuft alles
- * im Speicher weiter — nur eben nicht über das Neuladen hinaus. */
+ * im Speicher weiter, nur eben nicht über das Neuladen hinaus. */
 "use strict";
 window.NT = window.NT || {};
 

@@ -1,4 +1,4 @@
-/* starter.js — drei gemeinfreie Starter-Stücke als MusicXML-Text.
+/* starter.js: drei gemeinfreie Starter-Stücke als MusicXML-Text.
  * Der Text wird aus einer knappen Notation zusammengesetzt, damit die Datei
  * lesbar bleibt; der Parser sieht trotzdem echtes MusicXML und wird damit
  * genauso geprüft wie mit importierten Dateien.

@@ -1,7 +1,7 @@
-/* music.js — Tonhöhen, Namen, Tonarten, Tonleitern.
+/* music.js: Tonhöhen, Namen, Tonarten, Tonleitern.
  * Keine DOM- und keine Canvas-Abhängigkeit; alles hier ist reine Rechnung.
  * Konvention: MIDI 60 = C4 (wissenschaftliche Schreibweise). Yamaha nennt
- * dieselbe Taste C3 — das ist nur Beschriftung, siehe CLAUDE.md. */
+ * dieselbe Taste C3, das ist nur Beschriftung, siehe CLAUDE.md. */
 "use strict";
 window.NT = window.NT || {};
 
@@ -38,7 +38,7 @@ NT.music = (() => {
     else n += s.alter === 1 ? "♯" : s.alter === -1 ? "♭" : "";
     return n + s.octave;
   }
-  // Nur der Buchstabe mit Vorzeichen, ohne Oktave — für die Beschriftung über der Note.
+  // Nur der Buchstabe mit Vorzeichen, ohne Oktave, für die Beschriftung über der Note.
   function shortName(midi, naming, preferFlat) {
     const full = name(midi, naming, preferFlat);
     return full.replace(/-?\d+$/, "");

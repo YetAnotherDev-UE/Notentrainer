@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925b") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -143,6 +143,8 @@
   .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
   .setRow { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; }
   .setRow label { width: 130px; flex: none; color: var(--muted); font-size: 14px; }
+  /* Auswahlfelder nehmen sonst die Breite ihrer laengsten Option und laufen ueber die Karte hinaus. */
+  .setRow select, .setRow input[type=number] { flex: 1 1 auto; min-width: 0; max-width: 100%; }
   .setRow input[type=range] { flex: 1; accent-color: #2dd4ff; }
   .setRow .val { width: 54px; text-align: right; font: 14px ui-monospace, monospace; }
   select, input[type=number] { font: inherit; background: #0b1f47; color: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
@@ -173,7 +175,7 @@
   <div class="homeGrid">
     <nav class="menu">
       <button class="menuBtn c1" data-mode="single"><span class="skew"><span class="lbl display">Einzeln</span><small>Note sehen, Taste treffen</small></span></button>
-      <button class="menuBtn c2" data-mode="run"><span class="skew"><span class="lbl display">Lauf</span><small>Noten kommen von rechts — im Takt treffen</small></span></button>
+      <button class="menuBtn c2" data-mode="run"><span class="skew"><span class="lbl display">Lauf</span><small>Noten kommen von rechts, im Takt treffen</small></span></button>
       <button class="menuBtn c3" data-mode="phrase"><span class="skew"><span class="lbl display">Stücke</span><small>Phrasen aus echten Stücken, mit Rhythmus</small></span></button>
       <button class="menuBtn c4" data-mode="scale"><span class="skew"><span class="lbl display">Tonleiter</span><small>Gleichmäßig rauf und runter</small></span></button>
       <button class="menuBtn c5" data-go="stats"><span class="skew"><span class="lbl display">Statistik</span><small>Verlauf, Schwächen, Level</small></span></button>
@@ -207,7 +209,7 @@
   <div class="stage" id="stage"><canvas id="staff"></canvas></div>
   <div class="bar"><div class="feedback" id="feedback"></div><div class="chips" id="chips"></div></div>
   <div class="controls" id="tempoRow"><label>Tempo</label><input type="range" id="tempo" min="30" max="200" value="80"><b id="tempoVal">80</b><span class="small muted">Schläge/min</span></div>
-  <p class="rotate">Quer halten — im Hochformat ist das System zu klein.</p>
+  <p class="rotate">Quer halten: im Hochformat ist das System zu klein.</p>
 </section>
 
 <!-- Ergebnis -->
@@ -285,9 +287,9 @@
     </div>
     <h2 class="sec display">Anzeige</h2>
     <div class="form">
-      <div class="setRow"><label>Notennamen</label><input type="checkbox" id="set-labels"><span class="small muted">Name über der Note — fürs Erste, später aus</span></div>
+      <div class="setRow"><label>Notennamen</label><input type="checkbox" id="set-labels"><span class="small muted">Name über der Note (fürs Erste, später aus)</span></div>
       <div class="setRow"><label>Geisternote</label><input type="checkbox" id="set-ghost"><span class="small muted">Bei Fehlern die gespielte Note zeigen</span></div>
-      <div class="setRow"><label>Wackeln</label><input type="checkbox" id="set-shake"><span class="small muted">Bild wackelt bei Fehlern — aus, wenn es beim Lesen stört</span></div>
+      <div class="setRow"><label>Wackeln</label><input type="checkbox" id="set-shake"><span class="small muted">Bild wackelt bei Fehlern. Aus, wenn es beim Lesen stört</span></div>
     </div>
     <h2 class="sec display">Klang</h2>
     <div class="form">
@@ -307,14 +309,14 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js"></script>
-<script src="js/notation.js"></script>
-<script src="js/store.js"></script>
-<script src="js/midi.js"></script>
-<script src="js/synth.js"></script>
-<script src="js/musicxml.js"></script>
-<script src="pieces/starter.js"></script>
-<script src="js/game.js"></script>
-<script src="js/app.js"></script>
+<script src="js/music.js?v=20260925b"></script>
+<script src="js/notation.js?v=20260925b"></script>
+<script src="js/store.js?v=20260925b"></script>
+<script src="js/midi.js?v=20260925b"></script>
+<script src="js/synth.js?v=20260925b"></script>
+<script src="js/musicxml.js?v=20260925b"></script>
+<script src="pieces/starter.js?v=20260925b"></script>
+<script src="js/game.js?v=20260925b"></script>
+<script src="js/app.js?v=20260925b"></script>
 </body>
 </html>

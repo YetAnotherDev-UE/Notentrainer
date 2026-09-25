@@ -1,4 +1,4 @@
-/* app.js — Bildschirme, Einstellungen, Verdrahtung.
+/* app.js: Bildschirme, Einstellungen, Verdrahtung.
  * Hauptmenü, Spielbildschirm, Ergebnis, Statistik, Bibliothek, Einstellungen.
  * Alles, was den DOM anfasst, wohnt hier; die Spielmechanik in game.js weiß
  * nichts von Knöpfen. */
@@ -52,7 +52,7 @@ NT.app = (() => {
     $("homeXpBar").style.width = Math.round(li.pct * 100) + "%";
     const sessions = G.history.length ? new Set(G.history.map(e => e.session)).size : 0;
     const hits = G.history.filter(e => e.correct).length;
-    $("homeTotals").textContent = G.history.length ? `${G.history.length} Noten · ${Math.round(100 * hits / G.history.length)} % · ${sessions} Sitzungen` : "Noch kein Verlauf — leg los.";
+    $("homeTotals").textContent = G.history.length ? `${G.history.length} Noten · ${Math.round(100 * hits / G.history.length)} % · ${sessions} Sitzungen` : "Noch kein Verlauf, leg los.";
   }
 
   /* --- Spielbildschirm ---------------------------------------------------- */
@@ -63,7 +63,7 @@ NT.app = (() => {
     $("playTitle").textContent = MODE_TITLE[mode] + (opts && opts.piece ? " · " + opts.piece.title : "");
     $("tempoRow").hidden = mode === "single";
     $("hud").classList.toggle("hidden", mode === "play");
-    $("feedback").className = "feedback"; $("feedback").textContent = mode === "single" ? "Spiel die angezeigte Note." : mode === "play" ? "Hör zu — und schau, wie die Noten laufen." : "Triff die Note, wenn sie die Linie erreicht.";
+    $("feedback").className = "feedback"; $("feedback").textContent = mode === "single" ? "Spiel die angezeigte Note." : mode === "play" ? "Hör zu und schau, wie die Noten laufen." : "Triff die Note, wenn sie die Linie erreicht.";
     $("stopBtn").textContent = mode === "single" ? "Beenden" : "Abbrechen";
     NT.synth.unlock();
     G.start(mode, opts);
@@ -113,7 +113,7 @@ NT.app = (() => {
     $("resEven").hidden = !r.evenness;
     if (r.evenness) $("resEven").textContent = `Gleichmäßigkeit: Abstände ±${Math.round(r.evenness.ioiSd)} ms, Anschlag-Spanne ${r.evenness.velRange}`;
     $("resLevel").textContent = "Level " + li.level; $("resLevelBar").style.width = Math.round(li.pct * 100) + "%";
-    $("resWeak").innerHTML = r.weakest.length ? r.weakest.map(w => `<span class="chip miss">${MU.name(w.midi, settings.naming)} · ${w.bad}/${w.n}</span>`).join("") : "<span class='muted'>Keine Fehler — nichts zu bemängeln.</span>";
+    $("resWeak").innerHTML = r.weakest.length ? r.weakest.map(w => `<span class="chip miss">${MU.name(w.midi, settings.naming)} · ${w.bad}/${w.n}</span>`).join("") : "<span class='muted'>Keine Fehler, nichts zu bemängeln.</span>";
   }
 
   /* --- MIDI ---------------------------------------------------------------- */
@@ -152,7 +152,7 @@ NT.app = (() => {
     const sel = $("set-playback"); if (!sel) return;
     const outs = NT.midi.outputs();
     sel.innerHTML = `<option value="auto">Automatisch (Piano, sonst Synth)</option><option value="synth">Nur Synth</option><option value="midi">Nur Piano (MIDI-Ausgang)</option>`;
-    $("outputsInfo").textContent = outs.length ? "MIDI-Ausgänge: " + outs.map(o => o.name).join(", ") : "Kein MIDI-Ausgang gefunden — es spielt der Synth.";
+    $("outputsInfo").textContent = outs.length ? "MIDI-Ausgänge: " + outs.map(o => o.name).join(", ") : "Kein MIDI-Ausgang gefunden, es spielt der Synth.";
     sel.value = settings.playback;
   }
 
@@ -174,8 +174,8 @@ NT.app = (() => {
     const list = Array.from(sessions.entries()).sort((a, b) => b[1].t - a[1].t).slice(0, 12);
     $("statSessions").innerHTML = list.length ? list.map(([id, s]) => `<div class="row"><span>${new Date(s.t).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })}</span><span class="tag">${MODE_TITLE[s.mode] || s.mode}</span><span>${s.n} Noten</span><b>${Math.round(100 * s.hits / s.n)} %</b></div>`).join("") : "";
     const p = device.pedal;
-    $("statPedal").textContent = Object.keys(p).filter(k => p[k].seen).length ? "Pedal: " + Object.keys(p).filter(k => p[k].seen).map(k => `${PEDAL_NAME[k]} — ${p[k].between ? "stufenlos, Werte " + p[k].min + "–" + p[k].max : "Schalter"}`).join(" · ") : "Pedal: noch nichts erkannt.";
-    $("storeInfo").textContent = NT.store.available ? "Gespeichert in diesem Browser. Export/Import überträgt den Verlauf zwischen Geräten." : "Kein dauerhafter Speicher verfügbar (privater Modus?) — nur diese Sitzung.";
+    $("statPedal").textContent = Object.keys(p).filter(k => p[k].seen).length ? "Pedal: " + Object.keys(p).filter(k => p[k].seen).map(k => `${PEDAL_NAME[k]}: ${p[k].between ? "stufenlos, Werte " + p[k].min + "–" + p[k].max : "Schalter"}`).join(" · ") : "Pedal: noch nichts erkannt.";
+    $("storeInfo").textContent = NT.store.available ? "Gespeichert in diesem Browser. Export/Import überträgt den Verlauf zwischen Geräten." : "Kein dauerhafter Speicher verfügbar (privater Modus?), nur diese Sitzung.";
   }
 
   async function exportData() {
@@ -216,7 +216,7 @@ NT.app = (() => {
   }
   async function importPiece(file) {
     try {
-      if (/\.mxl$/i.test(file.name)) throw new Error(".mxl ist gezippt — in MuseScore als „Unkomprimiertes MusicXML“ exportieren.");
+      if (/\.mxl$/i.test(file.name)) throw new Error(".mxl ist gezippt. In MuseScore als „Unkomprimiertes MusicXML“ exportieren.");
       const xml = await file.text();
       const piece = NT.musicxml.parse(xml, { title: file.name.replace(/\.[^.]+$/, ""), source: "import" });
       await NT.store.put("pieces", { id: piece.id, title: piece.title, composer: piece.composer, xml, addedAt: Date.now() });

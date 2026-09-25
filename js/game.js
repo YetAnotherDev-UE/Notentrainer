@@ -1,4 +1,4 @@
-/* game.js — die Spielmechanik.
+/* game.js: die Spielmechanik.
  * Betriebsarten: single (Note steht, warten), run (Zufallsnoten laufen ein),
  * phrase (Phrasen aus Stücken mit Rhythmus), scale (Tonleiter), play
  * (Abspielen, ohne Wertung). Im Lauf ist der Fälligkeitszeitpunkt die
@@ -37,7 +37,7 @@ NT.game = (() => {
     }
     return out;
   }
-  // Häufig verfehlte Noten kommen öfter dran — über den ganzen Verlauf.
+  // Häufig verfehlte Noten kommen öfter dran, über den ganzen Verlauf.
   function pickWeighted(pool, exclude) {
     if (!pool.length) return null;
     const byMidi = new Map();
@@ -206,13 +206,13 @@ NT.game = (() => {
     reward(correct);
     if (correct) {
       S.flash = "ok"; S.ghost = null;
-      hooks.feedback("ok", MU.name(S.target, settings.naming, S.preferFlat) + " — " + Math.round(now() - S.targetShownAt) + " ms");
+      hooks.feedback("ok", MU.name(S.target, settings.naming, S.preferFlat) + " · " + Math.round(now() - S.targetShownAt) + " ms");
       burst(S.target);
       draw();
       setTimeout(() => { if (S.mode === "single" && S.running) nextTarget(); }, 240);
     } else {
       S.flash = "miss"; S.ghost = midi;
-      hooks.feedback("miss", "Gespielt: " + MU.name(midi, settings.naming, S.preferFlat) + " — gesucht: " + MU.name(S.target, settings.naming, S.preferFlat));
+      hooks.feedback("miss", "Gespielt: " + MU.name(midi, settings.naming, S.preferFlat) + ", gesucht: " + MU.name(S.target, settings.naming, S.preferFlat));
       draw();
       clearTimeout(S.ghostTimer);
       S.ghostTimer = setTimeout(() => { S.flash = null; S.ghost = null; draw(); }, 700);
@@ -279,10 +279,10 @@ NT.game = (() => {
     const off = Math.round(t - n.dueAt);
     if (exact) {
       S.iois.push(t); S.vels.push(velocity || 0);
-      hooks.feedback("ok", MU.name(n.midi, settings.naming, S.preferFlat) + " — " + (off > 0 ? "+" + off + " ms (spät)" : off < 0 ? off + " ms (früh)" : "genau"));
+      hooks.feedback("ok", MU.name(n.midi, settings.naming, S.preferFlat) + " · " + (off > 0 ? "+" + off + " ms (spät)" : off < 0 ? off + " ms (früh)" : "genau"));
       burst(n.midi, N.staffFor(S.L, n));
     } else {
-      hooks.feedback("miss", "Gespielt: " + MU.name(midi, settings.naming, S.preferFlat) + " — gesucht: " + MU.name(n.midi, settings.naming, S.preferFlat));
+      hooks.feedback("miss", "Gespielt: " + MU.name(midi, settings.naming, S.preferFlat) + ", gesucht: " + MU.name(n.midi, settings.naming, S.preferFlat));
     }
   }
 

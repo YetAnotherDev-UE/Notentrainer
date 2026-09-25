@@ -1,7 +1,7 @@
-/* synth.js — Web Audio als Rückfall zum Abspielen (kein Piano am Gerät) und
+/* synth.js: Web Audio als Rückfall zum Abspielen (kein Piano am Gerät) und
  * für die kleinen Spielgeräusche. Kein Anspruch auf Klavierklang: zwei
  * Teiltöne mit Hüllkurve, das reicht, um ein Stück zu erkennen. Der
- * AudioContext entsteht erst bei der ersten Nutzeraktion — vorher lässt
+ * AudioContext entsteht erst bei der ersten Nutzeraktion, vorher lässt
  * iOS ihn nicht laufen. */
 "use strict";
 window.NT = window.NT || {};
