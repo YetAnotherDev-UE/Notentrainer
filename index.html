@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925b") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925c") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -26,10 +26,16 @@
     margin: 0; color: var(--ink); font: 15px/1.45 system-ui, "Segoe UI", sans-serif; overflow: hidden;
     background: radial-gradient(120% 90% at 50% 0%, #1d55bd 0%, #0e3479 42%, #071a3c 100%);
   }
+  /* Streifen wandern langsam quer zu ihrer Richtung. Eine Periode ist 110 px,
+     die Schleife springt also nahtlos. Ueber transform statt
+     background-position, damit es der Grafikchip uebernimmt. */
   body::before {
     content: ""; position: fixed; inset: -30%; pointer-events: none; transform: rotate(-10deg);
     background: repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 34px, transparent 34px 110px);
+    animation: scrollStripes 8s linear infinite; will-change: transform;
   }
+  @keyframes scrollStripes { from { transform: rotate(-10deg) translateY(0); } to { transform: rotate(-10deg) translateY(110px); } }
+  @media (prefers-reduced-motion: reduce) { body::before { animation: none; } .hero { animation: none; } }
   .display { font-family: "Anton", "Avenir Next Condensed", "Bahnschrift", "Impact", "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: .02em; font-weight: 400; }
 
   .screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 14px 18px; overflow: auto; }
@@ -309,14 +315,14 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260925b"></script>
-<script src="js/notation.js?v=20260925b"></script>
-<script src="js/store.js?v=20260925b"></script>
-<script src="js/midi.js?v=20260925b"></script>
-<script src="js/synth.js?v=20260925b"></script>
-<script src="js/musicxml.js?v=20260925b"></script>
-<script src="pieces/starter.js?v=20260925b"></script>
-<script src="js/game.js?v=20260925b"></script>
-<script src="js/app.js?v=20260925b"></script>
+<script src="js/music.js?v=20260925c"></script>
+<script src="js/notation.js?v=20260925c"></script>
+<script src="js/store.js?v=20260925c"></script>
+<script src="js/midi.js?v=20260925c"></script>
+<script src="js/synth.js?v=20260925c"></script>
+<script src="js/musicxml.js?v=20260925c"></script>
+<script src="pieces/starter.js?v=20260925c"></script>
+<script src="js/game.js?v=20260925c"></script>
+<script src="js/app.js?v=20260925c"></script>
 </body>
 </html>
