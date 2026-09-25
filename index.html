@@ -72,7 +72,10 @@
   .c5 .skew { background: linear-gradient(180deg, #b79bff, #7c3aed); }
   .c6 .skew { background: linear-gradient(180deg, #5ee8b3, #12a874); }
   .c7 .skew { background: linear-gradient(180deg, #86b8ff, #2563eb); }
-  .hero { font-family: "NotenSymbole"; font-size: min(46vh, 34vw); line-height: 1.55; text-align: center; user-select: none;
+  /* background-clip: text malt nur innerhalb der Box. Der Schluessel ragt 1,10 em
+     ueber die Grundlinie, die bei line-height 1.5 nur 0,75 em unter dem Rand
+     liegt - der Innenabstand oben holt den Rest. */
+  .hero { font-family: "NotenSymbole"; font-size: min(40vh, 30vw); line-height: 1.5; padding: .42em .05em .02em; text-align: center; user-select: none;
     background: linear-gradient(180deg, #fff3a0 0%, #ffb020 50%, #ff5c3d 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 14px 24px rgba(0,0,0,.55)); animation: float 5s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-10px) rotate(-2deg); } }
@@ -284,6 +287,7 @@
     <div class="form">
       <div class="setRow"><label>Notennamen</label><input type="checkbox" id="set-labels"><span class="small muted">Name über der Note — fürs Erste, später aus</span></div>
       <div class="setRow"><label>Geisternote</label><input type="checkbox" id="set-ghost"><span class="small muted">Bei Fehlern die gespielte Note zeigen</span></div>
+      <div class="setRow"><label>Wackeln</label><input type="checkbox" id="set-shake"><span class="small muted">Bild wackelt bei Fehlern — aus, wenn es beim Lesen stört</span></div>
     </div>
     <h2 class="sec display">Klang</h2>
     <div class="form">

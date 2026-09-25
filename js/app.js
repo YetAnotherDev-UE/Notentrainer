@@ -10,7 +10,7 @@ NT.app = (() => {
   const G = NT.game, MU = NT.music, N = NT.notation;
 
   const DEFAULTS = { clef: "treble", keys: "white", naming: "de", low: 60, high: 81, hand: "r", bpm: 80,
-    runLength: 24, phrases: 6, labels: true, ghost: true, sound: true, fx: true, playback: "auto",
+    runLength: 24, phrases: 6, labels: true, ghost: true, sound: true, fx: true, shake: true, playback: "auto",
     library: null, scaleRoot: 0, scaleType: "dur", scaleOctaves: 1 };
   const settings = Object.assign({}, DEFAULTS);
   const pieces = [];               // geparste Stücke (Starter + importierte)
@@ -77,7 +77,8 @@ NT.app = (() => {
     $("hudProgress").style.width = h.progress == null ? "0%" : Math.round(h.progress * 100) + "%";
   }
   function feedback(kind, text) { const el = $("feedback"); el.className = "feedback " + kind; el.textContent = text; }
-  function shake() { const st = $("stage"); st.classList.remove("shake"); void st.offsetWidth; st.classList.add("shake"); }
+  // Wackeln bei Fehlern: abschaltbar, weil es beim Lesen der nächsten Note stört.
+  function shake() { if (!settings.shake) return; const st = $("stage"); st.classList.remove("shake"); void st.offsetWidth; st.classList.add("shake"); }
   function sound(kind) { if (settings.fx) NT.synth.blip(kind); }
 
   // Abspielen: Piano über MIDI-Ausgang, sonst Synth.
@@ -231,7 +232,7 @@ NT.app = (() => {
     for (const k of ["clef", "keys", "naming", "hand", "playback", "scaleType"]) if ($("set-" + k)) $("set-" + k).value = settings[k];
     $("set-scaleRoot").value = settings.scaleRoot;
     $("set-scaleOctaves").value = settings.scaleOctaves;
-    for (const k of ["labels", "ghost", "sound", "fx"]) $("set-" + k).checked = !!settings[k];
+    for (const k of ["labels", "ghost", "sound", "fx", "shake"]) $("set-" + k).checked = !!settings[k];
     $("set-low").value = settings.low; $("set-high").value = settings.high;
     $("set-runLength").value = settings.runLength; $("set-phrases").value = settings.phrases;
     $("lowVal").textContent = MU.name(settings.low, settings.naming); $("highVal").textContent = MU.name(settings.high, settings.naming);
@@ -244,7 +245,7 @@ NT.app = (() => {
     for (const k of ["clef", "keys", "naming", "hand", "playback", "scaleType"]) on("set-" + k, "change", e => { settings[k] = e.target.value; saveSettings(); if (k === "naming") syncSettingsUi(); });
     on("set-scaleRoot", "change", e => { settings.scaleRoot = +e.target.value; saveSettings(); });
     on("set-scaleOctaves", "change", e => { settings.scaleOctaves = +e.target.value; saveSettings(); });
-    for (const k of ["labels", "ghost", "sound", "fx"]) on("set-" + k, "change", e => { settings[k] = e.target.checked; NT.synth.enabled = settings.sound; NT.synth.fx = settings.fx; saveSettings(); });
+    for (const k of ["labels", "ghost", "sound", "fx", "shake"]) on("set-" + k, "change", e => { settings[k] = e.target.checked; NT.synth.enabled = settings.sound; NT.synth.fx = settings.fx; saveSettings(); });
     const range = () => {
       let lo = +$("set-low").value, hi = +$("set-high").value;
       if (lo > hi) { if (document.activeElement === $("set-low")) hi = lo; else lo = hi; }
