@@ -175,7 +175,55 @@ NT.app = (() => {
     $("statSessions").innerHTML = list.length ? list.map(([id, s]) => `<div class="row"><span>${new Date(s.t).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })}</span><span class="tag">${MODE_TITLE[s.mode] || s.mode}</span><span>${s.n} Noten</span><b>${Math.round(100 * s.hits / s.n)} %</b></div>`).join("") : "";
     const p = device.pedal;
     $("statPedal").textContent = Object.keys(p).filter(k => p[k].seen).length ? "Pedal: " + Object.keys(p).filter(k => p[k].seen).map(k => `${PEDAL_NAME[k]}: ${p[k].between ? "stufenlos, Werte " + p[k].min + "–" + p[k].max : "Schalter"}`).join(" · ") : "Pedal: noch nichts erkannt.";
+    renderChart();
     $("storeInfo").textContent = NT.store.available ? "Gespeichert in diesem Browser. Export/Import überträgt den Verlauf zwischen Geräten." : "Kein dauerhafter Speicher verfügbar (privater Modus?), nur diese Sitzung.";
+  }
+
+  /* --- Diagramme --------------------------------------------------------- */
+  function sessionRows() {
+    const map = new Map();
+    for (const e of G.history) {
+      let s = map.get(e.session);
+      if (!s) { s = { id: e.session, t: e.t || 0, n: 0, hits: 0, off: [], react: [], mode: e.mode }; map.set(e.session, s); }
+      s.n++; s.t = Math.min(s.t, e.t || s.t);
+      if (e.correct) { s.hits++; if (typeof e.dueAt === "number") s.off.push(e.hitAt - e.dueAt); else s.react.push(e.hitAt - e.shownAt); }
+    }
+    return Array.from(map.values()).sort((a, b) => a.t - b.t);
+  }
+  const dayLabel = t => { const d = new Date(t); return d.getDate() + "." + (d.getMonth() + 1) + "."; };
+  const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+  async function renderChart() {
+    const kind = $("chartKind").value, canvas = $("chart"), note = $("chartNote");
+    const sess = sessionRows().slice(-30);
+    let spec = { type: "line", points: [], unit: "" }, text = "";
+    if (kind === "acc") {
+      spec = { type: "line", unit: "%", yMin: 0, yMax: 100, color: "#34d399", points: sess.map(s => ({ label: dayLabel(s.t), value: 100 * s.hits / s.n })) };
+      text = "Anteil richtiger Anschläge je Sitzung, die letzten 30 Sitzungen.";
+    } else if (kind === "volume") {
+      const days = new Map(); const now = new Date();
+      for (let i = 20; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); days.set(d.toDateString(), { label: dayLabel(d), value: 0, color: "#ff8a3d" }); }
+      for (const e of G.history) { const k = new Date(e.t || 0).toDateString(); if (days.has(k)) days.get(k).value++; }
+      spec = { type: "bars", unit: "", yMin: 0, points: Array.from(days.values()), minPoints: 1 };
+      text = "Gespielte Noten je Tag, die letzten drei Wochen. Regelmäßig schlägt viel.";
+    } else if (kind === "timing") {
+      spec = { type: "line", unit: "ms", symmetric: true, zeroLine: true, color: "#2dd4ff", points: sess.filter(s => s.off.length).map(s => ({ label: dayLabel(s.t), value: mean(s.off) })) };
+      text = "Mittlere Abweichung vom Zeitpunkt je Sitzung (Lauf, Stücke, Tonleiter). Über null ist zu spät, unter null zu früh.";
+    } else if (kind === "reaction") {
+      spec = { type: "line", unit: "ms", yMin: 0, floorZero: true, color: "#ff4fa3", points: sess.filter(s => s.react.length).map(s => ({ label: dayLabel(s.t), value: mean(s.react) })) };
+      text = "Mittlere Zeit von der gezeigten bis zur getroffenen Note je Sitzung (Einzeln).";
+    } else if (kind === "xp" || kind === "streak") {
+      const rows = (await NT.store.all("sessions")).sort((a, b) => a.startedAt - b.startedAt).slice(-40);
+      if (kind === "xp") { let sum = 0; spec = { type: "line", unit: "XP", yMin: 0, color: "#ffd23f", points: rows.map(r => ({ label: dayLabel(r.startedAt), value: (sum += r.xp || 0) })) }; text = "Gesammelte XP über alle abgeschlossenen Runden."; }
+      else { spec = { type: "bars", unit: "", yMin: 0, points: rows.map(r => ({ label: dayLabel(r.startedAt), value: r.bestStreak || 0, color: (r.bestStreak || 0) >= 10 ? "#ffd23f" : "#a78bfa" })), minPoints: 1 }; text = "Längste Serie ohne Fehler je Runde. Ab zehn leuchtet der Balken gelb."; }
+    } else if (kind === "hist") {
+      const offs = G.history.filter(e => e.correct && typeof e.dueAt === "number").map(e => e.hitAt - e.dueAt);
+      const bins = []; for (let b = -150; b < 150; b += 30) bins.push({ from: b, label: (b + 15 > 0 ? "+" : "") + (b + 15), value: 0, color: b < -15 ? "#2dd4ff" : b >= 15 ? "#ff8a3d" : "#22c55e" });
+      for (const o of offs) { const i = Math.min(bins.length - 1, Math.max(0, Math.floor((o + 150) / 30))); bins[i].value++; }
+      spec = { type: "bars", unit: "", yMin: 0, points: bins, minPoints: offs.length ? 1 : 99, emptyText: "Erst im Lauf, mit Stücken oder Tonleitern spielen." };
+      text = "Wie deine Treffer im Zeitfenster liegen: blau zu früh, grün auf den Punkt, orange zu spät.";
+    }
+    note.textContent = text;
+    NT.charts.draw(canvas, spec);
   }
 
   async function exportData() {
@@ -316,6 +364,8 @@ NT.app = (() => {
 
     // Statistik
     $("exportBtn").addEventListener("click", exportData);
+    $("chartKind").addEventListener("change", renderChart);
+    new ResizeObserver(() => { if (current === "stats") renderChart(); }).observe($("chart"));
     $("importBtn").addEventListener("change", e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ""; });
     $("wipeBtn").addEventListener("click", () => {
       const b = $("wipeBtn");
