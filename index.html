@@ -2,1188 +2,315 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Notentrainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 <style>
-  /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open
-     Font License 1.1 - Lizenztext in Bravura-OFL.txt. Gekuerzt auf Violin-
-     und Bassschluessel sowie Kreuz und wegen des Reserved Font Name
-     umbenannt. Eingebettet, damit die Darstellung auf jedem Geraet gleich
-     ist - iOS hat sonst keine Schrift mit diesen Zeichen. */
-  @font-face {
-    font-family: "NotenSymbole";
-    src: url("data:font/otf;base64,T1RUTwALAIAAAwAwQ0ZGIICb56sAAADEAAAbdkdQT1NEdkx1AABBUAAAACBHU1VCRHZMdQAAQXAAAAAgT1MvMtT+bKgAABy0AAAAYGNtYXB+ySRHAABAfAAAALRoZWFkM7+N7QAAHDwAAAA2aGhlYQ88BTYAAByQAAAAJGhtdHgOBP/2AAAcdAAAABxtYXhwAAdQAAAAALwAAAAGbmFtZcp5N0EAAB0UAAAjZnBvc3T/uAAyAABBMAAAACAAAFAAAAcAAAEABAIAAQEBCEJyYXZ1cmEAAQEBMPghAPgiAfgjDAD4JAL4JAP4JQRADAP8Rhz4OBwJDxwHnwUcEjAPqxwbVhIcEjQRAAsCAAEABwAOABUAHAAiACgALQCgEcMRyhHQdTAyNjZGdW5pRTA1MHVuaUUwNjJ1bmlFMjYydTFEMTFFdTFEMTIyMS40ODJCcmF2dXJhIGlzIGEgcmVnaXN0ZXJlZCB0cmFkZW1hcmsgb2YgU3RlaW5iZXJnIE1lZGlhIFRlY2hub2xvZ2llcyBHbWJIIGluIHRoZSBFdXJvcGVhbiBVbmlvbiBhbmQgb3RoZXIgdGVycml0b3JpZXMuQ29weXJpZ2h0IENvcHlyaWdodCAyMDI2LCBTdGVpbmJlcmcgTWVkaWEgVGVjaG5vbG9naWVzIEdtYkggaHR0cDp3d3cuc3RlaW5iZXJnLm5ldCwgd2l0aCBSZXNlcnZlZCBGb250IE5hbWUgIkJyYXZ1cmEiLgoKVGhpcyBGb250IFNvZnR3YXJlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSBTSUwgT3BlbiBGb250IExpY2Vuc2UsIFZlcnNpb24gMS4xLiBUaGlzIGxpY2Vuc2UgaXMgY29waWVkIGJlbG93LCBhbmQgaXMgYWxzbyBhdmFpbGFibGUgd2l0aCBhIEZBUSBhdDogaHR0cDpzY3JpcHRzLnNpbC5vcmdPRkwKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClNJTCBPUEVOIEZPTlQgTElDRU5TRSBWZXJzaW9uIDEuMSAtIDI2IEZlYnJ1YXJ5IDIwMDcKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KClBSRUFNQkxFClRoZSBnb2FscyBvZiB0aGUgT3BlbiBGb250IExpY2Vuc2UgT0ZMIGFyZSB0byBzdGltdWxhdGUgd29ybGR3aWRlIGRldmVsb3BtZW50IG9mIGNvbGxhYm9yYXRpdmUgZm9udCBwcm9qZWN0cywgdG8gc3VwcG9ydCB0aGUgZm9udCBjcmVhdGlvbiBlZmZvcnRzIG9mIGFjYWRlbWljIGFuZCBsaW5ndWlzdGljIGNvbW11bml0aWVzLCBhbmQgdG8gcHJvdmlkZSBhIGZyZWUgYW5kIG9wZW4gZnJhbWV3b3JrIGluIHdoaWNoIGZvbnRzIG1heSBiZSBzaGFyZWQgYW5kIGltcHJvdmVkIGluIHBhcnRuZXJzaGlwIHdpdGggb3RoZXJzLgoKVGhlIE9GTCBhbGxvd3MgdGhlIGxpY2Vuc2VkIGZvbnRzIHRvIGJlIHVzZWQsIHN0dWRpZWQsIG1vZGlmaWVkIGFuZCByZWRpc3RyaWJ1dGVkIGZyZWVseSBhcyBsb25nIGFzIHRoZXkgYXJlIG5vdCBzb2xkIGJ5IHRoZW1zZWx2ZXMuIFRoZSBmb250cywgaW5jbHVkaW5nIGFueSBkZXJpdmF0aXZlIHdvcmtzLCBjYW4gYmUgYnVuZGxlZCwgZW1iZWRkZWQsIHJlZGlzdHJpYnV0ZWQgYW5kb3Igc29sZCB3aXRoIGFueSBzb2Z0d2FyZSBwcm92aWRlZCB0aGF0IGFueSByZXNlcnZlZCBuYW1lcyBhcmUgbm90IHVzZWQgYnkgZGVyaXZhdGl2ZSB3b3Jrcy4gVGhlIGZvbnRzIGFuZCBkZXJpdmF0aXZlcywgaG93ZXZlciwgY2Fubm90IGJlIHJlbGVhc2VkIHVuZGVyIGFueSBvdGhlciB0eXBlIG9mIGxpY2Vuc2UuIFRoZSByZXF1aXJlbWVudCBmb3IgZm9udHMgdG8gcmVtYWluIHVuZGVyIHRoaXMgbGljZW5zZSBkb2VzIG5vdCBhcHBseSB0byBhbnkgZG9jdW1lbnQgY3JlYXRlZCB1c2luZyB0aGUgZm9udHMgb3IgdGhlaXIgZGVyaXZhdGl2ZXMuCgpERUZJTklUSU9OUwoiRm9udCBTb2Z0d2FyZSIgcmVmZXJzIHRvIHRoZSBzZXQgb2YgZmlsZXMgcmVsZWFzZWQgYnkgdGhlIENvcHlyaWdodCBIb2xkZXJzIHVuZGVyIHRoaXMgbGljZW5zZSBhbmQgY2xlYXJseSBtYXJrZWQgYXMgc3VjaC4gVGhpcyBtYXkKaW5jbHVkZSBzb3VyY2UgZmlsZXMsIGJ1aWxkIHNjcmlwdHMgYW5kIGRvY3VtZW50YXRpb24uCgoiUmVzZXJ2ZWQgRm9udCBOYW1lIiByZWZlcnMgdG8gYW55IG5hbWVzIHNwZWNpZmllZCBhcyBzdWNoIGFmdGVyIHRoZSBjb3B5cmlnaHQgc3RhdGVtZW50cy4KCiJPcmlnaW5hbCBWZXJzaW9uIiByZWZlcnMgdG8gdGhlIGNvbGxlY3Rpb24gb2YgRm9udCBTb2Z0d2FyZSBjb21wb25lbnRzIGFzIGRpc3RyaWJ1dGVkIGJ5IHRoZSBDb3B5cmlnaHQgSG9sZGVycy4KCiJNb2RpZmllZCBWZXJzaW9uIiByZWZlcnMgdG8gYW55IGRlcml2YXRpdmUgbWFkZSBieSBhZGRpbmcgdG8sIGRlbGV0aW5nLCBvciBzdWJzdGl0dXRpbmcgLS0gaW4gcGFydCBvciBpbiB3aG9sZSAtLSBhbnkgb2YgdGhlIGNvbXBvbmVudHMgb2YgdGhlIE9yaWdpbmFsIFZlcnNpb24sIGJ5IGNoYW5naW5nIGZvcm1hdHMgb3IgYnkgcG9ydGluZyB0aGUgRm9udCBTb2Z0d2FyZSB0byBhIG5ldyBlbnZpcm9ubWVudC4KCiJBdXRob3IiIHJlZmVycyB0byBhbnkgZGVzaWduZXIsIGVuZ2luZWVyLCBwcm9ncmFtbWVyLCB0ZWNobmljYWwgd3JpdGVyIG9yIG90aGVyIHBlcnNvbiB3aG8gY29udHJpYnV0ZWQgdG8gdGhlIEZvbnQgU29mdHdhcmUuCgpQRVJNSVNTSU9OICYgQ09ORElUSU9OUwpQZXJtaXNzaW9uIGlzIGhlcmVieSBncmFudGVkLCBmcmVlIG9mIGNoYXJnZSwgdG8gYW55IHBlcnNvbiBvYnRhaW5pbmcgYSBjb3B5IG9mIHRoZSBGb250IFNvZnR3YXJlLCB0byB1c2UsIHN0dWR5LCBjb3B5LCBtZXJnZSwgZW1iZWQsIG1vZGlmeSwgcmVkaXN0cmlidXRlLCBhbmQgc2VsbCBtb2RpZmllZCBhbmQgdW5tb2RpZmllZCBjb3BpZXMgb2YgdGhlIEZvbnQgU29mdHdhcmUsIHN1YmplY3QgdG8gdGhlIGZvbGxvd2luZyBjb25kaXRpb25zOgoKMSBOZWl0aGVyIHRoZSBGb250IFNvZnR3YXJlIG5vciBhbnkgb2YgaXRzIGluZGl2aWR1YWwgY29tcG9uZW50cywgaW4gT3JpZ2luYWwgb3IgTW9kaWZpZWQgVmVyc2lvbnMsIG1heSBiZSBzb2xkIGJ5IGl0c2VsZi4KCjIgT3JpZ2luYWwgb3IgTW9kaWZpZWQgVmVyc2lvbnMgb2YgdGhlIEZvbnQgU29mdHdhcmUgbWF5IGJlIGJ1bmRsZWQsIHJlZGlzdHJpYnV0ZWQgYW5kb3Igc29sZCB3aXRoIGFueSBzb2Z0d2FyZSwgcHJvdmlkZWQgdGhhdCBlYWNoIGNvcHkgY29udGFpbnMgdGhlIGFib3ZlIGNvcHlyaWdodCBub3RpY2UgYW5kIHRoaXMgbGljZW5zZS4gVGhlc2UgY2FuIGJlIGluY2x1ZGVkIGVpdGhlciBhcyBzdGFuZC1hbG9uZSB0ZXh0IGZpbGVzLCBodW1hbi1yZWFkYWJsZSBoZWFkZXJzIG9yIGluIHRoZSBhcHByb3ByaWF0ZSBtYWNoaW5lLXJlYWRhYmxlIG1ldGFkYXRhIGZpZWxkcyB3aXRoaW4gdGV4dCBvciBiaW5hcnkgZmlsZXMgYXMgbG9uZyBhcyB0aG9zZSBmaWVsZHMgY2FuIGJlIGVhc2lseSB2aWV3ZWQgYnkgdGhlIHVzZXIuCgozIE5vIE1vZGlmaWVkIFZlcnNpb24gb2YgdGhlIEZvbnQgU29mdHdhcmUgbWF5IHVzZSB0aGUgUmVzZXJ2ZWQgRm9udCBOYW1lcyB1bmxlc3MgZXhwbGljaXQgd3JpdHRlbiBwZXJtaXNzaW9uIGlzIGdyYW50ZWQgYnkgdGhlIGNvcnJlc3BvbmRpbmcgQ29weXJpZ2h0IEhvbGRlci4gVGhpcyByZXN0cmljdGlvbiBvbmx5IGFwcGxpZXMgdG8gdGhlIHByaW1hcnkgZm9udCBuYW1lIGFzIHByZXNlbnRlZCB0byB0aGUgdXNlcnMuCgo0IFRoZSBuYW1lcyBvZiB0aGUgQ29weXJpZ2h0IEhvbGRlcnMgb3IgdGhlIEF1dGhvcnMgb2YgdGhlIEZvbnQgU29mdHdhcmUgc2hhbGwgbm90IGJlIHVzZWQgdG8gcHJvbW90ZSwgZW5kb3JzZSBvciBhZHZlcnRpc2UgYW55IE1vZGlmaWVkIFZlcnNpb24sIGV4Y2VwdCB0byBhY2tub3dsZWRnZSB0aGUgY29udHJpYnV0aW9ucyBvZiB0aGUgQ29weXJpZ2h0IEhvbGRlcnMgYW5kIHRoZSBBdXRob3JzIG9yIHdpdGggdGhlaXIgZXhwbGljaXQgd3JpdHRlbiBwZXJtaXNzaW9uLgoKNSBUaGUgRm9udCBTb2Z0d2FyZSwgbW9kaWZpZWQgb3IgdW5tb2RpZmllZCwgaW4gcGFydCBvciBpbiB3aG9sZSwgbXVzdCBiZSBkaXN0cmlidXRlZCBlbnRpcmVseSB1bmRlciB0aGlzIGxpY2Vuc2UsIGFuZCBtdXN0IG5vdCBiZSBkaXN0cmlidXRlZCB1bmRlciBhbnkgb3RoZXIgbGljZW5zZS4gVGhlIHJlcXVpcmVtZW50IGZvciBmb250cyB0byByZW1haW4gdW5kZXIgdGhpcyBsaWNlbnNlIGRvZXMgbm90IGFwcGx5IHRvIGFueSBkb2N1bWVudCBjcmVhdGVkIHVzaW5nIHRoZSBGb250IFNvZnR3YXJlLgoKVEVSTUlOQVRJT04KVGhpcyBsaWNlbnNlIGJlY29tZXMgbnVsbCBhbmQgdm9pZCBpZiBhbnkgb2YgdGhlIGFib3ZlIGNvbmRpdGlvbnMgYXJlIG5vdCBtZXQuCgpESVNDTEFJTUVSClRIRSBGT05UIFNPRlRXQVJFIElTIFBST1ZJREVEICJBUyBJUyIsIFdJVEhPVVQgV0FSUkFOVFkgT0YgQU5ZIEtJTkQsIEVYUFJFU1MgT1IgSU1QTElFRCwgSU5DTFVESU5HIEJVVCBOT1QgTElNSVRFRCBUTyBBTlkgV0FSUkFOVElFUyBPRiBNRVJDSEFOVEFCSUxJVFksIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFIEFORCBOT05JTkZSSU5HRU1FTlQgT0YgQ09QWVJJR0hULCBQQVRFTlQsIFRSQURFTUFSSywgT1IgT1RIRVIgUklHSFQu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AC8ATwBGAEwACgAKAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAKAFMASQBMACAATwBQAEUATgAgAEYATwBOAFQAIABMAEkAQwBFAE4AUwBFACAAVgBlAHIAcwBpAG8AbgAgADEALgAxACAALQAgADIANgAgAEYAZQBiAHIAdQBhAHIAeQAgADIAMAAwADcACgAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ALQAtAC0ACgAKAFAAUgBFAEEATQBCAEwARQAKAFQAaABlACAAZwBvAGEAbABzACAAbwBmACAAdABoAGUAIABPAHAAZQBuACAARgBvAG4AdAAgAEwAaQBjAGUAbgBzAGUAIAAoAE8ARgBMACkAIABhAHIAZQAgAHQAbwAgAHMAdABpAG0AdQBsAGEAdABlACAAdwBvAHIAbABkAHcAaQBkAGUAIABkAGUAdgBlAGwAbwBwAG0AZQBuAHQAIABvAGYAIABjAG8AbABsAGEAYgBvAHIAYQB0AGkAdgBlACAAZgBvAG4AdAAgAHAAcgBvAGoAZQBjAHQAcwAsACAAdABvACAAcwB1AHAAcABvAHIAdAAgAHQAaABlACAAZgBvAG4AdAAgAGMAcgBlAGEAdABpAG8AbgAgAGUAZgBmAG8AcgB0AHMAIABvAGYAIABhAGMAYQBkAGUAbQBpAGMAIABhAG4AZAAgAGwAaQBuAGcAdQBpAHMAdABpAGMAIABjAG8AbQBtAHUAbgBpAHQAaQBlAHMALAAgAGEAbgBkACAAdABvACAAcAByAG8AdgBpAGQAZQAgAGEAIABmAHIAZQBlACAAYQBuAGQAIABvAHAAZQBuACAAZgByAGEAbQBlAHcAbwByAGsAIABpAG4AIAB3AGgAaQBjAGgAIABmAG8AbgB0AHMAIABtAGEAeQAgAGIAZQAgAHMAaABhAHIAZQBkACAAYQBuAGQAIABpAG0AcAByAG8AdgBlAGQAIABpAG4AIABwAGEAcgB0AG4AZQByAHMAaABpAHAAIAB3AGkAdABoACAAbwB0AGgAZQByAHMALgAKAAoAVABoAGUAIABPAEYATAAgAGEAbABsAG8AdwBzACAAdABoAGUAIABsAGkAYwBlAG4AcwBlAGQAIABmAG8AbgB0AHMAIAB0AG8AIABiAGUAIAB1AHMAZQBkACwAIABzAHQAdQBkAGkAZQBkACwAIABtAG8AZABpAGYAaQBlAGQAIABhAG4AZAAgAHIAZQBkAGkAcwB0AHIAaQBiAHUAdABlAGQAIABmAHIAZQBlAGwAeQAgAGEAcwAgAGwAbwBuAGcAIABhAHMAIAB0AGgAZQB5ACAAYQByAGUAIABuAG8AdAAgAHMAbwBsAGQAIABiAHkAIAB0AGgAZQBtAHMAZQBsAHYAZQBzAC4AIABUAGgAZQAgAGYAbwBuAHQAcwAsACAAaQBuAGMAbAB1AGQAaQBuAGcAIABhAG4AeQAgAGQAZQByAGkAdgBhAHQAaQB2AGUAIAB3AG8AcgBrAHMALAAgAGMAYQBuACAAYgBlACAAYgB1AG4AZABsAGUAZAAsACAAZQBtAGIAZQBkAGQAZQBkACwAIAByAGUAZABpAHMAdAByAGkAYgB1AHQAZQBkACAAYQBuAGQALwBvAHIAIABzAG8AbABkACAAdwBpAHQAaAAgAGEAbgB5ACAAcwBvAGYAdAB3AGEAcgBlACAAcAByAG8AdgBpAGQAZQBkACAAdABoAGEAdAAgAGEAbgB5ACAAcgBlAHMAZQByAHYAZQBkACAAbgBhAG0AZQBzACAAYQByAGUAIABuAG8AdAAgAHUAcwBlAGQAIABiAHkAIABkAGUAcgBpAHYAYQB0AGkAdgBlACAAdwBvAHIAawBzAC4AIABUAGgAZQAgAGYAbwBuAHQAcwAgAGEAbgBkACAAZABlAHIAaQB2AGEAdABpAHYAZQBzACwAIABoAG8AdwBlAHYAZQByACwAIABjAGEAbgBuAG8AdAAgAGIAZQAgAHIAZQBsAGUAYQBzAGUAZAAgAHUAbgBkAGUAcgAgAGEAbgB5ACAAbwB0AGgAZQByACAAdAB5AHAAZQAgAG8AZgAgAGwAaQBjAGUAbgBzAGUALgAgAFQAaABlACAAcgBlAHEAdQBpAHIAZQBtAGUAbgB0ACAAZgBvAHIAIABmAG8AbgB0AHMAIAB0AG8AIAByAGUAbQBhAGkAbgAgAHUAbgBkAGUAcgAgAHQAaABpAHMAIABsAGkAYwBlAG4AcwBlACAAZABvAGUAcwAgAG4AbwB0ACAAYQBwAHAAbAB5ACAAdABvACAAYQBuAHkAIABkAG8AYwB1AG0AZQBuAHQAIABjAHIAZQBhAHQAZQBkACAAdQBzAGkAbgBnACAAdABoAGUAIABmAG8AbgB0AHMAIABvAHIAIAB0AGgAZQBpAHIAIABkAGUAcgBpAHYAYQB0AGkAdgBlAHMALgAKAAoARABFAEYASQBOAEkAVABJAE8ATgBTAAoAIgBGAG8AbgB0ACAAUwBvAGYAdAB3AGEAcgBlACIAIAByAGUAZgBlAHIAcwAgAHQAbwAgAHQAaABlACAAcwBlAHQAIABvAGYAIABmAGkAbABlAHMAIAByAGUAbABlAGEAcwBlAGQAIABiAHkAIAB0AGgAZQAgAEMAbwBwAHkAcgBpAGcAaAB0ACAASABvAGwAZABlAHIAKABzACkAIAB1AG4AZABlAHIAIAB0AGgAaQBzACAAbABpAGMAZQBuAHMAZQAgAGEAbgBkACAAYwBsAGUAYQByAGwAeQAgAG0AYQByAGsAZQBkACAAYQBzACAAcwB1AGMAaAAuACAAVABoAGkAcwAgAG0AYQB5AAoAaQBuAGMAbAB1AGQAZQAgAHMAbwB1AHIAYwBlACAAZgBpAGwAZQBzACwAIABiAHUAaQBsAGQAIABzAGMAcgBpAHAAdABzACAAYQBuAGQAIABkAG8AYwB1AG0AZQBuAHQAYQB0AGkAbwBuAC4ACgAKACIAUgBlAHMAZQByAHYAZQBkACAARgBvAG4AdAAgAE4AYQBtAGUAIgAgAHIAZQBmAGUAcgBzACAAdABvACAAYQBuAHkAIABuAGEAbQBlAHMAIABzAHAAZQBjAGkAZgBpAGUAZAAgAGEAcwAgAHMAdQBjAGgAIABhAGYAdABlAHIAIAB0AGgAZQAgAGMAbwBwAHkAcgBpAGcAaAB0ACAAcwB0AGEAdABlAG0AZQBuAHQAKABzACkALgAKAAoAIgBPAHIAaQBnAGkAbgBhAGwAIABWAGUAcgBzAGkAbwBuACIAIAByAGUAZgBlAHIAcwAgAHQAbwAgAHQAaABlACAAYwBvAGwAbABlAGMAdABpAG8AbgAgAG8AZgAgAEYAbwBuAHQAIABTAG8AZgB0AHcAYQByAGUAIABjAG8AbQBwAG8AbgBlAG4AdABzACAAYQBzACAAZABpAHMAdAByAGkAYgB1AHQAZQBkACAAYgB5ACAAdABoAGUAIABDAG8AcAB5AHIAaQBnAGgAdAAgAEgAbwBsAGQAZQByACgAcwApAC4ACgAKACIATQBvAGQAaQBmAGkAZQBkACAAVgBlAHIAcwBpAG8AbgAiACAAcgBlAGYAZQByAHMAIAB0AG8AIABhAG4AeQAgAGQAZQByAGkAdgBhAHQAaQB2AGUAIABtAGEAZABlACAAYgB5ACAAYQBkAGQAaQBuAGcAIAB0AG8ALAAgAGQAZQBsAGUAdABpAG4AZwAsACAAbwByACAAcwB1AGIAcwB0AGkAdAB1AHQAaQBuAGcAIAAtAC0AIABpAG4AIABwAGEAcgB0ACAAbwByACAAaQBuACAAdwBoAG8AbABlACAALQAtACAAYQBuAHkAIABvAGYAIAB0AGgAZQAgAGMAbwBtAHAAbwBuAGUAbgB0AHMAIABvAGYAIAB0AGgAZQAgAE8AcgBpAGcAaQBuAGEAbAAgAFYAZQByAHMAaQBvAG4ALAAgAGIAeQAgAGMAaABhAG4AZwBpAG4AZwAgAGYAbwByAG0AYQB0AHMAIABvAHIAIABiAHkAIABwAG8AcgB0AGkAbgBnACAAdABoAGUAIABGAG8AbgB0ACAAUwBvAGYAdAB3AGEAcgBlACAAdABvACAAYQAgAG4AZQB3ACAAZQBuAHYAaQByAG8AbgBtAGUAbgB0AC4ACgAKACIAQQB1AHQAaABvAHIAIgAgAHIAZQBmAGUAcgBzACAAdABvACAAYQBuAHkAIABkAGUAcwBpAGcAbgBlAHIALAAgAGUAbgBnAGkAbgBlAGUAcgAsACAAcAByAG8AZwByAGEAbQBtAGUAcgAsACAAdABlAGMAaABuAGkAYwBhAGwAIAB3AHIAaQB0AGUAcgAgAG8AcgAgAG8AdABoAGUAcgAgAHAAZQByAHMAbwBuACAAdwBoAG8AIABjAG8AbgB0AHIAaQBiAHUAdABlAGQAIAB0AG8AIAB0AGgAZQAgAEYAbwBuAHQAIABTAG8AZgB0AHcAYQByAGUALgAKAAoAUABFAFIATQBJAFMAUwBJAE8ATgAgACYAIABDAE8ATgBEAEkAVABJAE8ATgBTAAoAUABlAHIAbQBpAHMAcwBpAG8AbgAgAGkAcwAgAGgAZQByAGUAYgB5ACAAZwByAGEAbgB0AGUAZAAsACAAZgByAGUAZQAgAG8AZgAgAGMAaABhAHIAZwBlACwAIAB0AG8AIABhAG4AeQAgAHAAZQByAHMAbwBuACAAbwBiAHQAYQBpAG4AaQBuAGcAIABhACAAYwBvAHAAeQAgAG8AZgAgAHQAaABlACAARgBvAG4AdAAgAFMAbwBmAHQAdwBhAHIAZQAsACAAdABvACAAdQBzAGUALAAgAHMAdAB1AGQAeQAsACAAYwBvAHAAeQAsACAAbQBlAHIAZwBlACwAIABlAG0AYgBlAGQALAAgAG0AbwBkAGkAZgB5ACwAIAByAGUAZABpAHMAdAByAGkAYgB1AHQAZQAsACAAYQBuAGQAIABzAGUAbABsACAAbQBvAGQAaQBmAGkAZQBkACAAYQBuAGQAIAB1AG4AbQBvAGQAaQBmAGkAZQBkACAAYwBvAHAAaQBlAHMAIABvAGYAIAB0AGgAZQAgAEYAbwBuAHQAIABTAG8AZgB0AHcAYQByAGUALAAgAHMAdQBiAGoAZQBjAHQAIAB0AG8AIAB0AGgAZQAgAGYAbwBsAGwAbwB3AGkAbgBnACAAYwBvAG4AZABpAHQAaQBvAG4AcwA6AAoACgAxACkAIABOAGUAaQB0AGgAZQByACAAdABoAGUAIABGAG8AbgB0ACAAUwBvAGYAdAB3AGEAcgBlACAAbgBvAHIAIABhAG4AeQAgAG8AZgAgAGkAdABzACAAaQBuAGQAaQB2AGkAZAB1AGEAbAAgAGMAbwBtAHAAbwBuAGUAbgB0AHMALAAgAGkAbgAgAE8AcgBpAGcAaQBuAGEAbAAgAG8AcgAgAE0AbwBkAGkAZgBpAGUAZAAgAFYAZQByAHMAaQBvAG4AcwAsACAAbQBhAHkAIABiAGUAIABzAG8AbABkACAAYgB5ACAAaQB0AHMAZQBsAGYALgAKAAoAMgApACAATwByAGkAZwBpAG4AYQBsACAAbwByACAATQBvAGQAaQBmAGkAZQBkACAAVgBlAHIAcwBpAG8AbgBzACAAbwBmACAAdABoAGUAIABGAG8AbgB0ACAAUwBvAGYAdAB3AGEAcgBlACAAbQBhAHkAIABiAGUAIABiAHUAbgBkAGwAZQBkACwAIAByAGUAZABpAHMAdAByAGkAYgB1AHQAZQBkACAAYQBuAGQALwBvAHIAIABzAG8AbABkACAAdwBpAHQAaAAgAGEAbgB5ACAAcwBvAGYAdAB3AGEAcgBlACwAIABwAHIAbwB2AGkAZABlAGQAIAB0AGgAYQB0ACAAZQBhAGMAaAAgAGMAbwBwAHkAIABjAG8AbgB0AGEAaQBuAHMAIAB0AGgAZQAgAGEAYgBvAHYAZQAgAGMAbwBwAHkAcgBpAGcAaAB0ACAAbgBvAHQAaQBjAGUAIABhAG4AZAAgAHQAaABpAHMAIABsAGkAYwBlAG4AcwBlAC4AIABUAGgAZQBzAGUAIABjAGEAbgAgAGIAZQAgAGkAbgBjAGwAdQBkAGUAZAAgAGUAaQB0AGgAZQByACAAYQBzACAAcwB0AGEAbgBkAC0AYQBsAG8AbgBlACAAdABlAHgAdAAgAGYAaQBsAGUAcwAsACAAaAB1AG0AYQBuAC0AcgBlAGEAZABhAGIAbABlACAAaABlAGEAZABlAHIAcwAgAG8AcgAgAGkAbgAgAHQAaABlACAAYQBwAHAAcgBvAHAAcgBpAGEAdABlACAAbQBhAGMAaABpAG4AZQAtAHIAZQBhAGQAYQBiAGwAZQAgAG0AZQB0AGEAZABhAHQAYQAgAGYAaQBlAGwAZABzACAAdwBpAHQAaABpAG4AIAB0AGUAeAB0ACAAbwByACAAYgBpAG4AYQByAHkAIABmAGkAbABlAHMAIABhAHMAIABsAG8AbgBnACAAYQBzACAAdABoAG8AcwBlACAAZgBpAGUAbABkAHMAIABjAGEAbgAgAGIAZQAgAGUAYQBzAGkAbAB5ACAAdgBpAGUAdwBlAGQAIABiAHkAIAB0AGgAZQAgAHUAcwBlAHIALgAKAAoAMwApACAATgBvACAATQBvAGQAaQBmAGkAZQBkACAAVgBlAHIAcwBpAG8AbgAgAG8AZgAgAHQAaABlACAARgBvAG4AdAAgAFMAbwBmAHQAdwBhAHIAZQAgAG0AYQB5ACAAdQBzAGUAIAB0AGgAZQAgAFIAZQBzAGUAcgB2AGUAZAAgAEYAbwBuAHQAIABOAGEAbQBlACgAcwApACAAdQBuAGwAZQBzAHMAIABlAHgAcABsAGkAYwBpAHQAIAB3AHIAaQB0AHQAZQBuACAAcABlAHIAbQBpAHMAcwBpAG8AbgAgAGkAcwAgAGcAcgBhAG4AdABlAGQAIABiAHkAIAB0AGgAZQAgAGMAbwByAHIAZQBzAHAAbwBuAGQAaQBuAGcAIABDAG8AcAB5AHIAaQBnAGgAdAAgAEgAbwBsAGQAZQByAC4AIABUAGgAaQBzACAAcgBlAHMAdAByAGkAYwB0AGkAbwBuACAAbwBuAGwAeQAgAGEAcABwAGwAaQBlAHMAIAB0AG8AIAB0AGgAZQAgAHAAcgBpAG0AYQByAHkAIABmAG8AbgB0ACAAbgBhAG0AZQAgAGEAcwAgAHAAcgBlAHMAZQBuAHQAZQBkACAAdABvACAAdABoAGUAIAB1AHMAZQByAHMALgAKAAoANAApACAAVABoAGUAIABuAGEAbQBlACgAcwApACAAbwBmACAAdABoAGUAIABDAG8AcAB5AHIAaQBnAGgAdAAgAEgAbwBsAGQAZQByACgAcwApACAAbwByACAAdABoAGUAIABBAHUAdABoAG8AcgAoAHMAKQAgAG8AZgAgAHQAaABlACAARgBvAG4AdAAgAFMAbwBmAHQAdwBhAHIAZQAgAHMAaABhAGwAbAAgAG4AbwB0ACAAYgBlACAAdQBzAGUAZAAgAHQAbwAgAHAAcgBvAG0AbwB0AGUALAAgAGUAbgBkAG8AcgBzAGUAIABvAHIAIABhAGQAdgBlAHIAdABpAHMAZQAgAGEAbgB5ACAATQBvAGQAaQBmAGkAZQBkACAAVgBlAHIAcwBpAG8AbgAsACAAZQB4AGMAZQBwAHQAIAB0AG8AIABhAGMAawBuAG8AdwBsAGUAZABnAGUAIAB0AGgAZQAgAGMAbwBuAHQAcgBpAGIAdQB0AGkAbwBuACgAcwApACAAbwBmACAAdABoAGUAIABDAG8AcAB5AHIAaQBnAGgAdAAgAEgAbwBsAGQAZQByACgAcwApACAAYQBuAGQAIAB0AGgAZQAgAEEAdQB0AGgAbwByACgAcwApACAAbwByACAAdwBpAHQAaAAgAHQAaABlAGkAcgAgAGUAeABwAGwAaQBjAGkAdAAgAHcAcgBpAHQAdABlAG4AIABwAGUAcgBtAGkAcwBzAGkAbwBuAC4ACgAKADUAKQAgAFQAaABlACAARgBvAG4AdAAgAFMAbwBmAHQAdwBhAHIAZQAsACAAbQBvAGQAaQBmAGkAZQBkACAAbwByACAAdQBuAG0AbwBkAGkAZgBpAGUAZAAsACAAaQBuACAAcABhAHIAdAAgAG8AcgAgAGkAbgAgAHcAaABvAGwAZQAsACAAbQB1AHMAdAAgAGIAZQAgAGQAaQBzAHQAcgBpAGIAdQB0AGUAZAAgAGUAbgB0AGkAcgBlAGwAeQAgAHUAbgBkAGUAcgAgAHQAaABpAHMAIABsAGkAYwBlAG4AcwBlACwAIABhAG4AZAAgAG0AdQBzAHQAIABuAG8AdAAgAGIAZQAgAGQAaQBzAHQAcgBpAGIAdQB0AGUAZAAgAHUAbgBkAGUAcgAgAGEAbgB5ACAAbwB0AGgAZQByACAAbABpAGMAZQBuAHMAZQAuACAAVABoAGUAIAByAGUAcQB1AGkAcgBlAG0AZQBuAHQAIABmAG8AcgAgAGYAbwBuAHQAcwAgAHQAbwAgAHIAZQBtAGEAaQBuACAAdQBuAGQAZQByACAAdABoAGkAcwAgAGwAaQBjAGUAbgBzAGUAIABkAG8AZQBzACAAbgBvAHQAIABhAHAAcABsAHkAIAB0AG8AIABhAG4AeQAgAGQAbwBjAHUAbQBlAG4AdAAgAGMAcgBlAGEAdABlAGQAIAB1AHMAaQBuAGcAIAB0AGgAZQAgAEYAbwBuAHQAIABTAG8AZgB0AHcAYQByAGUALgAKAAoAVABFAFIATQBJAE4AQQBUAEkATwBOAAoAVABoAGkAcwAgAGwAaQBjAGUAbgBzAGUAIABiAGUAYwBvAG0AZQBzACAAbgB1AGwAbAAgAGEAbgBkACAAdgBvAGkAZAAgAGkAZgAgAGEAbgB5ACAAbwBmACAAdABoAGUAIABhAGIAbwB2AGUAIABjAG8AbgBkAGkAdABpAG8AbgBzACAAYQByAGUAIABuAG8AdAAgAG0AZQB0AC4ACgAKAEQASQBTAEMATABBAEkATQBFAFIACgBUAEgARQAgAEYATwBOAFQAIABTAE8ARgBUAFcAQQBSAEUAIABJAFMAIABQAFIATwBWAEkARABFAEQAIAAiAEEAUwAgAEkAUwAiACwAIABXAEkAVABIAE8AVQBUACAAVwBBAFIAUgBBAE4AVABZACAATwBGACAAQQBOAFkAIABLAEkATgBEACwAIABFAFgAUABSAEUAUwBTACAATwBSACAASQBNAFAATABJAEUARAAsACAASQBOAEMATABVAEQASQBOAEcAIABCAFUAVAAgAE4ATwBUACAATABJAE0ASQBUAEUARAAgAFQATwAgAEEATgBZACAAVwBBAFIAUgBBAE4AVABJAEUAUwAgAE8ARgAgAE0ARQBSAEMASABBAE4AVABBAEIASQBMAEkAVABZACwAIABGAEkAVABOAEUAUwBTACAARgBPAFIAIABBACAAUABBAFIAVABJAEMAVQBMAEEAUgAgAFAAVQBSAFAATwBTAEUAIABBAE4ARAAgAE4ATwBOAEkATgBGAFIASQBOAEcARQBNAEUATgBUACAATwBGACAAQwBPAFAAWQBSAEkARwBIAFQALAAgAFAAQQBUAEUATgBUACwAIABUAFIAQQBEAEUATQBBAFIASwAsACAATwBSACAATwBUAEgARQBSACAAUgBJAEcASABUAC4AIABJAE4AIABOAE8AIABFAFYARQBOAFQAIABTAEgAQQBMAEwAIABUAEgARQAgAEMATwBQAFkAUgBJAEcASABUACAASABPAEwARABFAFIAIABCAEUAIABMAEkAQQBCAEwARQAgAEYATwBSACAAQQBOAFkAIABDAEwAQQBJAE0ALAAgAEQAQQBNAEEARwBFAFMAIABPAFIAIABPAFQASABFAFIAIABMAEkAQQBCAEkATABJAFQAWQAsACAASQBOAEMATABVAEQASQBOAEcAIABBAE4AWQAgAEcARQBOAEUAUgBBAEwALAAgAFMAUABFAEMASQBBAEwALAAgAEkATgBEAEkAUgBFAEMAVAAsACAASQBOAEMASQBEAEUATgBUAEEATAAsACAATwBSACAAQwBPAE4AUwBFAFEAVQBFAE4AVABJAEEATAAgAEQAQQBNAEEARwBFAFMALAAgAFcASABFAFQASABFAFIAIABJAE4AIABBAE4AIABBAEMAVABJAE8ATgAgAE8ARgAgAEMATwBOAFQAUgBBAEMAVAAsACAAVABPAFIAVAAgAE8AUgAgAE8AVABIAEUAUgBXAEkAUwBFACwAIABBAFIASQBTAEkATgBHACAARgBSAE8ATQAsACAATwBVAFQAIABPAEYAIABUAEgARQAgAFUAUwBFACAATwBSACAASQBOAEEAQgBJAEwASQBUAFkAIABUAE8AIABVAFMARQAgAFQASABFACAARgBPAE4AVAAgAFMATwBGAFQAVwBBAFIARQAgAE8AUgAgAEYAUgBPAE0AIABPAFQASABFAFIAIABEAEUAQQBMAEkATgBHAFMAIABJAE4AIABUAEgARQAgAEYATwBOAFQAIABTAE8ARgBUAFcAQQBSAEUALgBOAG8AdABlAG4AUwB5AG0AYgBvAGwAZQBSAGUAZwB1AGwAYQByADEALgA0ADgAMgA7AFMATQBUAEcAOwBCAHIAYQB2AHUAcgBhAFYAZQByAHMAaQBvAG4AIAAxAC4ANAA4ADIATgBvAHQAZQBuAFMAeQBtAGIAbwBsAGUALQBSAGUAZwB1AGwAYQByAAAAAAAEAAAAAwAAACQAAAAEAAAAXAADAAEAAAAkAAMACgAAAFwABAA4AAAACgAIAAIAAiZv4FDgYuJi//8AACZv4FDgYuJi///Zkh+yH6EdogABAAAAAAAAAAAAAAAMAAAAAABYAAAAAAAAAAYAACZvAAAmbwAAAAEAAOBQAADgUAAAAAIAAOBiAADgYgAAAAMAAOJiAADiYgAAAAQAAdEeAAHRHgAAAAUAAdEiAAHRIgAAAAYAAwAAAAAAAP+1ADIAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAACgAcAB4AAURGTFQACAAEAAAAAP//AAAAAAAAAAEAAAAKABwAHgABREZMVAAIAAQAAAAA//8AAAAAAAA=") format("opentype");
-    font-display: block;
-  }
+  /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
+     License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
+     gekuerzt und wegen des Reserved Font Name umbenannt. */
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf") format("opentype"); font-display: block; }
 
   :root {
-    --shell:      #171b24;
-    --shell-soft: #212734;
-    --paper:      #faf9f7;
-    --ink:        #14120f;
-    --muted:      #8b93a5;
-    --line:       #2d3546;
-    --ok:         #2f9e6a;
-    --miss:       #c2453f;
+    --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
+    --c1: #ff4fa3; --c2: #ff8a3d; --c3: #ffd23f; --c4: #2dd4ff; --c5: #a78bfa; --c6: #34d399; --c7: #60a5fa;
+    --paper: #faf9f7; --ok: #22c55e; --miss: #ef4444;
   }
-
   * { box-sizing: border-box; }
-
+  html, body { height: 100%; }
   body {
-    margin: 0;
-    padding: 32px 24px 64px;
-    background: var(--shell);
-    color: #e8eaef;
-    font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+    margin: 0; color: var(--ink); font: 15px/1.45 system-ui, "Segoe UI", sans-serif; overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 0%, #1d55bd 0%, #0e3479 42%, #071a3c 100%);
   }
-
-  /* 1100 statt 820: Ein iPad hat quer 1024 bis 1366 Punkte, das System darf
-     die Breite nutzen. Am PC bleibt es gleich, nur die Linien werden laenger. */
-  .wrap { max-width: 1100px; margin: 0 auto; }
-
-  h1 {
-    font: 400 30px/1.1 Georgia, "Iowan Old Style", serif;
-    letter-spacing: 0.01em;
-    margin: 0 0 4px;
+  body::before {
+    content: ""; position: fixed; inset: -30%; pointer-events: none; transform: rotate(-10deg);
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 34px, transparent 34px 110px);
   }
+  .display { font-family: "Anton", "Avenir Next Condensed", "Bahnschrift", "Impact", "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: .02em; font-weight: 400; }
 
-  .sub { color: var(--muted); margin: 0 0 28px; font-size: 14px; }
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 14px 18px; overflow: auto; }
+  .screen.active { display: flex; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex: none; }
+  .brand { font-size: 36px; line-height: 1; color: var(--c3); text-shadow: 0 3px 0 #b45309, 0 8px 18px rgba(0,0,0,.55); }
+  .title { font-size: 24px; line-height: 1; }
+  .midiChip { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; cursor: pointer; max-width: 46vw; }
+  .midiChip i { width: 10px; height: 10px; border-radius: 50%; background: #9ca3af; flex: none; }
+  .midiChip[data-kind=live] i { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+  .midiChip[data-kind=fail] i { background: var(--miss); }
+  .midiChip[data-kind=busy] i { animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .midiChip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* --- MIDI status ------------------------------------------------ */
-  .status {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px; margin-bottom: 20px;
-    background: var(--shell-soft); border-radius: 8px;
-    font-size: 14px;
-  }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
-  .status span#statusText { flex: 1; min-width: 0; }
-  .status button { flex: none; padding: 5px 11px; font-size: 13px; }
-  .status.live .dot { background: var(--ok); }
-  .status.fail .dot { background: var(--miss); }
+  button { font: inherit; color: #fff; background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; box-shadow: 0 4px 0 #1e3a8a; transition: transform .08s; }
+  button:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e3a8a; }
+  button.ghostBtn { background: transparent; border: 1px solid var(--line); box-shadow: none; }
+  button.back { background: linear-gradient(180deg, #f472b6, #db2777); box-shadow: 0 4px 0 #9d174d; }
+  button.iconBtn { padding: 8px 10px; background: var(--card); box-shadow: none; border: 1px solid var(--line); }
+  .muted { color: var(--muted); } .small { font-size: 13px; }
+  [hidden] { display: none !important; }
 
-  /* --- staff ------------------------------------------------------ */
-  .stage {
-    background: var(--paper);
-    border-radius: 10px;
-    padding: 8px;
-    margin-bottom: 8px;
-    /* Obergrenze 560 statt 420: Auf einem iPad im Notenstaender-Abstand ist
-       ein groesseres System der ganze Zweck des Geraets. */
-    height: clamp(190px, 46vh, 560px);
-  }
+  /* --- Hauptmenue -------------------------------------------------- */
+  .homeGrid { flex: 1; display: grid; grid-template-columns: minmax(260px, 360px) 1fr minmax(240px, 320px); gap: 18px; align-items: center; min-height: 0; }
+  .menu { display: flex; flex-direction: column; gap: 10px; }
+  .menuBtn { background: none; border: 0; padding: 0; box-shadow: none; text-align: left; color: #fff; }
+  .menuBtn:active { transform: none; }
+  .menuBtn .skew { display: block; transform: skewX(-10deg); padding: 9px 18px 9px 22px; border-radius: 8px; box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 12px 26px rgba(0,0,0,.35); transition: transform .08s, box-shadow .08s; }
+  .menuBtn:active .skew { transform: skewX(-10deg) translateY(5px); box-shadow: 0 1px 0 rgba(0,0,0,.35); }
+  .menuBtn .lbl, .menuBtn small { display: block; transform: skewX(10deg); }
+  .menuBtn .lbl { font-size: 26px; line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+  .menuBtn small { font-size: 12px; opacity: .92; }
+  .menu .menuBtn:nth-child(2n) { margin-left: 14px; }
+  .c1 .skew { background: linear-gradient(180deg, #ff7cc0, #e0338a); }
+  .c2 .skew { background: linear-gradient(180deg, #ffa25e, #e8621c); }
+  .c3 .skew { background: linear-gradient(180deg, #ffe066, #f0b400); }
+  .c4 .skew { background: linear-gradient(180deg, #5ee2ff, #0ea5c9); }
+  .c5 .skew { background: linear-gradient(180deg, #b79bff, #7c3aed); }
+  .c6 .skew { background: linear-gradient(180deg, #5ee8b3, #12a874); }
+  .c7 .skew { background: linear-gradient(180deg, #86b8ff, #2563eb); }
+  .hero { font-family: "NotenSymbole"; font-size: min(46vh, 34vw); line-height: 1.55; text-align: center; user-select: none;
+    background: linear-gradient(180deg, #fff3a0 0%, #ffb020 50%, #ff5c3d 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 14px 24px rgba(0,0,0,.55)); animation: float 5s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-10px) rotate(-2deg); } }
+  .cards { display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; backdrop-filter: blur(6px); }
+  .cardHead { font-size: 18px; margin-bottom: 4px; }
+  .cardHead.c1 { color: var(--c1); } .cardHead.c3 { color: var(--c3); } .cardHead.c4 { color: var(--c4); } .cardHead.c6 { color: var(--c6); }
+  .xpbar, .progress { height: 10px; background: rgba(255,255,255,.12); border-radius: 999px; overflow: hidden; }
+  .xpbar > div, .progress > div { height: 100%; width: 0; background: linear-gradient(90deg, #2dd4ff, #a78bfa); transition: width .5s; }
+  .xpbar { margin: 8px 0 4px; }
+
+  /* --- Spielbildschirm --------------------------------------------- */
+  .hud { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 10px; align-items: center; margin-bottom: 8px; flex: none; }
+  .hud.hidden { visibility: hidden; }
+  .hudItem { display: flex; flex-direction: column; align-items: center; min-width: 72px; padding: 5px 10px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
+  .hudItem b { font-size: 26px; line-height: 1; }
+  .hudItem span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .hudItem.c1 b { color: var(--c1); } .hudItem.c2 b { color: var(--c2); } .hudItem.c3 b { color: var(--c3); } .hudItem.c4 b { color: var(--c4); }
+  .pop { animation: pop .25s; }
+  @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }
+  .progress > div { background: linear-gradient(90deg, #34d399, #ffd23f); }
+  .stage { flex: 1; min-height: 180px; background: var(--paper); border-radius: 14px; padding: 8px; box-shadow: 0 0 0 4px rgba(255,255,255,.08), 0 22px 44px rgba(0,0,0,.45); }
   canvas { width: 100%; height: 100%; display: block; }
+  .shake { animation: shake .3s; }
+  @keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+  .bar { display: flex; align-items: center; gap: 12px; min-height: 30px; margin: 8px 0 4px; flex: none; }
+  .feedback { flex: 1; min-width: 0; font: 500 17px Georgia, "Iowan Old Style", serif; color: var(--muted); }
+  .feedback.ok { color: #4ade80; } .feedback.miss { color: #fb7185; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); background: rgba(0,0,0,.22); white-space: nowrap; }
+  .chip i { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+  .chip.on { color: #fff; border-color: #34d399; } .chip.on i { background: #34d399; box-shadow: 0 0 8px #34d399; }
+  .chip.miss { color: #fff; background: rgba(239,68,68,.35); border-color: #ef4444; }
+  .chip b { font: 600 12px ui-monospace, Consolas, monospace; }
+  .controls { display: flex; align-items: center; gap: 10px; flex: none; }
+  .controls input[type=range] { flex: 1; accent-color: #ffd23f; }
+  .rotate { display: none; color: var(--muted); font-size: 13px; }
 
-  .bar {
-    display: flex; align-items: center; gap: 14px;
-    min-height: 26px; margin-bottom: 24px;
-  }
-  .feedback {
-    flex: 1; min-width: 0;
-    font: 400 17px/26px Georgia, serif;
-    color: var(--muted);
-  }
-  .feedback.ok { color: var(--ok); }
-  .feedback.miss { color: var(--miss); }
+  /* --- Ergebnis ----------------------------------------------------- */
+  .resultCard { margin: auto; max-width: 680px; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px 26px; text-align: center; backdrop-filter: blur(8px); }
+  .resultCard h1 { font-size: 44px; margin: 0 0 12px; color: var(--c3); text-shadow: 0 3px 0 #b45309; }
+  .figRow { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .fig { flex: 1; min-width: 110px; background: rgba(0,0,0,.22); border-radius: 14px; padding: 10px; text-align: center; }
+  .fig b { display: block; font-size: 32px; line-height: 1; }
+  .fig span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .fig.ok b { color: #4ade80; } .fig.miss b { color: #fb7185; } .fig.xp b { color: var(--c4); } .fig.streak b { color: var(--c3); }
+  .resultCard .actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
 
-  /* --- Pedale ----------------------------------------------------- */
-  .pedals { display: flex; flex: none; gap: 8px; }
-  .pedal {
-    display: flex; align-items: center; gap: 6px;
-    padding: 4px 9px; border-radius: 999px;
-    border: 1px solid var(--line);
-    font-size: 12px; color: var(--muted); white-space: nowrap;
-  }
-  .pedal i {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--line); flex: none;
-  }
-  .pedal.down { color: #e8eaef; border-color: #4a7f68; }
-  .pedal.down i { background: var(--ok); }
-  .pedal b {
-    font: 400 12px/1 Consolas, ui-monospace, monospace;
-    font-variant-numeric: tabular-nums;
-  }
+  /* --- Statistik, Bibliothek, Einstellungen ------------------------- */
+  .pageBody { display: flex; flex-direction: column; gap: 14px; max-width: 980px; width: 100%; margin: 0 auto; }
+  h2.sec { margin: 8px 0 0; font-size: 20px; color: var(--c4); }
+  #statNotes .bar { display: grid; grid-template-columns: 56px 1fr 56px minmax(90px, 160px); align-items: center; gap: 10px; margin: 3px 0; min-height: 0; }
+  #statNotes .name { font: 600 15px Georgia, serif; } #statNotes .pct { text-align: right; font-variant-numeric: tabular-nums; } #statNotes .n { color: var(--muted); font-size: 12px; }
+  .track { height: 12px; background: rgba(255,255,255,.12); border-radius: 999px; overflow: hidden; } .fill { height: 100%; }
+  #statSessions .row { display: flex; gap: 12px; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .tag { padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: 12px; }
+  .btnRow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .fileBtn { position: relative; overflow: hidden; display: inline-block; }
+  .fileBtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  textarea { width: 100%; min-height: 120px; font: 12px ui-monospace, monospace; background: #0b1f47; color: #fff; border: 1px solid var(--line); border-radius: 8px; }
+  .piece { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
+  .piece.sel { border-color: var(--c4); box-shadow: 0 0 0 1px var(--c4) inset; }
+  .piece label { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; cursor: pointer; }
+  .piece .actions { margin-top: 8px; display: flex; gap: 8px; }
+  .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+  .setRow { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; }
+  .setRow label { width: 130px; flex: none; color: var(--muted); font-size: 14px; }
+  .setRow input[type=range] { flex: 1; accent-color: #2dd4ff; }
+  .setRow .val { width: 54px; text-align: right; font: 14px ui-monospace, monospace; }
+  select, input[type=number] { font: inherit; background: #0b1f47; color: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  input[type=checkbox] { width: 20px; height: 20px; accent-color: #34d399; }
+  #toast { position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 20px); opacity: 0; background: #111827; color: #fff; padding: 10px 16px; border-radius: 12px; transition: .25s; pointer-events: none; max-width: 90vw; z-index: 9; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-  /* --- controls --------------------------------------------------- */
-  .panel {
-    background: var(--shell-soft);
-    border-radius: 10px;
-    padding: 20px 22px;
-    margin-bottom: 20px;
+  @media (max-width: 900px) {
+    .homeGrid { grid-template-columns: 1fr; align-items: start; }
+    .hero { display: none; }
+    .hud { grid-template-columns: repeat(4, 1fr); } .hud .progress { grid-column: 1 / -1; }
+    .midiChip { max-width: 60vw; }
   }
-  .panel h2 {
-    font: 600 11px/1 "Segoe UI", sans-serif;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--muted); margin: 0 0 16px;
-  }
-  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 14px; }
-  /* display:flex wuerde das hidden-Attribut sonst ueberstimmen. */
-  .row[hidden] { display: none; }
-  .row:last-child { margin-bottom: 0; }
-  .row > label { width: 110px; flex: none; color: var(--muted); font-size: 14px; }
-
-  select, button {
-    background: #2c3446; color: #e8eaef;
-    border: 1px solid var(--line); border-radius: 6px;
-    padding: 7px 10px; font: inherit; font-size: 14px;
-  }
-  button { cursor: pointer; }
-  button:hover { background: #364059; }
-  :focus-visible { outline: 2px solid #6ea8ff; outline-offset: 2px; }
-
-  input[type=range] { flex: 1; accent-color: #6ea8ff; }
-  .val {
-    width: 52px; flex: none; text-align: right;
-    font: 14px/1 Consolas, ui-monospace, monospace; color: #e8eaef;
-  }
-
-  /* --- stats ------------------------------------------------------ */
-  .figures { display: flex; gap: 32px; margin-bottom: 20px; }
-  .fig .n {
-    font: 400 26px/1.1 Georgia, serif;
-    font-variant-numeric: tabular-nums;
-  }
-  .fig .k {
-    font-size: 11px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--muted);
-  }
-
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th {
-    text-align: left; font: 600 11px/1 "Segoe UI", sans-serif;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--muted); padding: 0 8px 8px 0;
-  }
-  td { padding: 5px 8px 5px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-  td.name { font: 15px Georgia, serif; }
-  .empty { color: var(--muted); font-size: 14px; }
-
-  /* --- Handy ------------------------------------------------------- *
-   * Gespielt wird im Querformat. Im Hochformat bleibt für das System zu
-   * wenig Höhe, darum dort nur ein Hinweis statt eines eigenen Layouts.
-   * ------------------------------------------------------------------ */
-  .rotate {
-    display: none;
-    background: var(--shell-soft);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    font-size: 14px;
-    color: var(--muted);
-  }
-  @media (orientation: portrait) and (max-width: 640px) {
-    .rotate { display: block; }
-  }
-
-  @media (max-width: 640px) {
-    body { padding: 16px 12px 40px; }
-    .row > label { width: auto; }
-    .panel { padding: 16px; }
-    .figures { gap: 22px; }
-  }
-
+  @media (orientation: portrait) and (max-width: 640px) { .rotate { display: block; } }
   @media (orientation: landscape) and (max-height: 560px) {
-    body { padding: 8px 12px 32px; }
-    h1 { font-size: 19px; margin-bottom: 0; }
-    .sub { display: none; }
-    .status { padding: 6px 10px; margin-bottom: 8px; font-size: 13px; }
-    .stage { height: 60vh; margin-bottom: 6px; }
-    .bar { min-height: 22px; margin-bottom: 12px; gap: 10px; }
-    .feedback { font-size: 15px; line-height: 22px; }
-    .pedal { padding: 3px 8px; font-size: 11px; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
+    .screen { padding: 8px 12px; } .topbar { margin-bottom: 4px; } .hudItem b { font-size: 20px; } .brand { font-size: 26px; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <h1>Notentrainer</h1>
-  <p class="sub">Einzelnoten oder Lauf — Noten lesen, Taste treffen, Abweichung sehen.</p>
-
-  <div class="status" id="status"><span class="dot"></span><span id="statusText">MIDI wird gesucht…</span><button id="connect" hidden>MIDI verbinden</button></div>
-
-  <p class="rotate">Quer halten — im Hochformat wird das Notensystem zu klein.</p>
-
-  <div class="stage"><canvas id="staff" width="1440" height="600"></canvas></div>
-  <div class="bar">
-    <div class="feedback" id="feedback">Spiel die angezeigte Note auf dem E-Piano.</div>
-    <div class="pedals" id="pedals"></div>
+<!-- Hauptmenue -->
+<section class="screen active" id="screen-home">
+  <header class="topbar">
+    <div class="brand display">Notentrainer</div>
+    <div class="midiChip" data-kind="busy"><i></i><span>MIDI wird gesucht…</span></div>
+  </header>
+  <div class="homeGrid">
+    <nav class="menu">
+      <button class="menuBtn c1" data-mode="single"><span class="skew"><span class="lbl display">Einzeln</span><small>Note sehen, Taste treffen</small></span></button>
+      <button class="menuBtn c2" data-mode="run"><span class="skew"><span class="lbl display">Lauf</span><small>Noten kommen von rechts — im Takt treffen</small></span></button>
+      <button class="menuBtn c3" data-mode="phrase"><span class="skew"><span class="lbl display">Stücke</span><small>Phrasen aus echten Stücken, mit Rhythmus</small></span></button>
+      <button class="menuBtn c4" data-mode="scale"><span class="skew"><span class="lbl display">Tonleiter</span><small>Gleichmäßig rauf und runter</small></span></button>
+      <button class="menuBtn c5" data-go="stats"><span class="skew"><span class="lbl display">Statistik</span><small>Verlauf, Schwächen, Level</small></span></button>
+      <button class="menuBtn c6" data-go="library"><span class="skew"><span class="lbl display">Bibliothek</span><small>Stücke wählen, importieren, anhören</small></span></button>
+      <button class="menuBtn c7" data-go="settings"><span class="skew"><span class="lbl display">Einstellungen</span><small>Schlüssel, Umfang, Hand, Klang</small></span></button>
+    </nav>
+    <div class="hero" aria-hidden="true">&#xE050;</div>
+    <aside class="cards">
+      <div class="card"><div class="cardHead display c3">Level <b id="homeLevel">1</b></div><div class="xpbar"><div id="homeXpBar"></div></div><div class="small muted" id="homeXp">0 / 100 XP</div></div>
+      <div class="card"><div class="cardHead display c4">Verlauf</div><div class="small" id="homeTotals"></div></div>
+      <div class="card"><div class="cardHead display c6">Verbindung</div><div class="small" id="midiDetail"></div><button id="connectBtn" hidden style="margin-top:8px">MIDI verbinden</button></div>
+    </aside>
   </div>
+</section>
 
-  <div class="panel">
-    <h2>Übung</h2>
-    <div class="row">
-      <label for="clef">Schlüssel</label>
-      <select id="clef">
-        <option value="treble" selected>Violinschlüssel</option>
-        <option value="bass">Bassschlüssel</option>
-      </select>
-      <label for="keys" style="width:auto">Tasten</label>
-      <select id="keys">
-        <option value="white" selected>nur weiße</option>
-        <option value="black">nur schwarze</option>
-        <option value="all">alle</option>
-      </select>
-      <label for="naming" style="width:auto">Namen</label>
-      <select id="naming">
-        <option value="de" selected>Deutsch (H)</option>
-        <option value="int">International (B)</option>
-      </select>
+<!-- Spielen -->
+<section class="screen" id="screen-play">
+  <header class="topbar">
+    <button class="back" id="stopBtn">Beenden</button>
+    <div class="title display" id="playTitle">Einzeln</div>
+    <div class="midiChip" data-kind="busy"><i></i><span></span></div>
+    <button class="iconBtn" id="fullBtn" title="Vollbild">⛶</button>
+  </header>
+  <div class="hud" id="hud">
+    <div class="hudItem c1"><b class="display" id="hudStreak">0</b><span>Serie</span></div>
+    <div class="hudItem c3"><b class="display" id="hudMult">×1</b><span>Multi</span></div>
+    <div class="hudItem c4"><b class="display" id="hudAcc">–</b><span>Treffer</span></div>
+    <div class="hudItem c2"><b class="display" id="hudXp">+0</b><span>XP</span></div>
+    <div class="progress"><div id="hudProgress"></div></div>
+  </div>
+  <div class="stage" id="stage"><canvas id="staff"></canvas></div>
+  <div class="bar"><div class="feedback" id="feedback"></div><div class="chips" id="chips"></div></div>
+  <div class="controls" id="tempoRow"><label>Tempo</label><input type="range" id="tempo" min="30" max="200" value="80"><b id="tempoVal">80</b><span class="small muted">Schläge/min</span></div>
+  <p class="rotate">Quer halten — im Hochformat ist das System zu klein.</p>
+</section>
+
+<!-- Ergebnis -->
+<section class="screen" id="screen-results">
+  <div class="resultCard">
+    <h1 class="display" id="resTitle">Stark!</h1>
+    <div class="figRow">
+      <div class="fig ok"><b class="display" id="resHits">0</b><span>Treffer</span></div>
+      <div class="fig miss"><b class="display" id="resMisses">0</b><span>Fehler</span></div>
+      <div class="fig"><b class="display" id="resAcc">–</b><span>Quote</span></div>
+      <div class="fig streak"><b class="display" id="resStreak">0</b><span>Beste Serie</span></div>
+      <div class="fig xp"><b class="display" id="resXp">+0</b><span>Verdient</span></div>
     </div>
-    <div class="row">
-      <label for="mode">Art</label>
-      <select id="mode">
-        <option value="single" selected>Einzeln — auf die Note warten</option>
-        <option value="run">Lauf — Noten kommen von rechts</option>
-      </select>
+    <p id="resTiming" class="muted" style="margin:14px 0 4px"></p>
+    <p id="resEven" class="muted small" hidden></p>
+    <div style="margin:12px 0 6px" class="display" id="resLevel">Level 1</div>
+    <div class="xpbar"><div id="resLevelBar"></div></div>
+    <p class="small muted" style="margin:14px 0 4px">Noch schwach:</p>
+    <div class="chips" id="resWeak" style="justify-content:center"></div>
+    <div class="actions"><button id="againBtn">Nochmal</button><button class="ghostBtn" data-go="home">Menü</button></div>
+  </div>
+</section>
+
+<!-- Statistik -->
+<section class="screen" id="screen-stats">
+  <header class="topbar"><button class="back" data-go="home">Zurück</button><div class="title display">Statistik</div></header>
+  <div class="pageBody">
+    <div class="figRow" id="statTotals"></div>
+    <h2 class="sec display">Noten</h2>
+    <div id="statNotes"></div>
+    <h2 class="sec display">Sitzungen</h2>
+    <div id="statSessions"></div>
+    <p class="small muted" id="statPedal"></p>
+    <p class="small muted" id="storeInfo"></p>
+    <div class="btnRow">
+      <button id="exportBtn">Exportieren</button>
+      <span class="fileBtn"><button>Importieren</button><input type="file" id="importBtn" accept=".json,application/json"></span>
+      <button class="ghostBtn" id="wipeBtn">Verlauf löschen</button>
     </div>
-    <div class="row" id="runRow" hidden>
-      <label for="bpm">Tempo</label>
-      <input type="range" id="bpm" min="30" max="180" value="60">
-      <span class="val" id="bpmVal">60</span>
-      <button id="run">Starten</button>
+    <textarea id="exportText" hidden readonly></textarea>
+  </div>
+</section>
+
+<!-- Bibliothek -->
+<section class="screen" id="screen-library">
+  <header class="topbar"><button class="back" data-go="home">Zurück</button><div class="title display">Bibliothek</div></header>
+  <div class="pageBody">
+    <div class="btnRow">
+      <label class="muted">Hand</label>
+      <select id="libHand"><option value="r">rechte Hand</option><option value="l">linke Hand</option><option value="both">beide Hände</option></select>
+      <span class="fileBtn"><button>MusicXML importieren</button><input type="file" id="importPiece" accept=".musicxml,.xml,.mxl" multiple></span>
+      <button id="libPlayBtn" style="margin-left:auto">Mit Auswahl üben</button>
     </div>
-    <div class="row">
-      <label for="low">Von</label>
-      <input type="range" id="low" min="21" max="108" value="60">
-      <span class="val" id="lowVal">C4</span>
+    <p class="small muted" id="libEmpty" hidden>Noch keine Stücke.</p>
+    <div id="pieceList"></div>
+    <p class="small muted">Angehakte Stücke liefern die Phrasen für „Stücke“. Eigene Stücke: in MuseScore als unkomprimiertes MusicXML (.musicxml) exportieren und hier importieren. Gekaufte Noten bleiben auf diesem Gerät.</p>
+  </div>
+</section>
+
+<!-- Einstellungen -->
+<section class="screen" id="screen-settings">
+  <header class="topbar"><button class="back" data-go="home">Zurück</button><div class="title display">Einstellungen</div></header>
+  <div class="pageBody">
+    <h2 class="sec display">Noten</h2>
+    <div class="form">
+      <div class="setRow"><label>Schlüssel</label><select id="set-clef"><option value="treble">Violinschlüssel</option><option value="bass">Bassschlüssel</option></select></div>
+      <div class="setRow"><label>Tasten</label><select id="set-keys"><option value="white">nur weiße</option><option value="black">nur schwarze</option><option value="all">alle</option></select></div>
+      <div class="setRow"><label>Namen</label><select id="set-naming"><option value="de">Deutsch (H)</option><option value="int">International (B)</option></select></div>
+      <div class="setRow"><label>Hand (Stücke)</label><select id="set-hand"><option value="r">rechte</option><option value="l">linke</option><option value="both">beide</option></select></div>
+      <div class="setRow"><label>Von</label><input type="range" id="set-low" min="21" max="108" value="60"><span class="val" id="lowVal">C4</span></div>
+      <div class="setRow"><label>Bis</label><input type="range" id="set-high" min="21" max="108" value="81"><span class="val" id="highVal">A5</span></div>
+      <div class="setRow"><label>Tempo</label><input type="range" id="set-bpm" min="30" max="200" value="80"><span class="val" id="bpmVal">80</span></div>
+      <div class="setRow"><label>Noten je Lauf</label><input type="number" id="set-runLength" min="8" max="99" value="24"></div>
+      <div class="setRow"><label>Phrasen je Lauf</label><input type="number" id="set-phrases" min="2" max="30" value="6"></div>
     </div>
-    <div class="row">
-      <label for="high">Bis</label>
-      <input type="range" id="high" min="21" max="108" value="81">
-      <span class="val" id="highVal">A5</span>
+    <h2 class="sec display">Anzeige</h2>
+    <div class="form">
+      <div class="setRow"><label>Notennamen</label><input type="checkbox" id="set-labels"><span class="small muted">Name über der Note — fürs Erste, später aus</span></div>
+      <div class="setRow"><label>Geisternote</label><input type="checkbox" id="set-ghost"><span class="small muted">Bei Fehlern die gespielte Note zeigen</span></div>
     </div>
-    <div class="row">
-      <button id="reset">Statistik zurücksetzen</button>
-      <button id="full">Vollbild</button>
+    <h2 class="sec display">Klang</h2>
+    <div class="form">
+      <div class="setRow"><label>Abspielen über</label><select id="set-playback"><option value="auto">Automatisch</option><option value="synth">Nur Synth</option><option value="midi">Nur Piano</option></select></div>
+      <div class="setRow"><label>Synth an</label><input type="checkbox" id="set-sound"></div>
+      <div class="setRow"><label>Spielgeräusche</label><input type="checkbox" id="set-fx"></div>
+    </div>
+    <p class="small muted" id="outputsInfo"></p>
+    <h2 class="sec display">Tonleiter</h2>
+    <div class="form">
+      <div class="setRow"><label>Grundton</label><select id="set-scaleRoot"><option value="0">C</option><option value="1">Des</option><option value="2">D</option><option value="3">Es</option><option value="4">E</option><option value="5">F</option><option value="6">Fis</option><option value="7">G</option><option value="8">As</option><option value="9">A</option><option value="10">B</option><option value="11">H</option></select></div>
+      <div class="setRow"><label>Art</label><select id="set-scaleType"><option value="dur">Dur</option><option value="moll">Moll (natürlich)</option><option value="harmonisch">Moll (harmonisch)</option></select></div>
+      <div class="setRow"><label>Oktaven</label><select id="set-scaleOctaves"><option value="1">1</option><option value="2">2</option></select></div>
     </div>
   </div>
-
-  <div class="panel">
-    <h2>Sitzung</h2>
-    <div class="figures">
-      <div class="fig"><div class="n" id="figCount">0</div><div class="k">Noten</div></div>
-      <div class="fig"><div class="n" id="figAcc">–</div><div class="k">Treffer</div></div>
-      <div class="fig"><div class="n" id="figTime">–</div><div class="k" id="figTimeK">Ø Reaktion</div></div>
-    </div>
-    <table>
-      <thead><tr><th>Note</th><th>Gezeigt</th><th>Fehler</th><th>Ø ms</th></tr></thead>
-      <tbody id="statBody"></tbody>
-    </table>
-    <p class="empty" id="statEmpty">Noch keine Daten.</p>
-    <p class="empty" id="pedalNote">Pedal: noch keine Bewegung erkannt.</p>
-  </div>
-
-</div>
-
-<script>
-"use strict";
-
-// Unerwartete Fehler in die Statuszeile statt nur in die Konsole - auf dem
-// iPad gibt es keine Konsole, und ein stummes Einfrieren ist nicht zu deuten.
-window.addEventListener("error", e => {
-  const el = document.getElementById("status"), t = document.getElementById("statusText");
-  if (el && t) { el.className = "status fail"; t.textContent = "Fehler: " + (e.message || e.type); }
-});
-window.addEventListener("unhandledrejection", e => {
-  const el = document.getElementById("status"), t = document.getElementById("statusText");
-  const r = e.reason;
-  if (el && t) { el.className = "status fail"; t.textContent = "Fehler: " + ((r && r.message) || r); }
-});
-
-/* ------------------------------------------------------------------ *
- * Event-Log: eine Zeile pro gezeigter Note. Alle Statistiken werden
- * daraus berechnet, nichts wird vorab aggregiert.
- * ------------------------------------------------------------------ */
-const events = [];   // { midi, shownAt, hitAt, playedMidi, correct }
-
-/* ------------------------------------------------------------------ *
- * Roher Eingabestrom: eine Zeile je MIDI-Ereignis, ungefiltert. events[]
- * oben bleibt die Auswertung der Uebung; hier liegt das Material, aus dem
- * sich spaeter Pedalzeitpunkte rechnen lassen. Das Nachpedal misst sich am
- * Anschlag, nicht an der Uhr: Pedal hoch kurz nach dem Ton, dann wieder
- * runter. Beide Abstaende stehen hier drin.
- * ------------------------------------------------------------------ */
-const inputLog = [];   // { at, type: "on" | "off" | "pedal", ... }
-
-/* Pedale kommen als Control Change, nicht als Note. Laut MIDI-Norm gilt
- * ab Wert 64 als getreten. Schalterpedale schicken nur 0 und 127,
- * stufenlose alles dazwischen - das halten wir fest, weil es entscheidet,
- * ob Halbpedal ueberhaupt pruefbar ist. */
-const PEDAL_CC   = { 64: "sustain", 66: "sostenuto", 67: "soft" };
-const PEDAL_NAME = { sustain: "Haltepedal", sostenuto: "Sostenuto", soft: "Una corda" };
-const PEDAL_KEYS = ["sustain", "sostenuto", "soft"];
-
-const blankPedal = () => ({
-  seen: false,      // hat das Instrument diesen Regler je geschickt?
-  down: false,
-  value: 0,
-  changes: 0,       // Wechsel zwischen oben und unten
-  min: 127, max: 0,
-  between: false,   // je ein Wert zwischen 0 und 127 gesehen?
-});
-const pedal = { sustain: blankPedal(), sostenuto: blankPedal(), soft: blankPedal() };
-
-const held = new Set();   // gerade gedrueckte Tasten
-let sawNote = false;      // erst nach dem ersten Ton die Tastenanzeige zeigen
-
-const settings = {
-  clef: "treble",
-  keys: "white",
-  naming: "de",
-  low: 60,
-  high: 81,
-  mode: "single",   // "single" = warten, "run" = Noten laufen ein
-  bpm: 60,
-};
-
-let target = null;      // aktuelle Zielnote (MIDI-Nummer)
-let shownAt = 0;
-let flash = null;       // "ok" | "miss" | null
-
-// Die Symbole als Codepunkte statt als Escape-Folgen. Bravura belegt neben
-// der SMuFL-Privatzone auch diese Standard-Codepunkte - deshalb zeigen die
-// Ersatzschriften weiterhin etwas, falls die eingebettete noch nicht da ist.
-const GLYPH = {
-  treble: String.fromCodePoint(0x1D11E),
-  bass:   String.fromCodePoint(0x1D122),
-  sharp:  String.fromCodePoint(0x266F),
-};
-
-/* --- Notennamen ---------------------------------------------------- */
-const LETTERS_DE  = ["C", "D", "E", "F", "G", "A", "H"];
-const LETTERS_INT = ["C", "D", "E", "F", "G", "A", "B"];
-const WHITE_PC    = { 0: 0, 2: 1, 4: 2, 5: 3, 7: 4, 9: 5, 11: 6 };  // Halbton -> Buchstabe
-const IS_BLACK    = pc => [1, 3, 6, 8, 10].includes(pc);
-
-// Schwarze Tasten werden als Kreuz der darunterliegenden weißen Taste notiert.
-// (Erweiterung später: b-Vorzeichen, oder zufällig gemischt.)
-function spell(midi) {
-  const black = IS_BLACK(midi % 12);
-  const base = black ? midi - 1 : midi;
-  const letter = WHITE_PC[base % 12];
-  const octave = Math.floor(base / 12) - 1;   // MIDI 60 = C4
-  return { letter, octave, accidental: black ? 1 : 0, diatonic: octave * 7 + letter };
-}
-
-function noteName(midi) {
-  const s = spell(midi);
-  const letters = settings.naming === "de" ? LETTERS_DE : LETTERS_INT;
-  return letters[s.letter] + (s.accidental ? "\u266F" : "") + s.octave;
-}
-
-/* --- Notenauswahl -------------------------------------------------- */
-function candidates() {
-  const out = [];
-  for (let m = settings.low; m <= settings.high; m++) {
-    const black = IS_BLACK(m % 12);
-    if (settings.keys === "white" && black) continue;
-    if (settings.keys === "black" && !black) continue;
-    out.push(m);
-  }
-  return out;
-}
-
-// Gewichtung: häufig verfehlte Noten kommen öfter dran.
-function pickNext() {
-  const pool = candidates();
-  if (!pool.length) return null;
-
-  const weights = pool.map(m => {
-    const seen = events.filter(e => e.midi === m);
-    if (!seen.length) return 2;                       // Neues zuerst zeigen
-    const errRate = seen.filter(e => !e.correct).length / seen.length;
-    const recent = seen.slice(-6);
-    const recentErr = recent.filter(e => !e.correct).length / recent.length;
-    return 1 + 4 * Math.max(errRate, recentErr);
-  });
-
-  const total = weights.reduce((a, b) => a + b, 0);
-  let r = Math.random() * total;
-  for (let i = 0; i < pool.length; i++) {
-    r -= weights[i];
-    if (r <= 0) return pool[i];
-  }
-  return pool[pool.length - 1];
-}
-
-function nextNote() {
-  let n = pickNext();
-  const pool = candidates();
-  // Nicht zweimal hintereinander dieselbe Note, wenn es Alternativen gibt.
-  if (pool.length > 1) { let guard = 0; while (n === target && guard++ < 12) n = pickNext(); }
-  target = n;
-  shownAt = performance.now();
-  draw();
-}
-
-/* --- Notenlinien zeichnen ------------------------------------------ *
- * Die Maße stehen nicht mehr fest. measure() rechnet aus, wie viele
- * Halbschritte der gewählte Bereich braucht, und leitet daraus den
- * Linienabstand ab. So wird das System auf einem Handy im Querformat so
- * groß wie möglich, und Hilfslinien laufen nicht mehr aus dem Bild.
- * Gezeichnet wird in CSS-Pixeln; die Schärfe kommt aus devicePixelRatio.
- * ------------------------------------------------------------------ */
-const canvas = document.getElementById("staff");
-const ctx = canvas.getContext("2d");
-
-let W = 0, H = 0;                 // Zeichenfläche in CSS-Pixeln
-let GAP = 24;                     // Abstand zwischen zwei Notenlinien
-let LEFT = 0, RIGHT = 0, NOTE_X = 0, NOW_X = 0, BOTTOM_Y = 0;
-
-// Unterste Linie: Violinschlüssel = E4, Bassschlüssel = G2
-const bottomDiatonic = () => settings.clef === "treble" ? (4 * 7 + 2) : (2 * 7 + 4);
-
-function yFor(diatonic) {
-  return BOTTOM_Y - (diatonic - bottomDiatonic()) * (GAP / 2);
-}
-
-// Nach jeder Größen-, Schlüssel- oder Bereichsänderung aufrufen.
-function measure() {
-  const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
-  if (!cssW || !cssH) return false;
-
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.round(cssW * dpr);
-  canvas.height = Math.round(cssH * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  W = cssW; H = cssH;
-
-  // Höchster und tiefster Halbschritt, gemessen ab der untersten Linie.
-  const bd = bottomDiatonic();
-  let hi = 8, lo = 0;                       // das System selbst
-  for (const m of candidates()) {
-    const st = spell(m).diatonic - bd;
-    if (st > hi) hi = st;
-    if (st < lo) lo = st;
-  }
-  // Luft für Notenkopf und Hals, dazu genug Platz für den Schlüssel.
-  const top = Math.max(hi + 3, 11);   // 11: der Violinschluessel ragt 1,4 Abstaende ueber die oberste Linie
-  const bot = Math.min(lo - 3, -5);
-
-  GAP = Math.min(44, (2 * H) / (top - bot));   // 44: Deckel fuer Tablet-Hoehen
-  BOTTOM_Y = H / 2 + ((top + bot) / 2) * (GAP / 2);
-  LEFT = Math.max(10, W * 0.03);
-  RIGHT = W - LEFT;
-  NOTE_X = LEFT + (RIGHT - LEFT) * 0.55;
-  // Die "Jetzt"-Linie braucht Abstand vom Schluessel, sonst laufen die Noten
-  // darueber. Deshalb ein Mindestabstand statt eines reinen Anteils.
-  NOW_X = LEFT + Math.max((RIGHT - LEFT) * 0.28, GAP * 5.5);
-  return true;
-}
-
-// Notensystem und Schluessel - der Teil des Bildes, der sich nie bewegt.
-function drawStaff() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.strokeStyle = "#14120f";
-  ctx.fillStyle = "#14120f";
-  ctx.lineCap = "round";
-
-  // Notensystem
-  ctx.lineWidth = Math.max(1, GAP * 0.065);
-  for (let i = 0; i < 5; i++) {
-    const y = BOTTOM_Y - i * GAP;
-    ctx.beginPath();
-    ctx.moveTo(LEFT, y);
-    ctx.lineTo(RIGHT, y);
-    ctx.stroke();
-  }
-
-  // Schluessel aus der eingebetteten SMuFL-Schrift. SMuFL-Konvention: Die
-  // Schriftgroesse entspricht der Hoehe des Fuenfliniensystems, also 4 * GAP,
-  // und der Nullpunkt des Glyphs sitzt auf seiner Bezugslinie - der
-  // Violinschluessel auf der G-Linie (2. von unten), der Bassschluessel auf
-  // der F-Linie (4. von unten). Keine Handjustage mehr noetig.
-  ctx.font = `${GAP * 4}px "NotenSymbole", "Segoe UI Symbol", "Noto Music", serif`;
-  ctx.textBaseline = "alphabetic";
-  if (settings.clef === "treble") ctx.fillText(GLYPH.treble, LEFT + GAP * 0.3, BOTTOM_Y - GAP);
-  else                            ctx.fillText(GLYPH.bass,   LEFT + GAP * 0.3, BOTTOM_Y - GAP * 3);
-}
-
-// Eine Note an beliebiger Stelle. Beide Betriebsarten zeichnen damit: die
-// Uebung setzt x fest, der Lauf leitet x aus der verbleibenden Zeit ab.
-function drawNote(midi, x, colour) {
-  const s = spell(midi);
-  const step = s.diatonic - bottomDiatonic();
-  const y = yFor(s.diatonic);
-
-  ctx.strokeStyle = colour;
-  ctx.fillStyle = colour;
-
-  // Hilfslinien
-  ctx.lineWidth = Math.max(1, GAP * 0.08);
-  const drawLedger = st => {
-    const ly = BOTTOM_Y - st * (GAP / 2);
-    ctx.beginPath();
-    ctx.moveTo(x - GAP * 1.1, ly);
-    ctx.lineTo(x + GAP * 1.1, ly);
-    ctx.stroke();
-  };
-  if (step < 0)  for (let st = -2; st >= step; st -= 2) drawLedger(st);
-  if (step > 8)  for (let st = 10; st <= step; st += 2) drawLedger(st);
-
-  // Notenkopf
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(-0.32);
-  ctx.beginPath();
-  ctx.ellipse(0, 0, GAP * 0.68, GAP * 0.5, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  // Notenhals
-  ctx.strokeStyle = ctx.fillStyle;
-  ctx.lineWidth = Math.max(1.5, GAP * 0.11);
-  const up = step < 4;
-  ctx.beginPath();
-  if (up) { ctx.moveTo(x + GAP * 0.6, y - 2); ctx.lineTo(x + GAP * 0.6, y - GAP * 3.2); }
-  else    { ctx.moveTo(x - GAP * 0.6, y + 2); ctx.lineTo(x - GAP * 0.6, y + GAP * 3.2); }
-  ctx.stroke();
-
-  // Vorzeichen: Der SMuFL-Nullpunkt liegt in der Mitte des Kreuzes, also
-  // genau auf Hoehe des Notenkopfs. Breite 1 Zeilenabstand, davor etwas Luft.
-  if (s.accidental) {
-    ctx.font = `${GAP * 4}px "NotenSymbole", "Segoe UI Symbol", serif`;
-    ctx.textBaseline = "alphabetic";
-    ctx.fillText(GLYPH.sharp, x - GAP * 2.0, y);
-  }
-}
-
-// Verteiler zwischen den Betriebsarten. Alles, was bisher draw() gerufen
-// hat - Groessenaenderung, Einstellungen, neue Note -, funktioniert dadurch
-// unveraendert weiter.
-function draw() {
-  // Beim allerersten Aufruf steht die Größe der Bühne noch nicht fest.
-  // Klappt auch das nicht, meldet sich der ResizeObserver später wieder.
-  if (!H && !measure()) return;
-  drawStaff();
-
-  if (settings.mode === "run") { drawLane(); return; }
-  if (target === null) return;
-
-  drawNote(target, NOTE_X,
-    flash === "ok" ? "#2f9e6a" : flash === "miss" ? "#c2453f" : "#14120f");
-}
-
-/* --- Lauf: Noten kommen von rechts --------------------------------- *
- * Jede Note bekommt beim Erzeugen einen Faelligkeitszeitpunkt. Das Bild
- * leitet sich daraus ab (x aus der Restzeit) und die Wertung ebenso
- * (Anschlag gegen Faelligkeit). Weil beides an derselben Zahl haengt,
- * koennen Darstellung und Bewertung nicht auseinanderlaufen.
- *
- * Der Vorlauf wird in Schlaegen gemessen, nicht in Sekunden: So bleibt der
- * Abstand der Noten auf dem Schirm gleich, und schnelleres Tempo bedeutet
- * schnellere Bewegung statt gedraengter Noten.
- * ------------------------------------------------------------------ */
-const WINDOW = 150;      // Trefferfenster in ms, siehe Fahrplan
-const LEAD_BEATS = 4;    // so viele Schlaege ist eine Note vorher sichtbar
-
-let lane = [];           // { midi, dueAt, state, playedAt, playedMidi }
-let running = false;
-let rafId = 0;
-let lastDue = 0;
-
-const beatMs = () => 60000 / settings.bpm;
-const leadMs = () => LEAD_BEATS * beatMs();
-
-// x-Position aus der Restzeit: faellig -> auf der Linie, weiter weg -> weiter rechts.
-function xForDue(dueAt, now) {
-  return NOW_X + ((dueAt - now) / leadMs()) * (RIGHT - NOW_X);
-}
-
-function spawn(now) {
-  const horizon = now + leadMs() + 500;
-  let guard = 0;
-  while (lastDue < horizon && guard++ < 64) {
-    const midi = pickNext();
-    if (midi === null) return;
-    lane.push({ midi, dueAt: lastDue, state: "pending", playedAt: 0, playedMidi: 0 });
-    lastDue += beatMs();
-  }
-}
-
-// Eine Zeile ins Ereignis-Log. Gleiche Form wie in der Uebung, dazu dueAt -
-// daraus wird spaeter die Abweichung gerechnet.
-function record(n, playedMidi, correct) {
-  events.push({
-    midi: n.midi,
-    shownAt: n.dueAt - leadMs(),
-    hitAt: n.playedAt,
-    dueAt: n.dueAt,
-    playedMidi,
-    correct,
-  });
-  renderStats();
-}
-
-function expire(now) {
-  for (const n of lane) {
-    if (n.state === "pending" && now > n.dueAt + WINDOW) {
-      n.state = "miss";
-      record(n, 0, false);
-    }
-  }
-  lane = lane.filter(n => xForDue(n.dueAt, now) > LEFT - GAP * 3);
-}
-
-// Anschlag der naechstliegenden offenen Note zuordnen.
-function judge(midi, now) {
-  let best = null, bestDiff = Infinity;
-  for (const n of lane) {
-    if (n.state !== "pending") continue;
-    const diff = Math.abs(n.dueAt - now);
-    if (diff < bestDiff) { bestDiff = diff; best = n; }
-  }
-  // Ausserhalb des Fensters gar nicht werten - sonst zaehlt jedes Warmspielen
-  // als Fehler.
-  if (!best || bestDiff > WINDOW) return;
-
-  best.playedAt = now;
-  best.playedMidi = midi;
-  best.state = midi === best.midi ? "hit" : "miss";
-  record(best, midi, best.state === "hit");
-
-  const fb = document.getElementById("feedback");
-  const off = Math.round(now - best.dueAt);
-  if (best.state === "hit") {
-    fb.className = "feedback ok";
-    fb.textContent = noteName(best.midi) + " — "
-      + (off > 0 ? "+" + off + " ms (spät)" : off < 0 ? off + " ms (früh)" : "genau");
-  } else {
-    fb.className = "feedback miss";
-    fb.textContent = "Gespielt: " + noteName(midi) + " — gesucht: " + noteName(best.midi);
-  }
-}
-
-function drawLane() {
-  const now = performance.now();
-
-  // Die "Jetzt"-Linie
-  ctx.strokeStyle = "#c2453f";
-  ctx.globalAlpha = 0.45;
-  ctx.lineWidth = Math.max(1.5, GAP * 0.09);
-  ctx.beginPath();
-  ctx.moveTo(NOW_X, BOTTOM_Y - 4 * GAP - GAP * 1.4);
-  ctx.lineTo(NOW_X, BOTTOM_Y + GAP * 1.4);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-
-  // Links abschneiden, damit keine Note ueber den Schluessel laeuft.
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(LEFT + GAP * 4.5, 0, W, H);
-  ctx.clip();
-  for (const n of lane) {
-    drawNote(n.midi, xForDue(n.dueAt, now),
-      n.state === "hit" ? "#2f9e6a" : n.state === "miss" ? "#c2453f" : "#14120f");
-  }
-  ctx.restore();
-}
-
-function tick() {
-  if (!running) return;
-  const now = performance.now();
-  spawn(now);
-  expire(now);
-  draw();
-  rafId = requestAnimationFrame(tick);
-}
-
-function startRun() {
-  if (running) return;
-  lane = [];
-  lastDue = performance.now() + leadMs();
-  running = true;
-  document.getElementById("run").textContent = "Anhalten";
-  document.getElementById("feedback").className = "feedback";
-  document.getElementById("feedback").textContent = "Triff die Note, wenn sie die Linie erreicht.";
-  tick();
-}
-
-function stopRun() {
-  running = false;
-  cancelAnimationFrame(rafId);
-  const btn = document.getElementById("run");
-  if (btn) btn.textContent = "Starten";
-  draw();
-}
-
-/* --- Eingabe auswerten --------------------------------------------- */
-function onNoteOn(midi, velocity) {
-  // Erst roh mitschreiben - unabhaengig davon, ob gerade eine Note ansteht.
-  held.add(midi);
-  sawNote = true;
-  inputLog.push({ at: performance.now(), type: "on", midi, velocity });
-  renderPedals();
-
-  // Im Lauf uebernimmt judge() - die Uebungslogik unten bleibt unberuehrt.
-  if (settings.mode === "run") { if (running) judge(midi, performance.now()); return; }
-
-  if (target === null) return;
-  const correct = midi === target;
-
-  events.push({
-    midi: target,
-    shownAt,
-    hitAt: performance.now(),
-    playedMidi: midi,
-    correct,
-  });
-
-  const fb = document.getElementById("feedback");
-  if (correct) {
-    flash = "ok";
-    fb.className = "feedback ok";
-    fb.textContent = noteName(target) + " \u2014 " + Math.round(performance.now() - shownAt) + " ms";
-    draw();
-    renderStats();
-    setTimeout(() => { flash = null; nextNote(); }, 260);
-  } else {
-    flash = "miss";
-    fb.className = "feedback miss";
-    fb.textContent = "Gespielt: " + noteName(midi) + " \u2014 gesucht: " + noteName(target);
-    draw();
-    renderStats();
-    setTimeout(() => { flash = null; draw(); }, 320);
-  }
-}
-
-function onNoteOff(midi) {
-  held.delete(midi);
-  inputLog.push({ at: performance.now(), type: "off", midi });
-  renderPedals();
-}
-
-function onControl(cc, value) {
-  const key = PEDAL_CC[cc];
-  if (!key) return;                     // andere Regler gehen uns nichts an
-  const p = pedal[key];
-  const down = value >= 64;             // Schwelle aus der MIDI-Norm
-
-  p.seen = true;
-  p.value = value;
-  if (value > 0 && value < 127) p.between = true;
-  if (value < p.min) p.min = value;
-  if (value > p.max) p.max = value;
-  if (down !== p.down) { p.down = down; p.changes++; }
-
-  inputLog.push({ at: performance.now(), type: "pedal", pedal: key, value, down });
-  renderPedals();
-  renderPedalNote();
-}
-
-// Verteiler fuer den rohen Datenstrom. Alles andere - Clock, Active
-// Sensing, Pitch Bend - laeuft hier absichtlich ins Leere.
-function onMidiMessage(data) {
-  const [status, d1, d2] = data;
-  const kind = status & 0xf0;
-
-  // Note-Off kommt in zwei Schreibweisen: 0x80, oder 0x90 mit
-  // Anschlagstaerke 0. Beide muessen gelten, sonst bleiben Tasten haengen -
-  // und ohne Loslassen laesst sich Bindung spaeter nicht messen.
-  if (kind === 0x90 && d2 > 0) onNoteOn(d1, d2);
-  else if (kind === 0x80 || (kind === 0x90 && d2 === 0)) onNoteOff(d1);
-  else if (kind === 0xb0) onControl(d1, d2);
-}
-
-/* --- Statistik ------------------------------------------------------ */
-
-// In der Uebung ist die interessante Zahl die Reaktionszeit, im Lauf die
-// Abweichung von der Faelligkeit. Beides steckt in denselben Zeilen und
-// unterscheidet sich nur daran, ob dueAt gesetzt ist.
-const timing = e => typeof e.dueAt === "number" ? e.hitAt - e.dueAt : e.hitAt - e.shownAt;
-
-function renderStats() {
-  const body = document.getElementById("statBody");
-  const empty = document.getElementById("statEmpty");
-
-  document.getElementById("figCount").textContent = events.length;
-
-  if (!events.length) {
-    body.innerHTML = "";
-    empty.style.display = "";
-    document.getElementById("figAcc").textContent = "\u2013";
-    document.getElementById("figTime").textContent = "\u2013";
-    return;
-  }
-  empty.style.display = "none";
-
-  const hits = events.filter(e => e.correct);
-  document.getElementById("figAcc").textContent =
-    Math.round(100 * hits.length / events.length) + "%";
-  // Vorzeichen nur im Lauf: "+40 ms" heisst zu spaet, "-40 ms" zu frueh.
-  const isRun = events.some(e => typeof e.dueAt === "number");
-  document.getElementById("figTimeK").textContent =
-    isRun ? "\u00d8 Abweichung" : "\u00d8 Reaktion";
-  const avg = hits.length ? hits.reduce((a, e) => a + timing(e), 0) / hits.length : null;
-  document.getElementById("figTime").textContent = avg === null ? "\u2013"
-    : (isRun && avg > 0 ? "+" : "") + Math.round(avg) + " ms";
-
-  const byNote = new Map();
-  for (const e of events) {
-    if (!byNote.has(e.midi)) byNote.set(e.midi, []);
-    byNote.get(e.midi).push(e);
-  }
-
-  const rows = [...byNote.entries()].map(([midi, list]) => {
-    const ok = list.filter(e => e.correct);
-    return {
-      midi,
-      shown: list.length,
-      errors: list.length - ok.length,
-      ms: ok.length ? Math.round(ok.reduce((a, e) => a + timing(e), 0) / ok.length) : null,
-    };
-  }).sort((a, b) => (b.errors / b.shown) - (a.errors / a.shown) || b.shown - a.shown);
-
-  body.innerHTML = rows.map(r =>
-    `<tr><td class="name">${noteName(r.midi)}</td><td>${r.shown}</td><td>${r.errors}</td><td>${r.ms ?? "\u2013"}</td></tr>`
-  ).join("");
-}
-
-/* --- Pedalanzeige ---------------------------------------------------- *
- * Gezeigt wird nur, was das Instrument wirklich schickt. Die meisten
- * Pianos melden allein CC 64, drei Felder waeren dann nur Rauschen.
- * ---------------------------------------------------------------------- */
-function renderPedals() {
-  const parts = [];
-
-  if (sawNote) {
-    parts.push('<span class="pedal' + (held.size ? " down" : "") + '">'
-      + '<i></i>Tasten <b>' + held.size + '</b></span>');
-  }
-  for (const key of PEDAL_KEYS) {
-    const p = pedal[key];
-    if (!p.seen) continue;
-    parts.push('<span class="pedal' + (p.down ? " down" : "") + '">'
-      + '<i></i>' + PEDAL_NAME[key]
-      + (p.between ? ' <b>' + p.value + '</b>' : '')
-      + '</span>');
-  }
-  document.getElementById("pedals").innerHTML = parts.join("");
-}
-
-function renderPedalNote() {
-  const el = document.getElementById("pedalNote");
-  const seen = PEDAL_KEYS.filter(k => pedal[k].seen);
-
-  if (!seen.length) {
-    el.textContent = "Pedal: noch keine Bewegung erkannt.";
-    return;
-  }
-  el.textContent = "Pedal: " + seen.map(k => {
-    const p = pedal[k];
-    const art = p.between
-      ? "stufenlos, Werte " + p.min + "–" + p.max
-      : "bisher nur Endwerte, also Schalter";
-    return PEDAL_NAME[k] + " — " + art + ", " + p.changes + " Wechsel";
-  }).join(" · ");
-}
-
-/* --- MIDI ----------------------------------------------------------- *
- * Drei Wege, auf denen es scheitern kann, jeder mit eigener Meldung:
- * 1. requestMIDIAccess fehlt - kein Web MIDI, oder kein Secure Context.
- * 2. Die Anfrage wird abgelehnt (NotAllowedError) oder anders verworfen.
- * 3. Die Anfrage antwortet gar nicht. Das passiert in App-Browsern mit
- *    eigener MIDI-Bruecke (iPad), solange die App auf eine Freigabe wartet.
- *    Ohne Zeitlimit stuende hier ewig "wird gesucht", und die Schaltflaeche
- *    zum Neuversuch erschiene nie. Eine spaete Antwort zaehlt trotzdem.
- * ------------------------------------------------------------------ */
-const MIDI_TIMEOUT = 4000;
-let midiAccess = null;
-
-function setStatus(kind, text) {
-  document.getElementById("status").className = "status" + (kind ? " " + kind : "");
-  document.getElementById("statusText").textContent = text;
-}
-
-// Bruecken liefern inputs/outputs nicht immer als Map. Auf dem iPad gab
-// values() etwas zurueck, das sich nicht ausbreiten liess. Darum eine
-// Kaskade: values() in jeder denkbaren Form, dann forEach, dann das Objekt
-// selbst. Jede Stufe darf scheitern, ohne die naechste zu verhindern.
-function asList(x) {
-  if (!x) return null;
-  if (Array.isArray(x)) return x;
-  if (typeof x[Symbol.iterator] === "function") return Array.from(x);
-  if (typeof x.next === "function") {                 // Iterator ohne Symbol
-    const out = [];
-    for (let r = x.next(); r && !r.done; r = x.next()) out.push(r.value);
-    return out;
-  }
-  if (typeof x.length === "number") return Array.from(x);
-  if (typeof x === "object") return Object.values(x);
-  return null;
-}
-
-function ports(coll) {
-  if (!coll) return [];
-  const isPort = p => p && typeof p === "object";
-  if (typeof coll.values === "function") {
-    try { const v = asList(coll.values()); if (v) return v.filter(isPort); } catch (e) { /* naechste Stufe */ }
-  }
-  if (typeof coll.forEach === "function") {
-    try { const out = []; coll.forEach(v => out.push(v)); return out.filter(isPort); } catch (e) { /* naechste Stufe */ }
-  }
-  const direct = asList(coll);
-  return direct ? direct.filter(isPort) : [];
-}
-
-// Beschreibt ein fremdes Objekt knapp - fuer die Statuszeile, wenn die Bruecke
-// etwas liefert, womit die Kaskade nichts anfangen kann.
-function describe(x) {
-  try {
-    const t = Object.prototype.toString.call(x);
-    const keys = x && typeof x === "object" ? Object.keys(x).slice(0, 6).join(",") : "";
-    let v = "-";
-    if (x && typeof x.values === "function") {
-      try { v = Object.prototype.toString.call(x.values()); } catch (e) { v = "wirft: " + e.message; }
-    }
-    return t + " keys[" + keys + "] values()->" + v + " size=" + (x && x.size);
-  } catch (e) { return "(nicht beschreibbar: " + e.message + ")"; }
-}
-
-// Handler anbinden, ohne ihn bei jedem statechange erneut zu registrieren.
-const boundPorts = new WeakSet();
-function listen(input) {
-  if (boundPorts.has(input)) return;
-  const handler = e => onMidiMessage(e.data || (e.detail && e.detail.data) || e);
-  let took = false;
-  try { input.onmidimessage = handler; took = input.onmidimessage === handler; } catch (e) { /* kein Setter */ }
-  if (!took && typeof input.addEventListener === "function") input.addEventListener("midimessage", handler);
-  boundPorts.add(input);
-}
-
-// iOS meldet seine Netzwerk-MIDI-Sitzung ("Session 1") als ganz normalen
-// Eingang, macOS seinen IAC-Bus. Das sind keine Instrumente - "Verbunden"
-// waere die falsche Botschaft, solange nichts Echtes dranhaengt.
-const isVirtualPort = name => /^session \d+$/i.test(name) || /network|virtual|virtuell|iac/i.test(name);
-
-function bindMidi() {
-  const real = [], virtual = [];
-  for (const input of ports(midiAccess.inputs)) {
-    listen(input);
-    const name = input.name || "MIDI-Eingang";
-    (isVirtualPort(name) ? virtual : real).push(name);
-  }
-  document.getElementById("connect").hidden = true;
-  if (real.length) { setStatus("live", "Verbunden: " + real.join(", ")); return; }
-  if (virtual.length) {
-    setStatus("", "Bereit, aber kein Instrument: nur " + virtual.join(", ")
-      + " (virtueller MIDI-Anschluss des Systems). Interface anstecken.");
-    return;
-  }
-
-  // Ausgaenge mitpruefen: Sieht das System einen Ausgang, aber keinen Eingang,
-  // liegt es nicht an Kabel oder Buchse - dann meldet sich das Geraet an,
-  // sendet aber nichts. Das trennt zwei verschiedene Fehlersuchen.
-  const outs = ports(midiAccess.outputs).map(o => o.name || "MIDI-Ausgang");
-  setStatus("", outs.length
-    ? "Nur Ausgang gefunden (" + outs.join(", ") + "), kein Eingang. Kabel und "
-      + "Buchse stimmen also - das Instrument sendet nur nichts."
-    : "Kein Gerät gefunden. Interface anstecken, Piano einschalten, dann "
-      + "„MIDI verbinden“ antippen.");
-}
-
-function failMidi(err, shape) {
-  const why = (err && err.name) || "unbekannt";
-  const hint = why === "NotAllowedError"
-    ? "Tipp auf „MIDI verbinden“ — manche Browser fragen nur nach, wenn die "
-      + "Anfrage aus einer echten Nutzeraktion kommt."
-    : why === "NotSupportedError"
-      ? "Dieser Browser liefert kein MIDI aus - nimm Chrome."
-      : "Unerwarteter Grund, siehe Meldung.";
-  setStatus("fail", "MIDI fehlgeschlagen — " + why
-    + ((err && err.message) ? ": " + err.message : "") + " " + hint
-    + (shape !== undefined ? " Form von inputs: " + describe(shape) : ""));
-  document.getElementById("connect").hidden = false;
-}
-
-async function initMidi() {
-  if (!navigator.requestMIDIAccess) {
-    setStatus("fail", isSecureContext
-      ? "Dieser Browser kennt kein Web MIDI. Nimm Chrome oder Edge."
-      : location.origin + " gilt nicht als sicher, darum ist Web MIDI hier "
-        + "abgeschaltet. Diese Adresse in chrome://flags unter „Insecure "
-        + "origins treated as secure“ eintragen und Chrome neu starten.");
-    return;
-  }
-
-  // Eine Bruecke (App-Browser) ist an fehlendem "native code" erkennbar.
-  // Das sagt bei Problemen sofort, welcher Weg gerade genommen wird.
-  const bridged = !/native code/.test(String(navigator.requestMIDIAccess));
-  setStatus("", "MIDI wird gesucht…" + (bridged ? " (MIDI-Brücke der App erkannt)" : ""));
-
-  let request;
-  try { request = Promise.resolve(navigator.requestMIDIAccess()); }
-  catch (err) { failMidi(err); return; }        // synchron geworfen
-
-  let answered = false;
-  const timer = setTimeout(() => {
-    if (answered) return;
-    setStatus("fail", "Keine Antwort auf die MIDI-Anfrage nach "
-      + (MIDI_TIMEOUT / 1000) + " s. In der App die MIDI-Freigabe prüfen "
-      + "(Zahnrad), dann „MIDI verbinden“ antippen.");
-    document.getElementById("connect").hidden = false;
-  }, MIDI_TIMEOUT);
-
-  try {
-    const access = await request;
-    answered = true; clearTimeout(timer);
-    if (!access || !("inputs" in access)) throw new Error("Antwort ohne inputs (" + typeof access + ")");
-    midiAccess = access;
-    try { access.onstatechange = bindMidi; } catch (e) { /* Bruecke ohne Setter */ }
-    if (typeof access.addEventListener === "function") access.addEventListener("statechange", bindMidi);
-    bindMidi();
-  } catch (err) {
-    answered = true; clearTimeout(timer);
-    failMidi(err, midiAccess ? midiAccess.inputs : undefined);
-  }
-}
-
-/* --- Bedienelemente -------------------------------------------------- */
-const lowEl = document.getElementById("low");
-const highEl = document.getElementById("high");
-
-function syncRange() {
-  if (+lowEl.value > +highEl.value) {
-    if (document.activeElement === lowEl) highEl.value = lowEl.value;
-    else lowEl.value = highEl.value;
-  }
-  settings.low = +lowEl.value;
-  settings.high = +highEl.value;
-  document.getElementById("lowVal").textContent = noteName(settings.low);
-  document.getElementById("highVal").textContent = noteName(settings.high);
-  measure();          // der Bereich bestimmt die nötige Höhe
-  nextNote();
-}
-
-lowEl.addEventListener("input", syncRange);
-highEl.addEventListener("input", syncRange);
-
-document.getElementById("clef").addEventListener("change", e => {
-  settings.clef = e.target.value;
-  measure();
-  draw();
-});
-document.getElementById("keys").addEventListener("change", e => {
-  settings.keys = e.target.value;
-  measure();
-  nextNote();
-});
-document.getElementById("naming").addEventListener("change", e => {
-  settings.naming = e.target.value;
-  syncRange();
-  renderStats();
-});
-/* --- Betriebsart und Tempo -------------------------------------------- */
-document.getElementById("mode").addEventListener("change", e => {
-  settings.mode = e.target.value;
-  stopRun();
-  document.getElementById("runRow").hidden = settings.mode !== "run";
-
-  const fb = document.getElementById("feedback");
-  fb.className = "feedback";
-  if (settings.mode === "run") {
-    target = null;
-    lane = [];
-    fb.textContent = "Tempo wählen und auf Starten tippen.";
-    draw();
-  } else {
-    fb.textContent = "Spiel die angezeigte Note auf dem E-Piano.";
-    nextNote();
-  }
-});
-
-const bpmEl = document.getElementById("bpm");
-bpmEl.addEventListener("input", () => {
-  settings.bpm = +bpmEl.value;
-  document.getElementById("bpmVal").textContent = settings.bpm;
-  // Beim Tempowechsel neu aufsetzen: Die bereits vergebenen Faelligkeiten
-  // passen sonst nicht mehr zum neuen Abstand, und die Noten wuerden
-  // springen.
-  if (running) { stopRun(); startRun(); }
-});
-
-document.getElementById("run").addEventListener("click", () => {
-  if (running) stopRun(); else startRun();
-});
-
-document.getElementById("reset").addEventListener("click", () => {
-  events.length = 0;
-  inputLog.length = 0;
-  lane = [];
-  if (running) { stopRun(); startRun(); }
-  // Nur den Sitzungszaehler leeren. Der Zustand des Pedals bleibt - es ist
-  // ja weiterhin oben oder unten -, und ob es stufenlos ist, ist eine
-  // Eigenschaft des Geraets und keine Statistik.
-  for (const key of PEDAL_KEYS) pedal[key].changes = 0;
-  renderStats();
-  renderPedals();
-  renderPedalNote();
-  nextNote();
-});
-
-document.getElementById("connect").addEventListener("click", () => {
-  document.getElementById("connect").hidden = true;
-  document.getElementById("status").className = "status";
-  document.getElementById("statusText").textContent = "MIDI wird gesucht…";
-  initMidi();   // synchron aus dem Klick heraus, damit die Geste zaehlt
-});
-
-// Im Querformat kostet die Adressleiste spürbar Höhe. WebKit auf dem iPad
-// kennt die Vollbild-API nur mit Präfix, App-eigene Browser oft gar nicht -
-// dann den Knopf ausblenden statt beim Klick einen Fehler zu werfen.
-const fullBtn = document.getElementById("full");
-const root = document.documentElement;
-if (!(root.requestFullscreen || root.webkitRequestFullscreen)) fullBtn.hidden = true;
-fullBtn.addEventListener("click", () => {
-  const active = document.fullscreenElement || document.webkitFullscreenElement;
-  if (active) {
-    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-    return;
-  }
-  const p = (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
-  if (p && p.catch) p.catch(() => {});   // die Präfix-Variante liefert kein Promise
-});
-
-// Drehen, Vollbild, Adressleiste beim Scrollen: alles ändert die Höhe.
-new ResizeObserver(() => { if (measure()) draw(); }).observe(canvas);
-
-/* --- Bildschirm wachhalten ------------------------------------------- *
- * Ohne das schaltet das Handy mitten im Üben ab. Schlägt der Wunsch fehl
- * (Akkusparmodus, alter Browser), wird einfach ohne weitergemacht.
- * ---------------------------------------------------------------------- */
-let wakeLock = null;
-
-async function keepAwake() {
-  if (!navigator.wakeLock) return;
-  try {
-    wakeLock = await navigator.wakeLock.request("screen");
-    wakeLock.addEventListener("release", () => { wakeLock = null; });
-  } catch (err) { /* nicht schlimm */ }
-}
-
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && !wakeLock) keepAwake();
-});
-
-/* --- Start ------------------------------------------------------------ */
-measure();
-syncRange();
-renderStats();
-renderPedals();
-renderPedalNote();
-initMidi();
-keepAwake();
-// Beim ersten Zeichnen ist die eingebettete Schrift oft noch nicht bereit,
-// dann steht kurz die Ersatzschrift da. Nach dem Laden einmal neu zeichnen.
-document.fonts.load('10px "NotenSymbole"').then(draw).catch(() => {});
-</script>
+</section>
+
+<div id="toast"></div>
+
+<script src="js/music.js"></script>
+<script src="js/notation.js"></script>
+<script src="js/store.js"></script>
+<script src="js/midi.js"></script>
+<script src="js/synth.js"></script>
+<script src="js/musicxml.js"></script>
+<script src="pieces/starter.js"></script>
+<script src="js/game.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
