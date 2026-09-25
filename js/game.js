@@ -392,6 +392,13 @@ NT.game = (() => {
     else if (mode === "play") { S.source = pieceSource(S.piece, S.hand); S.total = 0; }
     // Vorlauf in Schlägen, aber so gewählt, dass Achtel nicht zusammenkleben.
     S.leadBeats = 4;
+    // Lauf und Tonleiter: Viertel brauchen Platz fuer Kopf, Vorzeichen und Luft
+    // (3,4 Abstaende). Auf schmalen Buehnen also weniger Schlaege Vorlauf,
+    // sonst klebt ein Kreuz am Kopf der Note davor.
+    if (mode === "run" || mode === "scale") {
+      const L = S.L;
+      S.leadBeats = Math.max(2, Math.min(4, (L.right - L.nowX) / (3.4 * L.GAP)));
+    }
     if (mode === "phrase" || mode === "play") {
       const L = S.L, minGap = 0.5;
       const maxLead = ((L.right - L.nowX) * minGap) / (1.9 * N.M.headW * L.GAP);

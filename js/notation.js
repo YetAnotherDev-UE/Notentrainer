@@ -63,7 +63,14 @@ NT.notation = (() => {
     });
     const gapSteps = staves.length > 1 ? 6 : 0;
     const total = staves.reduce((a, s) => a + 8 + s.above + s.below, 0) + gapSteps * (staves.length - 1);
-    const GAP = Math.min(spec.maxGap || 44, (2 * cssH) / total);
+    // Zweite Grenze aus der Breite: Schluessel, Vorzeichnung, Taktart und der
+    // Abstand zur Jetzt-Linie kosten zusammen fixedSpaces Abstaende; rechts der
+    // Linie sollen mindestens zehn frei bleiben, sonst kleben die Noten auf
+    // schmalen Buehnen aneinander, egal wie klein der Vorlauf ist.
+    const nKey0 = Math.abs(spec.keyFifths || 0);
+    const fixedSpaces = 0.4 + M.clefW + 0.5 + nKey0 * 1.05 + (spec.time ? 0.4 + M.digitW : 0) + 0.9 + 3.5 + (staves.length > 1 ? 0.9 : 0);
+    const widthAvail = cssW - 2 * Math.max(10, cssW * 0.02);
+    const GAP = Math.min(spec.maxGap || 44, (2 * cssH) / total, widthAvail / (fixedSpaces + 10));
     const contentH = total * GAP / 2;
     let y = (cssH - contentH) / 2;
     for (const s of staves) {
