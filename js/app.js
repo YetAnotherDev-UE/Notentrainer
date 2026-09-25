@@ -163,7 +163,7 @@ NT.app = (() => {
       // Deko: feste Pseudozufallsplätze je Welt, damit die Karte nicht flackert.
       for (let k = 0; k < 9; k++) {
         const s1 = Math.sin((wi + 1) * 13.7 + k * 7.3) * 0.5 + 0.5, s2 = Math.sin((wi + 1) * 5.1 + k * 3.9) * 0.5 + 0.5;
-        html += `<span class="deco" style="left:${Math.round(4 + s1 * 92)}%;top:${Math.round(top + 20 + s2 * (bottom - top - 60))}px;font-size:${18 + Math.round(s2 * 22)}px;transform:rotate(${Math.round(s1 * 60 - 30)}deg)">${DECO[(wi + k) % DECO.length]}</span>`;
+        html += `<span class="deco" style="left:${Math.round(4 + s1 * 92)}%;top:${Math.round(top + 20 + s2 * (bottom - top - 60))}px;font-size:${18 + Math.round(s2 * 22)}px;--r:${Math.round(s1 * 60 - 30)}deg;--dur:${(5 + s2 * 4).toFixed(1)}s;--delay:${(-s1 * 6).toFixed(1)}s">${DECO[(wi + k) % DECO.length]}</span>`;
       }
       const unlockedWorld = ST.isUnlocked(story, w.levels[0]);
       html += `<div class="worldBanner" style="--wa:${w.colors[0]};--wb:${w.colors[1]};top:${bannerY}px;${unlockedWorld ? "" : "filter:saturate(.3);opacity:.75"}"><div class="display">Welt ${w.n}: ${w.title}</div><small>${w.sub}</small></div>`;

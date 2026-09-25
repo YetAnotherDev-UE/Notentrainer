@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925q") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260925r") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -35,7 +35,7 @@
     animation: scrollStripes 8s linear infinite; will-change: transform;
   }
   @keyframes scrollStripes { from { transform: rotate(-10deg) translateY(0); } to { transform: rotate(-10deg) translateY(110px); } }
-  @media (prefers-reduced-motion: reduce) { body::before { animation: none; } .hero, .marker, .node.current, .menuBtn.story .skew::after { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { body::before { animation: none; } .hero, .marker, .node.current, .menuBtn.story .skew::after, .deco { animation: none; } }
   .display { font-family: "Anton", "Avenir Next Condensed", "Bahnschrift", "Impact", "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: .02em; font-weight: 400; }
 
   .screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 14px 18px; overflow: auto; }
@@ -129,7 +129,9 @@
     background: linear-gradient(180deg, var(--wa), var(--wb)); box-shadow: 0 5px 0 rgba(0,0,0,.35), 0 12px 24px rgba(0,0,0,.4); border: 2px solid rgba(255,255,255,.7); z-index: 2; white-space: nowrap; }
   .worldBanner .display { font-size: 22px; line-height: 1.05; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
   .worldBanner small { display: block; font-size: 11px; opacity: .92; }
-  .deco { position: absolute; font-size: 28px; opacity: .2; pointer-events: none; user-select: none; color: #fff; }
+  /* Deko-Symbole schweben ganz leicht: kleine Hebung, kaum sichtbare Vergroesserung, jedes in eigenem Takt. */
+  .deco { position: absolute; font-size: 28px; opacity: .2; pointer-events: none; user-select: none; color: #fff; transform: rotate(var(--r, 0deg)); animation: decoFloat var(--dur, 6s) ease-in-out var(--delay, 0s) infinite; will-change: transform; }
+  @keyframes decoFloat { 0%, 100% { transform: rotate(var(--r, 0deg)) translateY(0) scale(1); } 50% { transform: rotate(var(--r, 0deg)) translateY(-7px) scale(1.07); } }
   /* Deckende Raender: durch einen halbdurchsichtigen Rand scheint sonst der dunkle Pfadschatten. */
   .node { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid #f4f6ff; padding: 0;
     background: linear-gradient(180deg, var(--wa), var(--wb)); color: #fff; font-size: 24px; display: flex; align-items: center; justify-content: center;
@@ -490,17 +492,17 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260925q"></script>
-<script src="js/notation.js?v=20260925q"></script>
-<script src="js/store.js?v=20260925q"></script>
-<script src="js/midi.js?v=20260925q"></script>
-<script src="js/synth.js?v=20260925q"></script>
-<script src="js/musicxml.js?v=20260925q"></script>
-<script src="js/charts.js?v=20260925q"></script>
-<script src="pieces/starter.js?v=20260925q"></script>
-<script src="js/story.js?v=20260925q"></script>
-<script src="js/quiz.js?v=20260925q"></script>
-<script src="js/game.js?v=20260925q"></script>
-<script src="js/app.js?v=20260925q"></script>
+<script src="js/music.js?v=20260925r"></script>
+<script src="js/notation.js?v=20260925r"></script>
+<script src="js/store.js?v=20260925r"></script>
+<script src="js/midi.js?v=20260925r"></script>
+<script src="js/synth.js?v=20260925r"></script>
+<script src="js/musicxml.js?v=20260925r"></script>
+<script src="js/charts.js?v=20260925r"></script>
+<script src="pieces/starter.js?v=20260925r"></script>
+<script src="js/story.js?v=20260925r"></script>
+<script src="js/quiz.js?v=20260925r"></script>
+<script src="js/game.js?v=20260925r"></script>
+<script src="js/app.js?v=20260925r"></script>
 </body>
 </html>
