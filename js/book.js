@@ -292,7 +292,7 @@ NT.book = (() => {
   const FIGS = {
     treble: c => row(c, "treble", [60, 62, 64, 65, 67, 69, 71, 72]),
     bass: c => row(c, "bass", [48, 50, 52, 53, 55, 57, 59, 60]),
-    ledger: c => row(c, "treble", [53, 55, 57, 59, 60, 79, 81, 84]),
+    ledger: c => row(c, "treble", [55, 57, 60, 79, 81, 84]),
     keyboard: c => keyboard(c, false),
     keyboardBlack: c => keyboard(c, true),
     values: c => {
@@ -320,8 +320,9 @@ NT.book = (() => {
       const x = slots(L, items.length);
       items.forEach(([n, l], i) => N.drawNote(L, 0, n, x(i), { label: l }));
     },
-    keyG: c => row(c, "treble", [67, 69, 71, 72, 74, 76, 78, 79], { fifths: 1 }),
-    keyF: c => row(c, "treble", [65, 67, 69, 70, 72, 74, 76, 77], { fifths: -1 }),
+    // Nur der Buchstabe, sonst laufen "Fis5" und "G5" auf schmalen Seiten ineinander.
+    keyG: c => row(c, "treble", [67, 69, 71, 72, 74, 76, 78, 79], { fifths: 1, labelFn: m => MU.shortName(m, naming(), false) }),
+    keyF: c => row(c, "treble", [65, 67, 69, 70, 72, 74, 76, 77], { fifths: -1, labelFn: m => MU.shortName(m, naming(), true) }),
     scale: c => row(c, "treble", [60, 62, 64, 65, 67, 69, 71, 72], { dur: 1, fingers: [1, 2, 3, 1, 2, 3, 4, 5] }),
     intervals: c => {
       const pairs = [[62, "Sekunde"], [64, "Terz"], [65, "Quarte"], [67, "Quinte"], [69, "Sexte"], [71, "Septime"], [72, "Oktave"]];
