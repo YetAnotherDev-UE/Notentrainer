@@ -28,6 +28,7 @@ NT.app = (() => {
   let current = "home";
   let lastMode = "single", lastOpts = {}, lastResults = null;
   let storyLevel = null;           // das Level, das gerade läuft (oder null beim freien Üben)
+  let bookReturn = "home", bookLevel = null;   // wohin „Zurück“ im Handbuch führt
   let plan = null;                 // Aufwärmprogramm: { steps: [{mode, opts}], i }
 
   /* --- Level ------------------------------------------------------------- */
@@ -42,6 +43,7 @@ NT.app = (() => {
   function show(name) {
     if (current === "play" && name !== "play" && name !== "results") G.stop(name !== "home" ? true : false);
     if (current === "quiz" && name !== "quiz" && name !== "results") NT.quiz.stop();
+    if (current === "book" && name !== "book") NT.book.leave();
     if (name !== "story") closeModal();
     current = name;
     document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === "screen-" + name));
@@ -51,6 +53,7 @@ NT.app = (() => {
     if (name === "library") renderLibrary();
     if (name === "settings") syncSettingsUi();
     if (name === "story") renderMap();
+    if (name === "book") NT.book.render();
     if (name === "play") setTimeout(() => G.relayout() && G.draw(), 30);
     if (name === "quiz") setTimeout(NT.quiz.draw, 30);
   }
@@ -192,13 +195,20 @@ NT.app = (() => {
         ${l.tip ? `<p class="small muted" style="margin:6px 0">${l.tip}</p>` : ""}
         <p class="small" style="margin:6px 0">${p ? `Bisher: ${starText(p.stars)} · beste Quote ${p.best} % · ${p.attempts} ${p.attempts === 1 ? "Versuch" : "Versuche"}` : "Noch nicht gespielt."}</p>
         ${unlocked ? "" : `<p class="small" style="color:var(--c2);margin:6px 0">Gesperrt: hol dir erst zwei Sterne in Level ${prev.index} (${prev.title}).</p>`}
-        <div class="actions">${unlocked ? `<button class="gold display" id="levelGo">Los!</button>` : ""}<button class="ghostBtn" id="levelClose">Schließen</button></div>
+        <div class="actions">${unlocked ? `<button class="gold display" id="levelGo">Los!</button>` : ""}<button class="ghostBtn" id="levelHelp">Erklärung</button><button class="ghostBtn" id="levelClose">Schließen</button></div>
       </div>`;
     $("levelModal").hidden = false;
     const go = $("levelGo"); if (go) go.addEventListener("click", () => { closeModal(); startLevel(l); });
     $("levelClose").addEventListener("click", closeModal);
+    $("levelHelp").addEventListener("click", () => openBook(NT.book.forMode(l.mode), "story", l));
   }
   function closeModal() { const m = $("levelModal"); if (m && !m.hidden) m.hidden = true; }
+  // Handbuch aus dem Spiel oder von der Level-Karte: merkt sich den Rueckweg.
+  function openBook(chapter, from, level) {
+    bookReturn = from || "home"; bookLevel = level || null;
+    NT.book.open(chapter, 0);
+    show("book");
+  }
   function startLevel(l) {
     const { mode, opts } = ST.optsFor(l, pieces);
     if (l.pieceId && !opts.piece) { alertBox("Das Stück für dieses Level fehlt in der Bibliothek."); return; }
@@ -587,10 +597,13 @@ NT.app = (() => {
     G.hooks.hud = hud; G.hooks.feedback = feedback; G.hooks.finish = finish; G.hooks.shake = shake; G.hooks.sound = sound; G.hooks.play = playNote;
     G.hooks.click = click; G.hooks.count = count;
     NT.quiz.hooks.finish = quizFinish; NT.quiz.hooks.sound = sound; NT.quiz.bind();
+    NT.book.bind(settings);
     NT.midi.onMessage = onMidiMessage; NT.midi.onStatus = midiStatus;
 
     // Menü
-    document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { NT.synth.unlock(); show(b.dataset.go); }));
+    document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { NT.synth.unlock(); if (b.dataset.go === "book") { bookReturn = "home"; bookLevel = null; } show(b.dataset.go); }));
+    $("helpBtn").addEventListener("click", () => openBook(NT.book.forMode(G.mode), storyLevel ? "story" : "home", storyLevel));
+    $("bookBack").addEventListener("click", () => { const to = bookReturn, l = bookLevel; bookReturn = "home"; bookLevel = null; show(to); if (to === "story" && l) openLevel(l); });
     document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
       const mode = b.dataset.mode;
       if (mode === "phrase") { const sel = selectedPieces(); if (!sel.length) { alertBox("Erst Stücke in der Bibliothek auswählen."); show("library"); return; } startMode("phrase", { pieces: sel, hand: settings.hand }); }
@@ -661,7 +674,9 @@ NT.app = (() => {
     keepAwake(); document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
     new ResizeObserver(() => { if (current === "play") { G.relayout(); G.draw(); } }).observe($("staff"));
     document.addEventListener("keydown", e => {
+      if (current === "book" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { NT.book.step(e.key === "ArrowRight" ? 1 : -1); return; }
       if (e.key !== "Escape") return;
+      if (current === "book") { $("bookBack").click(); return; }
       if (!$("levelModal").hidden) { closeModal(); return; }
       if (current !== "home") show(current === "play" && storyLevel ? "story" : "home");
     });
