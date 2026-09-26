@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260926g") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260926h") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -170,10 +170,11 @@
     box-shadow: 0 30px 60px rgba(0,0,0,.5), inset 0 0 0 2px rgba(217,164,65,.35); }
   .tabs { position: absolute; left: -66px; top: 28px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 76px; }
   /* Lesezeichen kleben mit der rechten Kante am Buch; das aktive waechst nach links, statt sich zu loesen. */
-  .tab { width: 68px; height: 46px; border-radius: 10px 0 0 10px; border: 0; padding: 0 4px 0 2px; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  .tab { position: relative; overflow: hidden; width: 68px; height: 46px; border-radius: 10px 0 0 10px; border: 0; padding: 0 4px 0 2px; color: #fff; display: flex; align-items: center; justify-content: center;
     background: linear-gradient(180deg, var(--ta), var(--tb)); box-shadow: 0 4px 0 rgba(0,0,0,.3); transition: width .15s, opacity .15s; opacity: .9; }
-  .tab .ico { font-size: 17px; line-height: 1; text-shadow: 0 1px 0 rgba(0,0,0,.3); }
-  .tab .tl { font-size: 8.5px; letter-spacing: .03em; line-height: 1; text-shadow: 0 1px 0 rgba(0,0,0,.3); white-space: nowrap; }
+  /* Das Symbol liegt gross und halbdurchsichtig hinter der Beschriftung, so ueberlappt nichts. */
+  .tab .ico { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 34px; line-height: 1; opacity: .28; pointer-events: none; transform: translateY(1px); }
+  .tab .tl { position: relative; font-size: 10px; letter-spacing: .04em; line-height: 1; text-shadow: 0 1px 0 rgba(0,0,0,.45), 0 0 6px rgba(0,0,0,.35); white-space: nowrap; }
   .tab.active { width: 84px; opacity: 1; box-shadow: 0 6px 0 rgba(0,0,0,.3), -6px 8px 18px rgba(0,0,0,.35); }
   .tab:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
   .spread { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; border-radius: 8px; overflow: hidden; background: #f4ead6; }
@@ -200,7 +201,7 @@
   .pgBtn { background: linear-gradient(180deg, #ffe066, #f0b400); color: #3b2a00; box-shadow: 0 4px 0 #a16207; padding: 7px 14px; font-weight: 700; }
   .pgBtn:disabled { opacity: .35; }
   .pageNo { color: #ffd23f; font-size: 13px; font-weight: 600; text-align: center; }
-  @media (max-height: 640px) { .tab { height: 36px; width: 64px; } .tab.active { width: 78px; } .tab .ico { font-size: 14px; } .tab .tl { font-size: 8px; } .tabs { top: 12px; gap: 4px; } }
+  @media (max-height: 640px) { .tab { height: 36px; width: 64px; } .tab.active { width: 78px; } .tab .ico { font-size: 26px; } .tab .tl { font-size: 9px; } .tab .ico { font-size: 14px; } .tab .tl { font-size: 8px; } .tabs { top: 12px; gap: 4px; } }
 
   /* --- Spielbildschirm --------------------------------------------- */
   .hud { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 10px; align-items: center; margin-bottom: 8px; flex: none; }
@@ -549,18 +550,18 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260926g"></script>
-<script src="js/notation.js?v=20260926g"></script>
-<script src="js/store.js?v=20260926g"></script>
-<script src="js/midi.js?v=20260926g"></script>
-<script src="js/synth.js?v=20260926g"></script>
-<script src="js/musicxml.js?v=20260926g"></script>
-<script src="js/charts.js?v=20260926g"></script>
-<script src="pieces/starter.js?v=20260926g"></script>
-<script src="js/story.js?v=20260926g"></script>
-<script src="js/quiz.js?v=20260926g"></script>
-<script src="js/book.js?v=20260926g"></script>
-<script src="js/game.js?v=20260926g"></script>
-<script src="js/app.js?v=20260926g"></script>
+<script src="js/music.js?v=20260926h"></script>
+<script src="js/notation.js?v=20260926h"></script>
+<script src="js/store.js?v=20260926h"></script>
+<script src="js/midi.js?v=20260926h"></script>
+<script src="js/synth.js?v=20260926h"></script>
+<script src="js/musicxml.js?v=20260926h"></script>
+<script src="js/charts.js?v=20260926h"></script>
+<script src="pieces/starter.js?v=20260926h"></script>
+<script src="js/story.js?v=20260926h"></script>
+<script src="js/quiz.js?v=20260926h"></script>
+<script src="js/book.js?v=20260926h"></script>
+<script src="js/game.js?v=20260926h"></script>
+<script src="js/app.js?v=20260926h"></script>
 </body>
 </html>
