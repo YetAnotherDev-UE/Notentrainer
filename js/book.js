@@ -327,7 +327,8 @@ NT.book = (() => {
       const pairs = [[62, "Sekunde"], [64, "Terz"], [65, "Quarte"], [67, "Quinte"], [69, "Sexte"], [71, "Septime"], [72, "Oktave"]];
       const L = base(c, { staves: [Object.assign({ clef: "treble" }, stepsOf("treble", [60, 72]), { above: 6 })] }); if (!L) return;
       const x = slots(L, pairs.length);
-      pairs.forEach(([m, l], i) => { const xx = x(i) - L.GAP * 0.7; N.drawNote(L, 0, noteOf(60, 4), xx, {}); N.drawNote(L, 0, noteOf(m, 4), xx + L.GAP * 1.5, {}); N.drawText(L, l, xx + L.GAP * 1.6, L.staves[0].topY - L.GAP * (i % 2 ? 2.4 : 1.3), 0.62, "#3b2f24"); });
+      // Beide Toene uebereinander (harmonisches Intervall), so passt jedes Paar in einen Schlitz.
+      pairs.forEach(([m, l], i) => { const xx = x(i); N.drawChord(L, 0, [noteOf(60, 4), noteOf(m, 4)], xx, {}); N.drawText(L, l, xx + N.M.wholeW * L.GAP / 2, L.staves[0].topY - L.GAP * (i % 2 ? 2.4 : 1.3), 0.62, "#3b2f24"); });
     },
     grand: c => {
       const L = base(c, { staves: [{ clef: "treble", above: 0, below: 0 }, { clef: "bass", above: 0, below: 0 }], labels: false }); if (!L) return;
