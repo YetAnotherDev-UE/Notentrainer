@@ -368,7 +368,31 @@ NT.book = (() => {
     $("bookPrev").disabled = spread === 0 && CHAPTERS.indexOf(ch) === 0;
     $("bookNext").disabled = spread >= total - 1 && CHAPTERS.indexOf(ch) === CHAPTERS.length - 1;
     document.querySelectorAll("#screen-book .page").forEach(p => p.style.setProperty("--tc", ch.colors[1]));
+    sizeIcons();
     requestAnimationFrame(drawFigures);
+  }
+  // Die Symbole der Lesezeichen kommen aus verschiedenen Schriften und sind
+  // unterschiedlich hoch und verschoben. Hier wird jede Glyphe nachgemessen
+  // (Tintenkasten) und so skaliert und versetzt, dass alle gleich hoch und
+  // mittig sitzen, egal welche Schrift das Geraet liefert.
+  function sizeIcons() {
+    const c = document.createElement("canvas").getContext("2d");
+    for (const el of document.querySelectorAll("#bookTabs .ico")) {
+      const txt = el.textContent, fam = getComputedStyle(el).fontFamily;
+      c.font = "100px " + fam;
+      const m = c.measureText(txt);
+      if (!m.actualBoundingBoxAscent && !m.actualBoundingBoxDescent) continue;
+      const inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+      const inkW = m.actualBoundingBoxRight + m.actualBoundingBoxLeft;
+      const size = Math.min(100 * 28 / Math.max(inkH, 1), 100 * 44 / Math.max(inkW, 1));
+      const k = size / 100;
+      const emCY = ((m.fontBoundingBoxAscent || 80) - (m.fontBoundingBoxDescent || 20)) / 2;
+      const inkCY = (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+      const dy = (emCY - inkCY) * k;                     // Tinte unter der Mitte: nach oben schieben
+      const dx = (m.width / 2 - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2) * k;
+      el.style.fontSize = size.toFixed(1) + "px";
+      el.style.transform = `translate(${dx.toFixed(1)}px, ${(-dy).toFixed(1)}px)`;
+    }
   }
   function drawFigures() {
     stopAnim();
@@ -408,5 +432,5 @@ NT.book = (() => {
   }
   function leave() { stopAnim(); }
 
-  return { CHAPTERS, open, render, forMode, step, bind, leave, drawFigures, get chapter() { return B.chapter; } };
+  return { CHAPTERS, open, render, forMode, step, bind, leave, drawFigures, sizeIcons, get chapter() { return B.chapter; } };
 })();
