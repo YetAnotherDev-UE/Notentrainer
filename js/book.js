@@ -67,7 +67,6 @@ NT.book = (() => {
        <p>Die weißen Tasten heißen <b>C D E F G A H</b>, dann geht es mit C weiter. Von einem C zum nächsten ist eine <b>Oktave</b>, sieben weiße Tasten. Die Zahl nennt die Oktave: <b>C4</b> ist das mittlere C in der Klaviermitte, C5 eine Oktave höher, C3 tiefer.</p>
        ${fig("keyboard", 115, "Eine Oktave auf der Klaviatur, von C4 bis C5.")}
        <p>Deutsch heißt der siebte Ton <b>H</b>, international <b>B</b>. Das erniedrigte H heißt auf Deutsch <b>B</b>. In den Einstellungen lässt sich die Schreibweise umstellen.</p>
-       ${tip("Yamaha nennt das mittlere C auf dem Bedienfeld „C3“. Das ist nur ein anderer Name für dieselbe Taste, die Note im System ist maßgeblich.")}
        ${tip("Anfängertipp: Merk dir Orientierungstöne, C4 (Hilfslinie), G4 (Kringel), F3 (Punkte), C5 (dritter Raum), und zähl von dort ab. Mit der Zeit kennst du jede Position.")}`,
     ] },
 
@@ -121,12 +120,13 @@ NT.book = (() => {
       `<div class="ribbon display">Tonleitern</div>
        <p>Eine Tonleiter sind alle Töne einer Tonart der Reihe nach, vom Grundton bis zum nächsten Grundton. <b>Dur</b> folgt immer demselben Muster aus Ganz- und Halbtonschritten: <b>Ganz Ganz Halb Ganz Ganz Ganz Halb</b>. Ein Halbton ist die nächste Taste (auch schwarz), ein Ganzton zwei Tasten weiter.</p>
        ${fig("scale", 150, "C-Dur aufwärts mit dem Fingersatz der rechten Hand.")}
-       <p>C-Dur kommt nur mit weißen Tasten aus. Jede andere Dur-Tonart braucht schwarze Tasten, damit das Muster stimmt: G-Dur das Fis, F-Dur das B.</p>
-       <h3>Fingersatz</h3>
+       <p>C-Dur kommt nur mit weißen Tasten aus. Jede andere Dur-Tonart braucht schwarze Tasten, damit das Muster stimmt: G-Dur das Fis, F-Dur das B.</p>`,
+      `<h3>Fingersatz</h3>
        <p>Ziffern: <b>1</b> Daumen, <b>2</b> Zeigefinger, <b>3</b> Mittelfinger, <b>4</b> Ringfinger, <b>5</b> kleiner Finger, in beiden Händen. Rechte Hand aufwärts: <b>1 2 3 1 2 3 4 5</b>, der Daumen geht unter dem Mittelfinger durch (<b>Daumenuntersatz</b>). Linke Hand aufwärts: <b>5 4 3 2 1 3 2 1</b>. Abwärts jeweils rückwärts.</p>`,
       `<h3>Moll</h3>
        <p><b>Natürliches Moll</b>: Ganz Halb Ganz Ganz Halb Ganz Ganz. a-Moll braucht nur weiße Tasten, ab A. <b>Harmonisches Moll</b> erhöht den siebten Ton (in a-Moll das G zum Gis): so entsteht ein Leitton, der zum Grundton drängt, und ein auffälliger Anderthalbtonschritt davor.</p>
-       <h3>Wozu Tonleitern?</h3>
+       ${tip("Der Daumen ist der Schlüssel: Er wandert unter der Hand durch, während der dritte Finger noch spielt. Langsam üben, bis es ohne Ruck geht.")}`,
+      `<h3>Wozu Tonleitern?</h3>
        <ul><li>Die Tonarten kommen in die Finger: welche schwarzen Tasten wo.</li><li>Der Daumenuntersatz ist die Grundlage für alles, was über fünf Töne hinausgeht.</li><li>Fast jedes Stück besteht aus Ausschnitten von Tonleitern.</li></ul>
        <h3>Der Modus Tonleiter</h3>
        <p>Rauf und wieder runter, im Tempo, mit Vorzeichnung im System. Das Ergebnis zeigt die <b>Gleichmäßigkeit</b>: wie stark die Abstände zwischen den Tönen schwanken (± ms) und wie weit die Anschlagstärke auseinanderliegt. Ziel: alle Töne gleich lang und gleich laut, besonders beim Daumenuntersatz.</p>
@@ -137,11 +137,13 @@ NT.book = (() => {
       `<div class="ribbon display">Intervalle</div>
        <p>Ein Intervall ist der Abstand zweier Töne. Gezählt wird nach <b>Buchstaben</b>, beide mitgezählt: C zu D ist eine <b>Sekunde</b> (2), C zu E eine <b>Terz</b> (3), dann Quarte, Quinte, Sexte, Septime, und C zum nächsten C die <b>Oktave</b> (8). Derselbe Ton heißt Prime.</p>
        ${fig("intervals", 155, "Sekunde, Terz, Quarte, Quinte, Sexte, Septime, Oktave, jeweils von C4 aus.")}
-       <h3>Im System erkennen</h3>
+`,
+      `<h3>Im System erkennen</h3>
        <ul><li><b>Sekunde</b>: direkt daneben, von der Linie in den Raum oder umgekehrt.</li><li><b>Terz</b>: Linie zu Linie ohne etwas dazwischen, oder Raum zu Raum.</li><li><b>Quinte</b>: Linie zu Linie mit einer Linie dazwischen.</li><li><b>Septime</b>: zwei Linien dazwischen.</li><li>Gerade Intervalle (Quarte, Sexte, Oktave) wechseln von Linie auf Raum.</li></ul>`,
       `<h3>Groß und klein</h3>
        <p>Terzen gibt es in zwei Größen: die <b>große Terz</b> (C zu E, vier Halbtöne) klingt nach Dur, die <b>kleine</b> (E zu G, drei Halbtöne) nach Moll. Im Notentrainer zählt nur der Buchstabenabstand. Das reicht zum Lesen, die Größe ergibt sich aus der Tonart.</p>
-       <h3>Wozu?</h3>
+`,
+      `<h3>Wozu?</h3>
        <p>Geübte Leser lesen nicht Note für Note, sondern <b>Bewegungen</b>: Schritt, Sprung, wie weit, wohin. Wer eine Terz auf einen Blick sieht, muss die zweite Note nicht mehr benennen. Genau das übt der Modus.</p>
        <h3>Der Modus Intervalle</h3>
        <p>Über jeder Note steht die Bewegung zur vorigen, etwa „↑ Terz“. Die erste Note ist ein <b>Anker</b> mit Namen (meist C4, G4, F3 oder C5). Nur weiße Tasten. Einstellung „Intervalle bis“: Terz, Quinte oder Oktave.</p>
@@ -160,7 +162,8 @@ NT.book = (() => {
        <p>Im Ergebnis steht <b>Fehler üben</b>: die verfehlten Noten kommen sofort nochmal, dreimal je Note. Bei Stücken kommen die verfehlten Takte als Phrasen.</p>
        <h3>Tempo-Leiter</h3>
        <p>Eingeschaltet, geht das Tempo nach einer Runde ab 90 % Quote fünf Schläge hoch, unter 70 % fünf runter. So steigert sich das Tempo von selbst.</p>
-       <h3>Wackeln und Klang</h3>
+`,
+      `<h3>Wackeln und Klang</h3>
        <p>Das Bild wackelt bei Fehlern, abschaltbar. Spielgeräusche und Synth ebenso. Beim Abspielen klingt das Piano selbst, wenn es angeschlossen ist, sonst der Synth.</p>
        ${tip("Erst langsam und fehlerfrei, dann schneller. Eine Quote über 90 % bei niedrigem Tempo bringt mehr als 70 % bei hohem.")}`,
     ] },
@@ -176,7 +179,8 @@ NT.book = (() => {
        <p>Mehrere Köpfe an einem Hals werden <b>gleichzeitig</b> angeschlagen. Jeder Ton wird einzeln gewertet: zwei von drei getroffen heißt ein Fehler. Ein Dreiklang wie C E G ist der Grundbaustein der Begleitung.</p>
        <h3>Fingersatz aus der Datei</h3>
        <p>Steht in der MusicXML-Datei ein Fingersatz, erscheint die Ziffer violett über der Note: 1 Daumen bis 5 kleiner Finger. MIDI kann Finger nicht messen, die Ziffer ist eine Vorgabe.</p>
-       <h3>Eigene Stücke</h3>
+       ${tip("Akkorde in der linken Hand kommen im Abenteuer erst in der Welt „Linke Hand“, nach den halben Noten von „Hänschen klein“.")}`,
+      `<h3>Eigene Stücke</h3>
        <p>In MuseScore (oder einem anderen Notenprogramm) als <b>unkomprimiertes MusicXML</b> (.musicxml) exportieren und in der Bibliothek importieren. Gezippte .mxl-Dateien vorher entpacken. Die Hand ist wählbar; Phrasen außerhalb deines Tonumfangs werden weggelassen, nichts wird transponiert.</p>
        <p>Gebundene Noten (Haltebogen) werden nicht neu verlangt. Bindebögen werden noch nicht gezeichnet.</p>
        ${tip("Hände erst getrennt, dann zusammen: so sind auch die Welten „Stücke“, „Linke Hand“ und „Beide Hände“ gebaut.")}`,
@@ -186,7 +190,8 @@ NT.book = (() => {
       `<div class="ribbon display">Gehör</div>
        <p>Das Piano (oder der Synth) spielt einen Ton, im System steht nur ein <b>Fragezeichen</b>. Finde die Taste. Liegst du daneben, sagt die Anzeige <b>höher</b> oder <b>tiefer</b> und der Ton kommt nochmal. <b>Nochmal hören</b> spielt ihn jederzeit erneut.</p>
        <p>Der Tonumfang kommt aus den Einstellungen. Tipp: Erst die Oktavlage grob einordnen (hoch, mittel, tief), dann den Ton suchen. Ein Bezugston hilft: spiel C4 und vergleiche.</p>
-       <h3>Quiz</h3>
+`,
+      `<h3>Quiz</h3>
        <p>Ganz ohne Klavier, also auch am Handy unterwegs:</p>
        <ul><li><b>Notennamen</b>: eine Note im System, den Buchstaben antippen. Mit Piano zählt auch die Taste, dann mit Oktave.</li>
        <li><b>Tonarten</b>: Vorzeichnung sehen, Tonart antippen. Die parallele Moll-Tonart steht klein dabei.</li>
@@ -219,18 +224,25 @@ NT.book = (() => {
        <ul><li><b>MIDI wird gesucht</b>: die Anfrage läuft.</li><li><b>Verbunden: mioXC</b>: alles bereit.</li><li><b>Bereit, aber kein Instrument</b>: nur ein virtueller Anschluss, Interface anstecken.</li><li><b>MIDI fehlgeschlagen</b>: auf „MIDI verbinden“ tippen, manche Browser fragen nur nach einem Tipp.</li></ul>`,
       `<h3>Pedale</h3>
        <p>Das <b>Haltepedal</b> (rechts) lässt Töne nach dem Loslassen weiterklingen; an der CLP-330 ist es stufenlos. <b>Sostenuto</b> (Mitte) hält nur die Töne, die beim Treten schon liegen. <b>Una corda</b> (links) macht leiser und weicher. Alle drei werden angezeigt und mitgeschrieben, gewertet werden sie noch nicht.</p>
+       <h3>Namen am Bedienfeld</h3>
+       <p>Yamaha nennt das mittlere C auf dem Bedienfeld „C3“, der Notentrainer „C4“. Das ist nur ein anderer Name für dieselbe Taste, die Note im System ist maßgeblich.</p>
        <h3>Abspielen</h3>
        <p>Ist das Piano über den OUT-Stecker angeschlossen, klingt das Stück aus dem echten Instrument. Sonst spielt der eingebaute Synth. Einstellung „Abspielen über“.</p>
-       <h3>Deine Daten</h3>
+`,
+      `<h3>Deine Daten</h3>
        <p>Alles bleibt in diesem Browser: jede gezeigte Note, jeder Anschlag, jede Sitzung, der Abenteuer-Stand. Nichts geht ins Netz. <b>Exportieren</b> in der Statistik schreibt eine Datei, <b>Importieren</b> führt sie auf einem anderen Gerät zusammen.</p>
        ${tip("Die Seite selbst kommt von GitHub Pages und braucht nur beim Laden Netz. Danach läuft alles lokal.")}`,
     ] },
 
     { id: "glossar", tab: "Begriffe", icon: "Aa", colors: ["#5ee8b3", "#0f766e"], title: "Begriffe", pages: [
-      `<div class="ribbon display">Begriffe A bis K</div>
-       ${dl([["Akkord", "mehrere Töne gleichzeitig, im System übereinander an einem Hals."], ["Anschlagstärke", "wie fest die Taste gedrückt wurde (MIDI: Velocity, 1 bis 127). Bestimmt die Lautstärke."], ["Auflösungszeichen ♮", "hebt ein Kreuz oder B auf."], ["bpm", "Schläge pro Minute, das Tempo."], ["Daumenuntersatz", "der Daumen geht unter der Hand durch, damit die Tonleiter weitergeht."], ["Dreiklang", "Akkord aus Grundton, Terz und Quinte, etwa C E G."], ["Dur, Moll", "die zwei Tongeschlechter: Dur hell, Moll dunkel; unterschieden durch die große oder kleine Terz."], ["Enharmonisch", "zwei Namen für dieselbe Taste, Fis und Ges."], ["Fingersatz", "Ziffern 1 bis 5 für Daumen bis kleiner Finger."], ["Ganzton, Halbton", "Halbton: die nächste Taste. Ganzton: zwei Tasten weiter."], ["Grundton", "der erste Ton der Tonart, nach dem sie heißt."], ["Hilfslinie", "kurze Linie für Töne über oder unter dem System."], ["Intervall", "Abstand zweier Töne, nach Buchstaben gezählt."], ["Klaviersystem", "zwei Systeme mit Klammer, rechte und linke Hand."]])}`,
-      `<div class="ribbon display">Begriffe L bis Z</div>
-       ${dl([["Legato, Staccato", "gebunden (die Töne gehen ineinander über) oder kurz abgesetzt."], ["Leitton", "der siebte Ton einer Tonart, einen Halbton unter dem Grundton, er drängt dorthin."], ["MIDI", "Datenformat für Tastendaten zwischen Instrument und Rechner."], ["MusicXML", "Dateiformat für Noten, aus Programmen wie MuseScore."], ["Oktave", "Abstand von einem C zum nächsten, acht Buchstaben."], ["Phrase", "ein musikalischer Satz, hier ein bis zwei Takte."], ["Punktierung", "der Punkt hinter der Note verlängert sie um die Hälfte."], ["Quintenzirkel", "Ordnung der Tonarten nach Quinten und Anzahl der Vorzeichen."], ["Schlüssel", "legt fest, welcher Ton auf welcher Linie liegt: Violin- (G4) und Bassschlüssel (F3)."], ["Serie, Multi", "Treffer in Folge; ab 10, 20, 30 verdoppelt, verdreifacht, vervierfacht sich die XP."], ["Takt, Taktart", "Abschnitt zwischen Taktstrichen; die Taktart nennt die Schläge je Takt."], ["Tonart", "Tonvorrat und Grundton eines Stücks, erkennbar an der Vorzeichnung."], ["Vorzeichen, Vorzeichnung", "Kreuz oder B vor einer Note bzw. hinter dem Schlüssel für das ganze Stück."], ["Web MIDI", "die Schnittstelle, mit der der Browser das Piano hört. Chrome kann sie, Safari nicht."], ["XP, Level", "Erfahrungspunkte aus Treffern; das Level steigt mit ihnen."]])}`,
+      `<div class="ribbon display">Begriffe A bis G</div>
+       ${dl([["Akkord", "mehrere Töne gleichzeitig, im System übereinander an einem Hals."], ["Anschlagstärke", "wie fest die Taste gedrückt wurde (MIDI: Velocity, 1 bis 127). Bestimmt die Lautstärke."], ["Auflösungszeichen ♮", "hebt ein Kreuz oder B auf."], ["bpm", "Schläge pro Minute, das Tempo."], ["Daumenuntersatz", "der Daumen geht unter der Hand durch, damit die Tonleiter weitergeht."], ["Dreiklang", "Akkord aus Grundton, Terz und Quinte, etwa C E G."], ["Dur, Moll", "die zwei Tongeschlechter: Dur hell, Moll dunkel; unterschieden durch die große oder kleine Terz."], ["Enharmonisch", "zwei Namen für dieselbe Taste, Fis und Ges."], ["Fingersatz", "Ziffern 1 bis 5 für Daumen bis kleiner Finger."], ["Ganzton, Halbton", "Halbton: die nächste Taste. Ganzton: zwei Tasten weiter."], ["Grundton", "der erste Ton der Tonart, nach dem sie heißt."]])}`,
+      `<div class="ribbon display">Begriffe H bis M</div>
+       ${dl([["Hilfslinie", "kurze Linie für Töne über oder unter dem System."], ["Intervall", "Abstand zweier Töne, nach Buchstaben gezählt."], ["Klaviersystem", "zwei Systeme mit Klammer, rechte und linke Hand."], ["Legato, Staccato", "gebunden (die Töne gehen ineinander über) oder kurz abgesetzt."], ["Leitton", "der siebte Ton einer Tonart, einen Halbton unter dem Grundton, er drängt dorthin."], ["MIDI", "Datenformat für Tastendaten zwischen Instrument und Rechner."], ["MusicXML", "Dateiformat für Noten, aus Programmen wie MuseScore."]])}`,
+      `<div class="ribbon display">Begriffe O bis S</div>
+       ${dl([["Oktave", "Abstand von einem C zum nächsten, acht Buchstaben."], ["Phrase", "ein musikalischer Satz, hier ein bis zwei Takte."], ["Punktierung", "der Punkt hinter der Note verlängert sie um die Hälfte."], ["Quintenzirkel", "Ordnung der Tonarten nach Quinten und Anzahl der Vorzeichen."], ["Schlüssel", "legt fest, welcher Ton auf welcher Linie liegt: Violin- (G4) und Bassschlüssel (F3)."], ["Serie, Multi", "Treffer in Folge; ab 10, 20, 30 verdoppelt, verdreifacht, vervierfacht sich die XP."]])}`,
+      `<div class="ribbon display">Begriffe T bis Z</div>
+       ${dl([["Takt, Taktart", "Abschnitt zwischen Taktstrichen; die Taktart nennt die Schläge je Takt."], ["Tonart", "Tonvorrat und Grundton eines Stücks, erkennbar an der Vorzeichnung."], ["Vorzeichen, Vorzeichnung", "Kreuz oder B vor einer Note bzw. hinter dem Schlüssel für das ganze Stück."], ["Web MIDI", "die Schnittstelle, mit der der Browser das Piano hört. Chrome kann sie, Safari nicht."], ["XP, Level", "Erfahrungspunkte aus Treffern; das Level steigt mit ihnen."]])}`,
     ] },
   ];
   const byId = new Map(CHAPTERS.map(c => [c.id, c]));
@@ -283,9 +295,9 @@ NT.book = (() => {
     keyboardBlack: c => keyboard(c, true),
     values: c => {
       const durs = [4, 2, 1, 0.5, 0.25, 1.5], names = ["Ganze", "Halbe", "Viertel", "Achtel", "Sechzehntel", "punktiert"];
-      const L = base(c, { staves: [{ clef: "treble", above: 2, below: 3 }], labels: false }); if (!L) return;
+      const L = base(c, { staves: [{ clef: "treble", above: 2, below: 4.5 }], labels: false }); if (!L) return;
       const x = slots(L, durs.length);
-      durs.forEach((d, i) => { N.drawNote(L, 0, noteOf(71, d), x(i), { stemUp: false }); N.drawText(L, names[i], x(i) + N.M.headW * L.GAP / 2, L.staves[0].bottomY + L.GAP * 2.1, 0.72, "#3b2f24"); });
+      durs.forEach((d, i) => { N.drawNote(L, 0, noteOf(71, d), x(i), { stemUp: false }); N.drawText(L, names[i], x(i) + N.M.headW * L.GAP / 2, L.staves[0].bottomY + L.GAP * (i % 2 ? 2.9 : 2.0), 0.66, "#3b2f24"); });
     },
     rests: c => {
       const durs = [4, 2, 1, 0.5], names = ["Ganze", "Halbe", "Viertel", "Achtel"];
@@ -311,9 +323,9 @@ NT.book = (() => {
     scale: c => row(c, "treble", [60, 62, 64, 65, 67, 69, 71, 72], { dur: 1, fingers: [1, 2, 3, 1, 2, 3, 4, 5] }),
     intervals: c => {
       const pairs = [[62, "Sekunde"], [64, "Terz"], [65, "Quarte"], [67, "Quinte"], [69, "Sexte"], [71, "Septime"], [72, "Oktave"]];
-      const L = base(c, { staves: [Object.assign({ clef: "treble" }, stepsOf("treble", [60, 72]))] }); if (!L) return;
+      const L = base(c, { staves: [Object.assign({ clef: "treble" }, stepsOf("treble", [60, 72]), { above: 6 })] }); if (!L) return;
       const x = slots(L, pairs.length);
-      pairs.forEach(([m, l], i) => { const xx = x(i) - L.GAP * 0.7; N.drawNote(L, 0, noteOf(60, 4), xx, {}); N.drawNote(L, 0, noteOf(m, 4), xx + L.GAP * 1.5, {}); N.drawText(L, l, xx + L.GAP * 1.6, L.staves[0].topY - L.GAP * 1.4, 0.68, "#3b2f24"); });
+      pairs.forEach(([m, l], i) => { const xx = x(i) - L.GAP * 0.7; N.drawNote(L, 0, noteOf(60, 4), xx, {}); N.drawNote(L, 0, noteOf(m, 4), xx + L.GAP * 1.5, {}); N.drawText(L, l, xx + L.GAP * 1.6, L.staves[0].topY - L.GAP * (i % 2 ? 2.4 : 1.3), 0.62, "#3b2f24"); });
     },
     grand: c => {
       const L = base(c, { staves: [{ clef: "treble", above: 0, below: 0 }, { clef: "bass", above: 0, below: 0 }], labels: false }); if (!L) return;

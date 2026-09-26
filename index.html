@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260926c") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260926g") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -164,20 +164,22 @@
   .levelBody .actions button:first-child { flex: 1; font-size: 18px; }
 
   /* --- Handbuch ----------------------------------------------------- */
-  .bookWrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding-left: 62px; }
+  .bookWrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding-left: 70px; }
   .book { position: relative; width: min(1120px, 100%); height: min(100%, 760px); display: flex; flex-direction: column;
     background: linear-gradient(180deg, #24427a, #142a55); border: 3px solid #d9a441; border-radius: 14px; padding: 12px 12px 8px;
     box-shadow: 0 30px 60px rgba(0,0,0,.5), inset 0 0 0 2px rgba(217,164,65,.35); }
-  .tabs { position: absolute; left: -58px; top: 28px; display: flex; flex-direction: column; gap: 6px; }
-  .tab { width: 66px; height: 46px; border-radius: 10px 0 0 10px; border: 0; padding: 0 4px 0 2px; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-    background: linear-gradient(180deg, var(--ta), var(--tb)); box-shadow: 0 4px 0 rgba(0,0,0,.3); transform: translateX(8px); transition: transform .15s; opacity: .92; }
+  .tabs { position: absolute; left: -66px; top: 28px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 76px; }
+  /* Lesezeichen kleben mit der rechten Kante am Buch; das aktive waechst nach links, statt sich zu loesen. */
+  .tab { width: 68px; height: 46px; border-radius: 10px 0 0 10px; border: 0; padding: 0 4px 0 2px; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    background: linear-gradient(180deg, var(--ta), var(--tb)); box-shadow: 0 4px 0 rgba(0,0,0,.3); transition: width .15s, opacity .15s; opacity: .9; }
   .tab .ico { font-size: 17px; line-height: 1; text-shadow: 0 1px 0 rgba(0,0,0,.3); }
-  .tab .tl { font-size: 9px; letter-spacing: .04em; line-height: 1; text-shadow: 0 1px 0 rgba(0,0,0,.3); }
-  .tab.active { transform: translateX(-4px); opacity: 1; box-shadow: 0 6px 0 rgba(0,0,0,.3), 0 10px 20px rgba(0,0,0,.35); }
-  .tab:active { transform: translateX(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+  .tab .tl { font-size: 8.5px; letter-spacing: .03em; line-height: 1; text-shadow: 0 1px 0 rgba(0,0,0,.3); white-space: nowrap; }
+  .tab.active { width: 84px; opacity: 1; box-shadow: 0 6px 0 rgba(0,0,0,.3), -6px 8px 18px rgba(0,0,0,.35); }
+  .tab:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
   .spread { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; border-radius: 8px; overflow: hidden; background: #f4ead6; }
   .page { position: relative; padding: 14px 18px 12px; overflow: auto; color: #2b2118; font-size: 13.5px; line-height: 1.45; }
   .page.left { background: linear-gradient(90deg, #efe3c8 0%, #f6edd9 6%, #f6edd9 92%, #e2d4b6 100%); box-shadow: inset -18px 0 24px -18px rgba(0,0,0,.35); }
+  .page::-webkit-scrollbar { width: 8px; } .page::-webkit-scrollbar-thumb { background: rgba(43,33,24,.22); border-radius: 4px; } .page::-webkit-scrollbar-track { background: transparent; }
   .page.right { background: linear-gradient(90deg, #e2d4b6 0%, #f6edd9 8%, #f6edd9 94%, #efe3c8 100%); box-shadow: inset 18px 0 24px -18px rgba(0,0,0,.35); }
   .page p { margin: 0 0 7px; } .page ul, .page ol { margin: 0 0 7px; padding-left: 20px; } .page li { margin: 1px 0; }
   .page h3 { font-family: "Anton", "Bahnschrift", "Impact", sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .03em; font-size: 17px; color: var(--tc, #b3341f); margin: 12px 0 4px; }
@@ -198,7 +200,7 @@
   .pgBtn { background: linear-gradient(180deg, #ffe066, #f0b400); color: #3b2a00; box-shadow: 0 4px 0 #a16207; padding: 7px 14px; font-weight: 700; }
   .pgBtn:disabled { opacity: .35; }
   .pageNo { color: #ffd23f; font-size: 13px; font-weight: 600; text-align: center; }
-  @media (max-height: 640px) { .tab { height: 36px; width: 60px; } .tab .ico { font-size: 14px; } .tab .tl { font-size: 8px; } .tabs { top: 12px; gap: 4px; } }
+  @media (max-height: 640px) { .tab { height: 36px; width: 64px; } .tab.active { width: 78px; } .tab .ico { font-size: 14px; } .tab .tl { font-size: 8px; } .tabs { top: 12px; gap: 4px; } }
 
   /* --- Spielbildschirm --------------------------------------------- */
   .hud { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 10px; align-items: center; margin-bottom: 8px; flex: none; }
@@ -547,18 +549,18 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260926c"></script>
-<script src="js/notation.js?v=20260926c"></script>
-<script src="js/store.js?v=20260926c"></script>
-<script src="js/midi.js?v=20260926c"></script>
-<script src="js/synth.js?v=20260926c"></script>
-<script src="js/musicxml.js?v=20260926c"></script>
-<script src="js/charts.js?v=20260926c"></script>
-<script src="pieces/starter.js?v=20260926c"></script>
-<script src="js/story.js?v=20260926c"></script>
-<script src="js/quiz.js?v=20260926c"></script>
-<script src="js/book.js?v=20260926c"></script>
-<script src="js/game.js?v=20260926c"></script>
-<script src="js/app.js?v=20260926c"></script>
+<script src="js/music.js?v=20260926g"></script>
+<script src="js/notation.js?v=20260926g"></script>
+<script src="js/store.js?v=20260926g"></script>
+<script src="js/midi.js?v=20260926g"></script>
+<script src="js/synth.js?v=20260926g"></script>
+<script src="js/musicxml.js?v=20260926g"></script>
+<script src="js/charts.js?v=20260926g"></script>
+<script src="pieces/starter.js?v=20260926g"></script>
+<script src="js/story.js?v=20260926g"></script>
+<script src="js/quiz.js?v=20260926g"></script>
+<script src="js/book.js?v=20260926g"></script>
+<script src="js/game.js?v=20260926g"></script>
+<script src="js/app.js?v=20260926g"></script>
 </body>
 </html>
