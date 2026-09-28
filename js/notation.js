@@ -165,6 +165,26 @@ NT.notation = (() => {
     if (step > 8) for (let st = 10; st <= step; st += 2) line(st);
   }
 
+  // Vorzeichen links vom Kopf. Doppelkreuz und Doppel-B stehen nicht in der
+  // Schrift: das Doppelkreuz wird als Kreuzchen gezeichnet, das Doppel-B aus
+  // zwei B gesetzt.
+  function drawAccidental(acc, x, y, GAP, colour) {
+    if (acc === "dsharp") {
+      const s = GAP * 0.4, cx = x - GAP * 0.8, w = Math.max(1.5, GAP * 0.15), q = w * 1.5;
+      ctx.strokeStyle = colour; ctx.lineWidth = w; ctx.lineCap = "butt";
+      ctx.beginPath(); ctx.moveTo(cx - s, y - s); ctx.lineTo(cx + s, y + s); ctx.moveTo(cx - s, y + s); ctx.lineTo(cx + s, y - s); ctx.stroke();
+      ctx.fillStyle = colour;
+      for (const [dx, dy] of [[-s, -s], [s, s], [-s, s], [s, -s]]) ctx.fillRect(cx + dx - q / 2, y + dy - q / 2, q, q);
+      return;
+    }
+    if (acc === "dflat") {
+      glyph(G.flat, x - (M.accW.flat * 2 + 0.12) * GAP, y, GAP * 4, colour);
+      glyph(G.flat, x - (M.accW.flat + 0.22) * GAP, y, GAP * 4, colour);
+      return;
+    }
+    glyph(G[acc], x - (M.accW[acc] + 0.22) * GAP, y, GAP * 4, colour);
+  }
+
   function drawNote(L, si, note, x, o) {
     o = o || {};
     const GAP = L.GAP, s = L.staves[si], colour = o.colour || COL.ink;
@@ -193,16 +213,13 @@ NT.notation = (() => {
       const dy = (step % 2 === 0) ? y - GAP * 0.5 : y;
       glyph(G.dot, x + w + GAP * 0.3, dy, GAP * 4, colour);
     }
-    if (note.accidental) {
-      const acc = note.accidental;
-      glyph(G[acc], x - (M.accW[acc] + 0.22) * GAP, y, GAP * 4, colour);
-    }
+    if (note.accidental) drawAccidental(note.accidental, x - (o.accShift || 0) * GAP, y, GAP, colour);
     // Fingersatz aus der Datei: kleine Ziffer ueber der Note; ein Notenname
     // rueckt dann noch eine Zeile hoeher.
     let labelY = topY - GAP * 0.45;
     if (o.finger) {
       ctx.font = `600 ${Math.round(GAP * 0.8)}px ${UI}`;
-      ctx.textBaseline = "alphabetic"; ctx.textAlign = "center"; ctx.fillStyle = COL.finger;
+      ctx.textBaseline = "alphabetic"; ctx.textAlign = "center"; ctx.fillStyle = o.fingerColour || COL.finger;
       ctx.fillText(String(o.finger), x + w / 2, labelY);
       ctx.textAlign = "start";
       labelY -= GAP * 0.95;

@@ -14,7 +14,9 @@ NT.app = (() => {
     runLength: 24, phrases: 6, labels: "name", ghost: true, sound: true, fx: true, shake: true, playback: "auto",
     library: null, scaleRoot: 0, scaleType: "dur", scaleOctaves: 1,
     metronome: false, countIn: true, lookahead: 0, tempoLadder: false, dailyGoal: 100,
-    intervalMax: 5, rhythmBars: 8, rhythmSet: 3, rhythmRests: false, quizCount: 20, quizKind: "note" };
+    intervalMax: 5, rhythmBars: 8, rhythmSet: 3, rhythmRests: false, quizCount: 20, quizKind: "note",
+    chordRoot: 0, chordType: "dur", chordInv: 0, chordSet: "one", chordCount: 10, gripHand: "r", gripHelp: "full",
+    formRoot: 0, formType: "dur", formOct: 1 };
   const settings = Object.assign({}, DEFAULTS);
   const pieces = [];               // geparste Stücke (Starter + importierte)
   let progress = { xp: 0 };
@@ -44,6 +46,7 @@ NT.app = (() => {
     if (current === "play" && name !== "play" && name !== "results") G.stop(name !== "home" ? true : false);
     if (current === "quiz" && name !== "quiz" && name !== "results") NT.quiz.stop();
     if (current === "book" && name !== "book") NT.book.leave();
+    if (current === "grip" && name !== "grip" && name !== "results") NT.grip.stop();
     if (name !== "story") closeModal();
     current = name;
     document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === "screen-" + name));
@@ -54,6 +57,8 @@ NT.app = (() => {
     if (name === "settings") syncSettingsUi();
     if (name === "story") renderMap();
     if (name === "book") NT.book.render();
+    if (name === "forms") { renderForms(); setTimeout(renderForms, 60); }
+    if (name === "grip") setTimeout(NT.grip.draw, 30);
     if (name === "play") setTimeout(() => G.relayout() && G.draw(), 30);
     if (name === "quiz") setTimeout(NT.quiz.draw, 30);
   }
@@ -97,7 +102,7 @@ NT.app = (() => {
   // Die schwächste Note der letzten 400 Ereignisse, wenn sie oft genug dran war.
   function weakSpot() {
     const H = G.history.slice(-400), by = new Map();
-    for (const e of H) { if (e.midi == null || e.mode === "rhythm") continue; const v = by.get(e.midi) || { n: 0, bad: 0 }; v.n++; if (!e.correct) v.bad++; by.set(e.midi, v); }
+    for (const e of H) { if (e.midi == null || NO_NOTE(e)) continue; const v = by.get(e.midi) || { n: 0, bad: 0 }; v.n++; if (!e.correct) v.bad++; by.set(e.midi, v); }
     const weak = Array.from(by.entries()).filter(([, v]) => v.n >= 5 && v.bad / v.n >= 0.25).sort((a, b) => b[1].bad / b[1].n - a[1].bad / a[1].n);
     if (!weak.length) return null;
     const midi = weak[0][0], v = weak[0][1];
@@ -217,7 +222,53 @@ NT.app = (() => {
   }
 
   /* --- Spielbildschirm ---------------------------------------------------- */
-  const MODE_TITLE = { single: "Einzeln", ear: "Gehör", run: "Lauf", interval: "Intervalle", rhythm: "Rhythmus", phrase: "Stücke", scale: "Tonleiter", piece: "Stück", play: "Abspielen", quiz: "Quiz" };
+  const MODE_TITLE = { single: "Einzeln", ear: "Gehör", run: "Lauf", interval: "Intervalle", rhythm: "Rhythmus", phrase: "Stücke", scale: "Tonleiter", piece: "Stück", play: "Abspielen", quiz: "Quiz",
+    chord: "Akkorde", chordLearn: "Akkord lernen", scaleLearn: "Tonfolge lernen", scaleTime: "Tonfolge auf Zeit" };
+  const NO_NOTE = e => e.mode === "rhythm" || e.mode === "chord" || e.mode === "scaleTime";   // Zeilen, die nichts über einzelne Noten sagen
+
+  /* --- Akkorde und Tonleitern ---------------------------------------------- */
+  const ROOT12 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  function gripOpts(which) {
+    return which === "chord"
+      ? { root: settings.chordRoot, type: settings.chordType, inv: MU.CHORDS[settings.chordType].steps.length === 3 ? settings.chordInv : 0, hand: settings.gripHand, help: settings.gripHelp, set: settings.chordSet, count: settings.chordCount }
+      : { root: settings.formRoot, type: settings.formType, octaves: /^fuenf/.test(settings.formType) ? 1 : settings.formOct, hand: settings.gripHand, help: settings.gripHelp };
+  }
+  function renderForms() {
+    if (current !== "forms") return;
+    const nm = settings.naming, c = gripOpts("chord"), f = gripOpts("form");
+    const fill = (id, html, value) => { const el = $(id); if (el.dataset.key !== html.length + ":" + nm) { el.innerHTML = html; el.dataset.key = html.length + ":" + nm; } el.value = value; };
+    $("chordRoot").innerHTML = ROOT12.map(r => `<option value="${r}">${MU.chordRoot(r, settings.chordType, nm)}</option>`).join(""); $("chordRoot").value = settings.chordRoot;
+    fill("chordType", Object.keys(MU.CHORDS).map(k => `<option value="${k}">${MU.CHORDS[k].name}</option>`).join(""), settings.chordType);
+    fill("chordSet", Object.keys(NT.grip.SETS).map(k => `<option value="${k}">${NT.grip.SETS[k]}</option>`).join(""), settings.chordSet);
+    $("formRoot").innerHTML = ROOT12.map(r => { const k = MU.scaleKey(r, settings.formType); return `<option value="${r}">${MU.nameOf(k.letter, k.alter, nm)}</option>`; }).join(""); $("formRoot").value = settings.formRoot;
+    fill("formType", Object.keys(MU.FORMS).map(k => `<option value="${k}">${MU.FORMS[k]}</option>`).join(""), settings.formType);
+    $("chordInv").value = c.inv; $("chordInv").disabled = MU.CHORDS[settings.chordType].steps.length !== 3;
+    $("formOct").value = f.octaves; $("formOct").disabled = /^fuenf/.test(settings.formType);
+    $("chordCount").value = settings.chordCount; $("gripHand").value = settings.gripHand; $("gripHelpSel").value = settings.gripHelp;
+    // Vorschau: Noten, Klaviatur, Hand
+    const ch = NT.grip.previewChord($("chordPrevStaff"), $("chordPrevKeys"), c);
+    const sc = NT.grip.previewScale($("formPrevStaff"), $("formPrevKeys"), f);
+    $("chordName").textContent = MU.chordSymbol(c.root, c.type, nm);
+    $("formName").textContent = MU.scaleTitle(f.root, f.type, nm);
+    const hand = settings.gripHand === "l" ? "links" : "rechts";
+    const cb = NT.grip.bestOf(NT.grip.chordKey(ch)), sb = NT.grip.bestOf(NT.grip.scaleKey(f));
+    $("chordInfo").innerHTML = `<b>${MU.chordTitle(c.root, c.type, nm)}</b>${ch.inv ? ", " + MU.INVERSIONS[ch.inv] : ""} · Töne ${ch.tones.map(t => MU.nameOf(t.letter, t.alter, nm)).join(" ")} · Finger ${hand} ${ch.tones.map(t => t.finger).join(" ")}` + (cb != null ? ` · Bestzeit ${NT.grip.secs(cb)}` : "");
+    const upF = sc.notes.slice(0, sc.up).map(n => n.finger).join(" ");
+    $("formInfo").innerHTML = `<b>${MU.scaleTitle(f.root, f.type, nm)}</b> · ${sc.up} Töne aufwärts · Finger ${hand} ${upF}` + (sb != null ? ` · Bestzeit ${NT.grip.secs(sb)}` : "");
+  }
+  function startGrip(kind, opts) {
+    opts = opts || gripOpts(kind.startsWith("chord") ? "chord" : "form");
+    lastMode = "grip:" + kind; lastOpts = opts; storyLevel = null; plan = null;
+    show("grip");
+    NT.synth.unlock();
+    NT.grip.start(kind, opts);
+  }
+  function gripFinish(res) {
+    lastResults = res;
+    progress.xp += res.xp; NT.store.kvSet("progress", progress);
+    renderResults(res, { planText: res.sub, ladder: res.note });
+    show("results");
+  }
   const MODE_HINT = { single: "Spiel die angezeigte Note.", ear: "Hör den Ton und such die Taste. Nach einem Fehler sagt die Anzeige, ob es höher oder tiefer geht.",
     run: "Triff die Note, wenn sie die Linie erreicht.", interval: "Die Beschriftung sagt, wohin es von der vorigen Note geht. Die erste Note ist dein Anker.",
     rhythm: "Klopf den Rhythmus mit einer beliebigen Taste. Nur der Zeitpunkt zählt.", scale: "Gleichmäßig rauf und runter, im Tempo.",
@@ -305,7 +356,7 @@ NT.app = (() => {
   function renderResults(r, x) {
     x = x || {};
     const li = levelInfo(), lvl = x.level || null;
-    $("resTitle").textContent = r.accuracy == null ? "Nichts gespielt"
+    $("resTitle").textContent = r.title ? r.title : r.accuracy == null ? "Nichts gespielt"
       : lvl ? (x.stars >= 3 ? "Perfekt!" : x.stars >= 2 ? "Level geschafft!" : x.stars === 1 ? "Fast!" : "Noch nicht")
       : r.accuracy >= 0.9 ? "Stark!" : r.accuracy >= 0.7 ? "Gut gemacht" : "Weiter üben";
     const sub = lvl ? `Welt ${lvl.world.n} · Level ${lvl.index}: ${lvl.title}` : r.kind ? "Quiz: " + NT.quiz.KIND_TITLE[r.kind] : x.planText || "";
@@ -325,14 +376,15 @@ NT.app = (() => {
     $("resAcc").textContent = r.accuracy == null ? "–" : Math.round(r.accuracy * 100) + " %";
     $("resStreak").textContent = r.bestStreak;
     $("resXp").textContent = "+" + (r.xp + (x.bonus || 0)) + " XP";
-    $("resTiming").textContent = r.avgOff != null ? (r.avgOff > 0 ? "+" : "") + Math.round(r.avgOff) + " ms " + (r.avgOff > 15 ? "(eher spät)" : r.avgOff < -15 ? "(eher früh)" : "(auf den Punkt)")
+    $("resTiming").textContent = r.timingText ? r.timingText : r.avgOff != null ? (r.avgOff > 0 ? "+" : "") + Math.round(r.avgOff) + " ms " + (r.avgOff > 15 ? "(eher spät)" : r.avgOff < -15 ? "(eher früh)" : "(auf den Punkt)")
       : r.avgReact != null ? Math.round(r.avgReact) + " ms Reaktion" : "–";
     $("resEven").hidden = !r.evenness;
     if (r.evenness) $("resEven").textContent = `Gleichmäßigkeit: Abstände ±${Math.round(r.evenness.ioiSd)} ms, Anschlag-Spanne ${r.evenness.velRange}`;
     $("resLadder").hidden = !x.ladder; $("resLadder").textContent = x.ladder || "";
     $("resLevel").textContent = "Level " + li.level; $("resLevelBar").style.width = Math.round(li.pct * 100) + "%";
     const weak = r.weakest || [];
-    $("resWeakWrap").hidden = r.mode === "rhythm" || r.kind === "key" || r.kind === "interval";
+    $("resWeakWrap").hidden = r.mode === "rhythm" || r.kind === "key" || r.kind === "interval" || !!r.grip;
+    $("formsBtn").hidden = !r.grip;
     $("resWeak").innerHTML = weak.length ? weak.map(w => `<span class="chip miss">${MU.name(w.midi, settings.naming)} · ${w.bad}/${w.n}</span>`).join("") : "<span class='muted'>Keine Fehler, nichts zu bemängeln.</span>";
     // Knöpfe je nach Lage
     const next = lvl ? ST.next(lvl) : null;
@@ -372,10 +424,10 @@ NT.app = (() => {
     const t = performance.now();
     if (kind === 0x90 && d2 > 0) {
       held.add(d1); NT.store.queue("input", { id: NT.store.newId(), t: Date.now(), at: t, type: "on", midi: d1, velocity: d2, session: G.S.session });
-      if (current === "quiz") NT.quiz.onNoteOn(d1); else G.onNoteOn(d1, d2);
+      if (current === "grip") NT.grip.onNoteOn(d1, d2); else if (current === "quiz") NT.quiz.onNoteOn(d1); else G.onNoteOn(d1, d2);
       renderChips();
     }
-    else if (kind === 0x80 || (kind === 0x90 && d2 === 0)) { held.delete(d1); NT.store.queue("input", { id: NT.store.newId(), t: Date.now(), at: t, type: "off", midi: d1, session: G.S.session }); renderChips(); }
+    else if (kind === 0x80 || (kind === 0x90 && d2 === 0)) { held.delete(d1); if (current === "grip") NT.grip.onNoteOff(d1); NT.store.queue("input", { id: NT.store.newId(), t: Date.now(), at: t, type: "off", midi: d1, session: G.S.session }); renderChips(); }
     else if (kind === 0xb0 && PEDAL_CC[d1]) {
       const key = PEDAL_CC[d1], down = d2 >= 64;
       const p = device.pedal[key] = device.pedal[key] || { seen: false, between: false, min: 127, max: 0 };
@@ -419,7 +471,7 @@ NT.app = (() => {
     const tot = ST.totals(story);
     $("statTotals").innerHTML = `<div class="fig"><b>${H.length}</b><span>Noten</span></div><div class="fig"><b>${H.length ? Math.round(100 * hits / H.length) + " %" : "–"}</b><span>Treffer</span></div><div class="fig"><b>${sessions.size}</b><span>Sitzungen</span></div><div class="fig"><b>${levelInfo().level}</b><span>Level</span></div><div class="fig"><b>${tot.stars}</b><span>Sterne</span></div>`;
     const byNote = new Map();
-    for (const e of H) { if (e.mode === "rhythm") continue; const v = byNote.get(e.midi) || { n: 0, bad: 0, off: [], react: [] }; v.n++; if (!e.correct) v.bad++; else if (typeof e.dueAt === "number") v.off.push(e.hitAt - e.dueAt); else v.react.push(e.hitAt - e.shownAt); byNote.set(e.midi, v); }
+    for (const e of H) { if (NO_NOTE(e)) continue; const v = byNote.get(e.midi) || { n: 0, bad: 0, off: [], react: [] }; v.n++; if (!e.correct) v.bad++; else if (typeof e.dueAt === "number") v.off.push(e.hitAt - e.dueAt); else v.react.push(e.hitAt - e.shownAt); byNote.set(e.midi, v); }
     const rows = Array.from(byNote.entries()).sort((a, b) => a[0] - b[0]);
     $("statNotes").innerHTML = rows.length ? rows.map(([midi, v]) => {
       const acc = 1 - v.bad / v.n, hue = Math.round(acc * 120);
@@ -506,6 +558,12 @@ NT.app = (() => {
       for (const r of (data.kv || [])) if (r && r.key === "story" && r.value && r.value.levels) {
         for (const [id, p] of Object.entries(r.value.levels)) { const mine = story.levels[id]; if (!mine || (p.stars || 0) > mine.stars) story.levels[id] = Object.assign({ stars: 0, best: 0, attempts: 0 }, mine || {}, p); }
         NT.store.kvSet("story", story);
+      }
+      // Bestzeiten: je Eintrag die schnellere behalten.
+      for (const r of (data.kv || [])) if (r && r.key === "records" && r.value) {
+        const mine = NT.grip.records;
+        for (const [k, v] of Object.entries(r.value)) if (v && v.best != null && (!mine[k] || mine[k].best == null || v.best < mine[k].best)) mine[k] = Object.assign({}, mine[k] || {}, v);
+        NT.store.kvSet("records", mine);
       }
       alertBox(`Übernommen: ${counts.events} Noten, ${counts.input} Eingaben, ${counts.sessions} Sitzungen, ${counts.pieces} Stücke.`);
       renderStats();
@@ -598,6 +656,8 @@ NT.app = (() => {
     G.hooks.click = click; G.hooks.count = count;
     NT.quiz.hooks.finish = quizFinish; NT.quiz.hooks.sound = sound; NT.quiz.bind();
     NT.book.bind(settings);
+    NT.grip.bind(settings, (await NT.store.kvGet("records")) || {});
+    NT.grip.hooks.finish = gripFinish; NT.grip.hooks.sound = sound; NT.grip.hooks.saveRecords = r => NT.store.kvSet("records", r);
     NT.midi.onMessage = onMidiMessage; NT.midi.onStatus = midiStatus;
 
     // Menü
@@ -615,10 +675,40 @@ NT.app = (() => {
     $("stopBtn").addEventListener("click", () => {
       const lvl = storyLevel;
       if (G.running) G.stop(false);   // hat schon etwas gezählt: Ergebnis bzw. Karte über hooks.finish
-      if (current === "play") { storyLevel = null; show(lvl ? "story" : "home"); }
+      if (current === "play") { storyLevel = null; show(lvl ? "story" : lastOpts && lastOpts.fromForms ? "forms" : "home"); }
     });
     $("hearBtn").addEventListener("click", () => G.replay());
-    $("againBtn").addEventListener("click", () => startMode(lastMode, lastOpts));
+    $("againBtn").addEventListener("click", () => { if (String(lastMode).startsWith("grip:")) startGrip(lastMode.slice(5), lastOpts); else startMode(lastMode, lastOpts); });
+    $("formsBtn").addEventListener("click", () => show("forms"));
+
+    // Akkorde und Tonleitern
+    const formSel = (id, key, num, after) => $(id).addEventListener("change", e => { settings[key] = num ? +e.target.value : e.target.value; saveSettings(); if (after) after(); renderForms(); });
+    formSel("chordRoot", "chordRoot", true); formSel("chordType", "chordType", false); formSel("chordInv", "chordInv", true); formSel("chordSet", "chordSet", false);
+    formSel("formRoot", "formRoot", true); formSel("formType", "formType", false); formSel("formOct", "formOct", true);
+    formSel("gripHand", "gripHand", false); formSel("gripHelpSel", "gripHelp", false);
+    $("chordCount").addEventListener("change", e => { settings.chordCount = Math.max(4, Math.min(48, +e.target.value || 10)); e.target.value = settings.chordCount; saveSettings(); });
+    $("chordLearnBtn").addEventListener("click", () => startGrip("chordLearn"));
+    $("chordTimeBtn").addEventListener("click", () => startGrip("chordTime"));
+    $("formLearnBtn").addEventListener("click", () => startGrip("scaleLearn"));
+    $("formTimeBtn").addEventListener("click", () => startGrip("scaleTime"));
+    $("formTempoBtn").addEventListener("click", () => startMode("scale", { override: { scaleRoot: settings.formRoot, scaleType: settings.formType, scaleOctaves: /^fuenf/.test(settings.formType) ? 1 : settings.formOct, clef: settings.gripHand === "l" ? "bass" : "treble" }, title: MU.scaleTitle(settings.formRoot, settings.formType, settings.naming), fromForms: true }));
+    $("gripStop").addEventListener("click", () => { NT.grip.stop(); show("forms"); });
+    $("gripHelp").addEventListener("click", () => openBook(NT.grip.kind && NT.grip.kind.startsWith("chord") ? "akkorde" : "tonleitern", "forms"));
+    $("formsHelp").addEventListener("click", () => openBook("akkorde", "forms"));
+    for (const id of ["gripStaff", "gripKeys"]) new ResizeObserver(() => { if (current === "grip") NT.grip.draw(); }).observe($(id));
+    for (const id of ["chordPrevKeys", "formPrevKeys"]) new ResizeObserver(() => { if (current === "forms") renderForms(); }).observe($(id));
+
+    // Klänge der Oberfläche: jeder Knopf gibt einen leisen Ton, je nach Art einen anderen.
+    document.addEventListener("click", e => {
+      const b = e.target.closest("button, .midiChip"); if (!b || !settings.fx) return;
+      if (b.classList.contains("ans") || b.id === "hearBtn") return;       // dort klingt schon die Wertung bzw. der Ton
+      NT.synth.unlock();
+      NT.synth.ui(b.classList.contains("back") || b.id === "levelClose" ? "back"
+        : b.classList.contains("tab") || b.classList.contains("pgBtn") ? "page"
+        : b.classList.contains("node") || b.id === "levelGo" || b.id === "storyBtn" ? "open"
+        : b.classList.contains("menuBtn") ? "menu" : "tap");
+    }, true);
+    document.addEventListener("change", e => { if (settings.fx && e.target.matches("select, input[type=checkbox]")) NT.synth.ui("toggle"); }, true);
     $("nextBtn").addEventListener("click", () => { const n = storyLevel ? ST.next(storyLevel) : null; if (n) startLevel(n); else show("story"); });
     $("mapBtn").addEventListener("click", () => { storyLevel = null; show("story"); });
     $("planBtn").addEventListener("click", () => { if (plan && plan.i < plan.steps.length) startMode(plan.steps[plan.i].mode, plan.steps[plan.i].opts); });
@@ -663,7 +753,7 @@ NT.app = (() => {
     $("importBtn").addEventListener("change", e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ""; });
     $("wipeBtn").addEventListener("click", () => {
       const b = $("wipeBtn");
-      if (b.dataset.armed) { NT.store.wipe().then(() => { G.history.length = 0; progress = { xp: 0 }; story = { levels: {} }; renderStats(); alertBox("Verlauf gelöscht."); }); b.dataset.armed = ""; b.textContent = "Verlauf löschen"; return; }
+      if (b.dataset.armed) { NT.store.wipe().then(() => { G.history.length = 0; progress = { xp: 0 }; story = { levels: {} }; NT.grip.records = {}; renderStats(); alertBox("Verlauf gelöscht."); }); b.dataset.armed = ""; b.textContent = "Verlauf löschen"; return; }
       b.dataset.armed = "1"; b.textContent = "Wirklich löschen? Nochmal tippen"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "Verlauf löschen"; }, 4000);
     });
 
@@ -677,13 +767,14 @@ NT.app = (() => {
       if (current === "book" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { NT.book.step(e.key === "ArrowRight" ? 1 : -1); return; }
       if (e.key !== "Escape") return;
       if (current === "book") { $("bookBack").click(); return; }
+      if (current === "grip") { $("gripStop").click(); return; }
       if (!$("levelModal").hidden) { closeModal(); return; }
       if (current !== "home") show(current === "play" && storyLevel ? "story" : "home");
     });
     window.addEventListener("error", e => alertBox("Fehler: " + (e.message || e.type)));
     window.addEventListener("unhandledrejection", e => alertBox("Fehler: " + ((e.reason && e.reason.message) || e.reason)));
 
-    Promise.all([document.fonts.load('10px "NotenSymbole"'), document.fonts.load('700 10px "Baloo 2"')]).catch(() => {}).then(() => { if (current === "play") G.draw(); if (current === "quiz") NT.quiz.draw(); if (current === "stats") renderChart(); });
+    Promise.all([document.fonts.load('10px "NotenSymbole"'), document.fonts.load('700 10px "Baloo 2"')]).catch(() => {}).then(() => { if (current === "play") G.draw(); if (current === "quiz") NT.quiz.draw(); if (current === "stats") renderChart(); if (current === "forms") renderForms(); if (current === "grip") NT.grip.draw(); });
     renderChips(); syncSettingsUi(); show("home");
     NT.midi.init();
   }
@@ -691,5 +782,5 @@ NT.app = (() => {
   async function keepAwake() { if (!navigator.wakeLock || wakeLock) return; try { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } catch (e) {} }
 
   document.addEventListener("DOMContentLoaded", init);
-  return { settings, pieces, show, startMode, startLevel, openLevel, get story() { return story; }, get midiState() { return midiState; } };
+  return { settings, pieces, show, startMode, startGrip, startLevel, openLevel, get story() { return story; }, get midiState() { return midiState; } };
 })();

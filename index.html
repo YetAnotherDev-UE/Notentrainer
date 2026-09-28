@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260926m") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260929e") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -168,9 +168,9 @@
   .book { position: relative; width: min(1120px, 100%); height: min(100%, 760px); display: flex; flex-direction: column;
     background: linear-gradient(180deg, #24427a, #142a55); border: 3px solid #d9a441; border-radius: 14px; padding: 12px 12px 8px;
     box-shadow: 0 30px 60px rgba(0,0,0,.5), inset 0 0 0 2px rgba(217,164,65,.35); }
-  .tabs { position: absolute; left: -66px; top: 28px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 76px; }
+  .tabs { position: absolute; left: -66px; top: 18px; display: flex; flex-direction: column; gap: 5px; align-items: flex-end; width: 76px; }
   /* Lesezeichen kleben mit der rechten Kante am Buch; das aktive waechst nach links, statt sich zu loesen. */
-  .tab { position: relative; overflow: hidden; width: 68px; height: 46px; border-radius: 10px 0 0 10px; border: 0; padding: 0 4px 0 2px; color: #fff; display: flex; align-items: center; justify-content: center;
+  .tab { position: relative; overflow: hidden; width: 68px; height: 42px; border-radius: 10px 0 0 10px; border: 0; padding: 0 4px 0 2px; color: #fff; display: flex; align-items: center; justify-content: center;
     background: linear-gradient(180deg, var(--ta), var(--tb)); box-shadow: 0 4px 0 rgba(0,0,0,.3); transition: width .15s, opacity .15s; opacity: .9; }
   /* Das Symbol liegt gross und halbdurchsichtig hinter der Beschriftung, so ueberlappt nichts. */
   .tab .ico { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 34px; line-height: 1; opacity: .28; pointer-events: none; }
@@ -188,8 +188,11 @@
   .ribbon { display: inline-block; position: relative; background: linear-gradient(180deg, #ef5a70, #d1354c); color: #fff; padding: 6px 30px; font-size: 24px; line-height: 1.1; margin: 2px 0 12px;
     text-shadow: 0 2px 0 rgba(0,0,0,.25); clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%); filter: drop-shadow(0 3px 0 rgba(0,0,0,.2)); }
   .tipbox { background: rgba(255,255,255,.55); border-left: 4px solid var(--tc, #b3341f); border-radius: 6px; padding: 7px 10px; margin: 8px 0; font-size: 13px; }
-  .fig { background: rgba(255,255,255,.6); border: 1px solid rgba(43,33,24,.18); border-radius: 10px; margin: 8px 0 2px; position: relative; overflow: hidden; }
-  .fig canvas { width: 100%; height: 100%; display: block; }
+  /* Eigene Namen (bfig, bookBody): fig und pageBody gehören schon dem Ergebnis und den Einstellungsseiten. */
+  .bfig { background: rgba(255,255,255,.6); border: 1px solid rgba(43,33,24,.18); border-radius: 10px; margin: 8px 0 2px; position: relative; overflow: hidden; }
+  .bfig canvas { width: 100%; height: 100%; display: block; }
+  .bfig.two { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); } .bfig.two canvas { min-width: 0; min-height: 0; }
+  .bfig.keys { background: linear-gradient(180deg, #e9dcc3, #d9c8a8); padding: 4px; }
   .figCap { font-size: 12px; color: #6b5a48; text-align: center; margin: 2px 0 8px; }
   .shot { background: radial-gradient(120% 90% at 50% 0%, #1d55bd 0%, #0e3479 60%, #071a3c 100%); border-radius: 10px; padding: 8px; margin: 6px 0 8px; }
   .hud.mini { margin: 0; grid-template-columns: repeat(4, 1fr); gap: 6px; } .hud.mini .hudItem { min-width: 0; padding: 4px 6px; } .hud.mini .hudItem b { font-size: 20px; }
@@ -202,6 +205,29 @@
   .pgBtn:disabled { opacity: .35; }
   .pageNo { color: #ffd23f; font-size: 13px; font-weight: 600; text-align: center; }
   @media (max-height: 640px) { .tab { height: 36px; width: 64px; } .tab.active { width: 78px; } .tab .tl { font-size: 9px; } .tab .ico { font-size: 14px; } .tab .tl { font-size: 8px; } .tabs { top: 12px; gap: 4px; } }
+
+  /* --- Akkorde und Tonleitern ---------------------------------------- */
+  .formsTop { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; flex: none; }
+  .formsTop .setRow { flex: 1 1 280px; }
+  .formsGrid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .formCard { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .formHead { display: flex; align-items: baseline; gap: 12px; }
+  .gripName { margin-left: auto; font-size: 28px; line-height: 1; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.35); white-space: nowrap; }
+  .gripName.big { font-size: 46px; color: var(--c3); text-shadow: 0 3px 0 #b45309; } .gripName.big.long { font-size: 26px; }
+  .formSel { display: flex; gap: 8px; flex-wrap: wrap; } .formSel select { flex: 1 1 110px; min-width: 0; }
+  .formPrev { flex: 1; min-height: 210px; display: grid; grid-template-rows: minmax(90px, 0.8fr) minmax(120px, 1.1fr); gap: 8px; }
+  .miniStage, .miniKeys { border-radius: 10px; padding: 6px; min-height: 0; }
+  .miniStage { background: var(--paper); } .miniKeys { background: linear-gradient(180deg, #e9dcc3, #d9c8a8); }
+  .formCard .btnRow select { flex: 1 1 150px; min-width: 0; } .formCard .btnRow input[type=number] { width: 72px; }
+  .formCard p { margin: 0; }
+  .gripHud { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex: none; flex-wrap: wrap; }
+  .gripMain { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(120px, 0.75fr) minmax(180px, 1.25fr); gap: 10px; }
+  .stage.gripStaffBox { min-height: 0; flex: none; }
+  .gripKeysBox { min-height: 0; background: linear-gradient(180deg, #e9dcc3, #d9c8a8); border-radius: 14px; padding: 8px; box-shadow: 0 0 0 4px rgba(255,255,255,.08), 0 22px 44px rgba(0,0,0,.45); }
+  .fingerLegend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; font-size: 12px; color: var(--muted); flex: none; margin-top: 2px; }
+  .fdot { display: inline-flex; align-items: center; gap: 5px; }
+  .fdot i { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-style: normal; font-weight: 700; font-size: 12px; border: 2px solid #fff; }
+  @media (max-width: 900px) { .formsGrid { grid-template-columns: 1fr; } }
 
   /* --- Spielbildschirm --------------------------------------------- */
   .hud { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 10px; align-items: center; margin-bottom: 8px; flex: none; }
@@ -320,7 +346,7 @@
         <button class="menuBtn c4" data-mode="interval"><span class="skew"><span class="lbl display">Intervalle</span><small>Bewegung lesen, nicht Namen</small></span></button>
         <button class="menuBtn c8" data-mode="rhythm"><span class="skew"><span class="lbl display">Rhythmus</span><small>Nur der Zeitpunkt zählt</small></span></button>
         <button class="menuBtn c3" data-mode="phrase"><span class="skew"><span class="lbl display">Stücke</span><small>Phrasen aus echten Stücken</small></span></button>
-        <button class="menuBtn c6" data-mode="scale"><span class="skew"><span class="lbl display">Tonleiter</span><small>Gleichmäßig rauf und runter</small></span></button>
+        <button class="menuBtn c6" data-go="forms"><span class="skew"><span class="lbl display">Akkorde</span><small>und Tonleitern: Griffe lernen</small></span></button>
         <button class="menuBtn c5" data-mode="ear"><span class="skew"><span class="lbl display">Gehör</span><small>Ton hören, Taste finden</small></span></button>
         <button class="menuBtn c7" data-mode="quiz"><span class="skew"><span class="lbl display">Quiz</span><small>Ohne Klavier, auch unterwegs</small></span></button>
       </div>
@@ -373,6 +399,59 @@
       <div class="bookFoot"><button class="pgBtn" id="bookPrev">◀ Zurück</button><span class="pageNo" id="bookPageNo"></span><button class="pgBtn" id="bookNext">Weiter ▶</button></div>
     </div>
   </div>
+</section>
+
+<!-- Akkorde und Tonleitern: Auswahl -->
+<section class="screen" id="screen-forms">
+  <header class="topbar">
+    <button class="back" data-go="home">Zurück</button>
+    <div class="title display">Akkorde und Tonleitern</div>
+    <div class="midiChip" data-kind="busy"><i></i><span></span></div>
+    <button class="iconBtn" id="formsHelp" title="Handbuch">?</button>
+  </header>
+  <div class="formsTop">
+    <div class="setRow"><label>Hand</label><select id="gripHand"><option value="r">rechte Hand</option><option value="l">linke Hand</option></select></div>
+    <div class="setRow"><label>Hilfe auf Zeit</label><select id="gripHelpSel"><option value="full">Klaviatur, Hand und Noten</option><option value="notes">Nur Noten</option><option value="name">Nur der Name</option></select></div>
+  </div>
+  <div class="formsGrid">
+    <div class="card formCard">
+      <div class="formHead"><div class="cardHead display c1">Akkorde</div><div class="gripName display" id="chordName">C</div></div>
+      <div class="formSel"><select id="chordRoot"></select><select id="chordType"></select><select id="chordInv"><option value="0">Grundstellung</option><option value="1">1. Umkehrung</option><option value="2">2. Umkehrung</option></select></div>
+      <div class="formPrev"><div class="miniStage"><canvas id="chordPrevStaff"></canvas></div><div class="miniKeys"><canvas id="chordPrevKeys"></canvas></div></div>
+      <p class="small" id="chordInfo"></p>
+      <div class="btnRow"><button class="green" id="chordLearnBtn">Lernen</button><button class="gold" id="chordTimeBtn">Auf Zeit</button><select id="chordSet"></select><input type="number" id="chordCount" min="4" max="48" value="10" title="Wie viele Akkorde"></div>
+    </div>
+    <div class="card formCard">
+      <div class="formHead"><div class="cardHead display c6">Tonleitern und Läufe</div><div class="gripName display" id="formName">C-Dur</div></div>
+      <div class="formSel"><select id="formRoot"></select><select id="formType"></select><select id="formOct"><option value="1">1 Oktave</option><option value="2">2 Oktaven</option></select></div>
+      <div class="formPrev"><div class="miniStage"><canvas id="formPrevStaff"></canvas></div><div class="miniKeys"><canvas id="formPrevKeys"></canvas></div></div>
+      <p class="small" id="formInfo"></p>
+      <div class="btnRow"><button class="green" id="formLearnBtn">Lernen</button><button class="gold" id="formTimeBtn">Auf Zeit</button><button id="formTempoBtn">Im Takt</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- Akkorde und Tonleitern: Üben -->
+<section class="screen" id="screen-grip">
+  <header class="topbar">
+    <button class="back" id="gripStop">Abbrechen</button>
+    <div class="title display" id="gripTitle">Akkorde</div>
+    <div class="midiChip" data-kind="busy"><i></i><span></span></div>
+    <button class="iconBtn" id="gripHelp" title="Handbuch">?</button>
+  </header>
+  <div class="gripHud">
+    <div class="hudItem c4"><b class="display" id="gripStep">1/7</b><span>Schritt</span></div>
+    <div class="hudItem c3" id="gripTimeBox"><b class="display" id="gripTime">0,0</b><span>Sekunden</span></div>
+    <div class="hudItem c1"><b class="display" id="gripErr">0</b><span>Fehler</span></div>
+    <div class="hudItem c2" id="gripBestBox"><b class="display" id="gripBest">–</b><span>Bestzeit</span></div>
+    <div class="gripName display big" id="gripName">C</div>
+  </div>
+  <div class="gripMain">
+    <div class="stage gripStaffBox"><canvas id="gripStaff"></canvas></div>
+    <div class="gripKeysBox"><canvas id="gripKeys"></canvas></div>
+  </div>
+  <div class="bar"><div class="feedback" id="gripText"></div></div>
+  <div class="fingerLegend" id="fingerLegend"></div>
 </section>
 
 <!-- Spielen -->
@@ -438,6 +517,7 @@
       <button id="againBtn">Nochmal</button>
       <button id="retryBtn" hidden>Fehler üben</button>
       <button id="mapBtn" class="ghostBtn" hidden>Karte</button>
+      <button id="formsBtn" class="ghostBtn" hidden>Auswahl</button>
       <button class="ghostBtn" data-go="home">Menü</button>
     </div>
   </div>
@@ -542,7 +622,7 @@
     <h2 class="sec display">Tonleiter</h2>
     <div class="form">
       <div class="setRow"><label>Grundton</label><select id="set-scaleRoot"><option value="0">C</option><option value="1">Des</option><option value="2">D</option><option value="3">Es</option><option value="4">E</option><option value="5">F</option><option value="6">Fis</option><option value="7">G</option><option value="8">As</option><option value="9">A</option><option value="10">B</option><option value="11">H</option></select></div>
-      <div class="setRow"><label>Art</label><select id="set-scaleType"><option value="dur">Dur</option><option value="moll">Moll (natürlich)</option><option value="harmonisch">Moll (harmonisch)</option></select></div>
+      <div class="setRow"><label>Art</label><select id="set-scaleType"><option value="dur">Dur</option><option value="moll">Moll (natürlich)</option><option value="harmonisch">Moll (harmonisch)</option><option value="fuenfDur">Fünffingerlage Dur</option><option value="fuenfMoll">Fünffingerlage Moll</option><option value="chrom">Chromatisch</option><option value="arpDur">Gebrochener Dur-Akkord</option><option value="arpMoll">Gebrochener Moll-Akkord</option></select></div>
       <div class="setRow"><label>Oktaven</label><select id="set-scaleOctaves"><option value="1">1</option><option value="2">2</option></select></div>
     </div>
   </div>
@@ -550,18 +630,20 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260926m"></script>
-<script src="js/notation.js?v=20260926m"></script>
-<script src="js/store.js?v=20260926m"></script>
-<script src="js/midi.js?v=20260926m"></script>
-<script src="js/synth.js?v=20260926m"></script>
-<script src="js/musicxml.js?v=20260926m"></script>
-<script src="js/charts.js?v=20260926m"></script>
-<script src="pieces/starter.js?v=20260926m"></script>
-<script src="js/story.js?v=20260926m"></script>
-<script src="js/quiz.js?v=20260926m"></script>
-<script src="js/book.js?v=20260926m"></script>
-<script src="js/game.js?v=20260926m"></script>
-<script src="js/app.js?v=20260926m"></script>
+<script src="js/music.js?v=20260929e"></script>
+<script src="js/notation.js?v=20260929e"></script>
+<script src="js/keys.js?v=20260929e"></script>
+<script src="js/store.js?v=20260929e"></script>
+<script src="js/midi.js?v=20260929e"></script>
+<script src="js/synth.js?v=20260929e"></script>
+<script src="js/musicxml.js?v=20260929e"></script>
+<script src="js/charts.js?v=20260929e"></script>
+<script src="pieces/starter.js?v=20260929e"></script>
+<script src="js/story.js?v=20260929e"></script>
+<script src="js/quiz.js?v=20260929e"></script>
+<script src="js/book.js?v=20260929e"></script>
+<script src="js/game.js?v=20260929e"></script>
+<script src="js/grip.js?v=20260929e"></script>
+<script src="js/app.js?v=20260929e"></script>
 </body>
 </html>

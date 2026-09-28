@@ -9,14 +9,15 @@ window.NT = window.NT || {};
 
 NT.book = (() => {
   const $ = id => document.getElementById(id);
-  const N = NT.notation, MU = NT.music;
+  const N = NT.notation, MU = NT.music, K = NT.keys;
   let settings = null;
   const B = { chapter: "start", page: 0, anim: null, rafId: 0, ro: null };
   const naming = () => (settings && settings.naming) || "de";
   const nm = midi => MU.name(midi, naming());
 
   /* --- Bausteine fuer die Seiten --------------------------------------- */
-  const fig = (kind, h, cap) => `<div class="fig" style="height:${h || 150}px"><canvas data-fig="${kind}"></canvas></div>${cap ? `<p class="figCap">${cap}</p>` : ""}`;
+  const fig = (kind, h, cap) => `<div class="bfig" style="height:${h || 150}px"><canvas data-fig="${kind}"></canvas></div>${cap ? `<p class="figCap">${cap}</p>` : ""}`;
+  const keysFig = (kind, h, cap) => `<div class="bfig keys" style="height:${h || 180}px"><canvas data-fig="${kind}"></canvas></div>${cap ? `<p class="figCap">${cap}</p>` : ""}`;
   const tip = text => `<div class="tipbox">${text}</div>`;
   const dl = items => `<dl class="gloss">${items.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>`;
 
@@ -25,12 +26,11 @@ NT.book = (() => {
     { id: "start", tab: "Start", icon: "★", colors: ["#ffe066", "#f0b400"], title: "Willkommen", pages: [
       `<div class="ribbon display">Willkommen</div>
        <p>Der Notentrainer übt eine Sache: <b>Noten sehen, die richtige Taste treffen</b>, immer flüssiger. Das Piano ist per MIDI angeschlossen (die Datenverbindung, über die der Rechner jede Taste mitbekommt, mehr im Kapitel „Technik“), jede Taste wird sofort geprüft.</p>
-       <p>Es gibt zwei Wege:</p>
        <ul><li><b>Abenteuer</b>: eine Karte mit Welten und Levels, von zwei Tönen bis zum ganzen Stück. Jedes Level bringt seine Regeln mit, du musst nichts einstellen.</li>
        <li><b>Frei üben</b>: die Modi einzeln, mit deinen Einstellungen (Schlüssel, Umfang, Tempo).</li></ul>
        <h3>Die Modi in einem Satz</h3>
-       <ul><li><b>Einzeln</b>: eine Note steht, du hast Zeit.</li><li><b>Lauf</b>: Noten kommen von rechts, triff sie an der roten Linie.</li><li><b>Intervalle</b>: lies die Bewegung von Note zu Note.</li><li><b>Rhythmus</b>: nur der Zeitpunkt zählt, jede Taste.</li><li><b>Stücke</b>: kurze Ausschnitte aus echten Stücken.</li><li><b>Tonleiter</b>: alle Töne einer Tonart rauf und runter.</li><li><b>Gehör</b>: Ton hören, Taste finden.</li><li><b>Quiz</b>: Fragen antippen, ganz ohne Klavier.</li></ul>
-       <p>Dieses Handbuch erklärt jeden Modus und die Musik dahinter, von vorn nach hinten aufgebaut. Unklares Wort? Das letzte Lesezeichen <b>Begriffe</b> erklärt alle kurz.</p>`,
+       <ul><li><b>Einzeln</b>: eine Note steht, du hast Zeit.</li><li><b>Lauf</b>: Noten kommen von rechts, triff sie an der roten Linie.</li><li><b>Intervalle</b>: lies die Bewegung von Note zu Note.</li><li><b>Rhythmus</b>: nur der Zeitpunkt zählt, jede Taste.</li><li><b>Stücke</b>: kurze Ausschnitte aus echten Stücken.</li><li><b>Akkorde</b>: Griffe und Tonleitern mit Fingersatz.</li><li><b>Gehör</b>: Ton hören, Taste finden.</li><li><b>Quiz</b>: Fragen antippen, ganz ohne Klavier.</li></ul>
+       <p>Unklares Wort? Das letzte Lesezeichen <b>Begriffe</b> erklärt alle kurz.</p>`,
       `<h3>Der Spielbildschirm</h3>
        <div class="shot"><div class="hud mini"><div class="hudItem c1"><b class="display">12</b><span>Serie</span></div><div class="hudItem c3"><b class="display">×2</b><span>Multi</span></div><div class="hudItem c4"><b class="display">94 %</b><span>Treffer</span></div><div class="hudItem c2"><b class="display">+240</b><span>XP</span></div></div></div>
        <ul><li><b>Serie</b>: Treffer in Folge. Ein Fehler setzt sie auf null.</li>
@@ -133,9 +133,19 @@ NT.book = (() => {
        <p><b>Natürliches Moll</b>: Ganz Halb Ganz Ganz Halb Ganz Ganz. a-Moll braucht nur weiße Tasten, ab A. <b>Harmonisches Moll</b> erhöht den siebten Ton (in a-Moll das G zum Gis): so entsteht ein <b>Leitton</b>, ein Ton, der zum Grundton drängt, und davor ein auffälliger Anderthalbtonschritt.</p>
        <h3>Wozu Tonleitern?</h3>
        <ul><li>Die Tonarten kommen in die Finger: welche schwarzen Tasten wo.</li><li>Der Daumenuntersatz ist die Grundlage für alles, was über fünf Töne hinausgeht.</li><li>Fast jedes Stück besteht aus Ausschnitten von Tonleitern.</li></ul>`,
-      `<h3>Der Modus Tonleiter</h3>
-       <p>Rauf und wieder runter, im Tempo, mit Vorzeichnung im System. Das Ergebnis zeigt die <b>Gleichmäßigkeit</b>: wie stark die Abstände zwischen den Tönen schwanken (± ms) und wie weit die <b>Anschlagstärke</b> (wie fest du die Tasten drückst) auseinanderliegt. Ziel: alle Töne gleich lang und gleich laut, besonders beim Daumenuntersatz.</p>
-       ${tip("Einstellungen: Grundton, Art (Dur, Moll natürlich, Moll harmonisch), eine oder zwei Oktaven. Im Bassschlüssel läuft die Tonleiter eine Oktave tiefer.")}`,
+      `<h3>Die Fünffingerlage</h3>
+       <p>Die einfachste Handlage: fünf Finger auf fünf Nachbartasten. Jeder Finger hat seine Taste, die Hand bleibt liegen. Aus ihr wachsen die Tonleiter (mit Daumenuntersatz) und der Dreiklang (Finger 1, 3 und 5).</p>
+       ${keysFig("fuenfHand", 180, "Fünffingerlage C-Dur, rechte Hand.")}
+       <h3>Fingersätze der anderen Tonarten</h3>
+       <p>Alle Tonleitern folgen einer Regel: Die Hand greift abwechselnd drei und vier Töne, und der Daumen spielt keine schwarze Taste. In Tonarten mit B liegt der vierte Finger der rechten Hand immer auf dem B. Das Spiel zeigt den Fingersatz jeder Tonart über den Noten und auf den Tasten.</p>`,
+      `<h3>Chromatisch und gebrochen</h3>
+       <p>Die <b>chromatische Tonleiter</b> nimmt jede Taste mit, weiß und schwarz, zwölf Halbtöne je Oktave. Der Daumen spielt die weißen Tasten, der dritte Finger die schwarzen; wo zwei weiße nebeneinander liegen (E und F, H und C), hilft der zweite.</p>
+       <p>Ein <b>gebrochener Akkord</b> (Arpeggio) sind die Töne eines Akkords nacheinander statt zusammen, über eine oder zwei Oktaven. Auch hier setzt der Daumen unter.</p>
+       <h3>Die Übungen</h3>
+       <ul><li><b>Lernen</b>: Ton für Ton mit Fingersatz. Das Bild zeigt die Hand in ihrer Lage, der Text sagt, wann der Daumen untersetzt oder ein Finger übersetzt.</li>
+       <li><b>Auf Zeit</b>: rauf und runter, so gleichmäßig und schnell du kannst. Die Uhr startet mit dem ersten Ton. Bestzeiten zählen nur ohne Fehler.</li>
+       <li><b>Im Takt</b>: die Töne laufen wie im Lauf von rechts ein, im eingestellten Tempo. Das Ergebnis zeigt die <b>Gleichmäßigkeit</b>: wie stark die Abstände schwanken (± ms) und wie weit die <b>Anschlagstärke</b> (wie fest du die Tasten drückst) auseinanderliegt.</li></ul>
+       ${tip("Erst die Fünffingerlage, dann die Tonleiter über eine Oktave, dann zwei. Und immer zuerst langsam: Tempo kommt von selbst, wenn der Fingersatz sitzt.")}`,
     ] },
 
     { id: "intervalle", tab: "Intervalle", icon: "↕", colors: ["#2dd4ff", "#1d4ed8"], title: "Intervalle", pages: [
@@ -151,6 +161,54 @@ NT.book = (() => {
        <h3>Der Modus Intervalle</h3>
        <p>Über jeder Note steht die Bewegung zur vorigen, etwa „↑ Terz“. Die erste Note ist ein <b>Anker</b> mit Namen (meist C4, G4, F3 oder C5). Nur weiße Tasten. Einstellung „Intervalle bis“: Terz, Quinte oder Oktave.</p>
        ${tip("Das Quiz „Intervalle“ fragt den Abstand zweier Noten ab, ohne Klavier. Gut für unterwegs.")}`,
+    ] },
+
+    { id: "akkorde", tab: "Akkorde", icon: "♬", colors: ["#fda4af", "#e11d48"], title: "Akkorde", pages: [
+      `<div class="ribbon display">Akkorde</div>
+       <p>Ein <b>Akkord</b> sind mehrere Töne gleichzeitig. Der wichtigste ist der <b>Dreiklang</b>: drei Töne im Terzabstand übereinander, also jeder zweite Ton der Tonleiter. Der unterste heißt <b>Grundton</b> und gibt dem Akkord den Namen, darüber liegen Terz und Quinte.</p>
+       ${keysFig("chordHand", 190, "C-Dur in der rechten Hand: Daumen auf C, Mittelfinger auf E, kleiner Finger auf G. Die Finger 2 und 4 ruhen locker dazwischen.")}
+       <p><b>Dur</b> und <b>Moll</b> unterscheiden sich nur in der Terz: In Dur liegt sie vier Halbtöne über dem Grundton (große Terz), in Moll drei (kleine Terz). C-Dur ist C E G, c-Moll ist C Es G.</p>`,
+      `<h3>Akkordsymbole</h3>
+       <p>Über Liedern stehen Akkorde als Kürzel. Ein Buchstabe allein heißt Dur, ein kleines m dahinter Moll.</p>
+       <table class="tbl"><tr><th>Kürzel</th><th>Name</th><th>Töne</th></tr>
+       <tr><td>C</td><td>Dur</td><td>C E G</td></tr><tr><td>Cm</td><td>Moll</td><td>C Es G</td></tr>
+       <tr><td>C°</td><td>vermindert</td><td>C Es Ges</td></tr><tr><td>C+</td><td>übermäßig</td><td>C E Gis</td></tr>
+       <tr><td>Csus4</td><td>Quarte statt Terz</td><td>C F G</td></tr><tr><td>Csus2</td><td>Sekunde statt Terz</td><td>C D G</td></tr>
+       <tr><td>C7</td><td>Dominantseptakkord</td><td>C E G B</td></tr><tr><td>Cmaj7</td><td>großer Septakkord</td><td>C E G H</td></tr>
+       <tr><td>Cm7</td><td>Moll-Septakkord</td><td>C Es G B</td></tr><tr><td>C6</td><td>Dur mit Sexte</td><td>C E G A</td></tr></table>
+       <p><b>Vermindert</b> (zwei kleine Terzen) klingt gespannt, <b>übermäßig</b> (zwei große) schwebend. Ein <b>Septakkord</b> hat vier Töne: der Dreiklang und darüber die Septime. Der Dominantseptakkord drängt zum nächsten Akkord weiter.</p>
+       ${tip("Vorsicht beim Buchstaben B: In deutschen Noten ist B das erniedrigte H, international heißt derselbe Ton B♭ und „B“ meint das H. Der Notentrainer schreibt nach deiner Einstellung unter „Namen“.")}`,
+      `<h3>Umkehrungen</h3>
+       <p>Die Töne eines Akkords dürfen ihre Reihenfolge tauschen. Liegt der Grundton unten, ist es die <b>Grundstellung</b>. Wandert er nach oben, entsteht die <b>erste Umkehrung</b>, beim nächsten Schritt die <b>zweite</b>. Es bleibt derselbe Akkord, er klingt nur etwas anders.</p>
+       ${fig("inversions", 170, "C-Dur in Grundstellung, erster und zweiter Umkehrung, mit dem Fingersatz der rechten Hand.")}
+       <p>Wozu? Damit die Hand beim Wechsel zum nächsten Akkord kaum wandern muss.</p>`,
+      `<h3>Die Kadenz</h3>
+       <p>Die drei wichtigsten Akkorde einer Tonart stehen auf der ersten, vierten und fünften Stufe der Tonleiter, geschrieben <b>I, IV, V</b>. In C-Dur sind das C, F und G. Mit ihnen lässt sich fast jedes einfache Lied begleiten.</p>
+       ${fig("cadence", 170, "Kadenz in C-Dur: C, dann F in der zweiten Umkehrung, G in der ersten, zurück zu C.")}
+       <p>Als <b>Kadenz</b> spielt man sie so, dass die Hand fast liegen bleibt: Das C bleibt beim Wechsel zu F unten liegen, zum G rückt nur der Daumen einen Ton tiefer.</p>`,
+      `<h3>Fingersatz</h3>
+       <table class="tbl"><tr><th>Griff</th><th>rechts</th><th>links</th></tr>
+       <tr><td>Dreiklang, Grundstellung</td><td>1 3 5</td><td>5 3 1</td></tr><tr><td>erste Umkehrung</td><td>1 2 5</td><td>5 3 1</td></tr>
+       <tr><td>zweite Umkehrung</td><td>1 3 5</td><td>5 2 1</td></tr><tr><td>Vierklang</td><td>1 2 3 5</td><td>5 3 2 1</td></tr></table>
+       <p>Faustregel: Wo zwischen zwei Nachbartönen des Griffs eine Quarte liegt, greift der zweite Finger statt des dritten.</p>
+       <div class="bfig two" style="height:170px"><canvas data-fig="handL"></canvas><canvas data-fig="handR"></canvas></div>
+       <p class="figCap">Die Finger sind in beiden Händen vom Daumen aus gezählt.</p>`,
+      `<h3>Handhaltung</h3>
+       <ul><li>Finger rund, als läge ein kleiner Ball in der Hand. Gespielt wird mit der Fingerkuppe.</li>
+       <li>Handgelenk locker und auf Höhe der Tasten, nicht durchhängen lassen, nicht hochziehen.</li>
+       <li>Der Daumen liegt auf seiner Seitenkante, nicht flach.</li>
+       <li>Ein Akkord kommt aus einer Bewegung des Arms. Die Finger formen den Griff und bleiben fest, der Arm senkt ihn in die Tasten.</li>
+       <li>Die freien Finger bleiben locker über den Tasten, nicht abspreizen.</li>
+       <li>Bei schwarzen Tasten rückt die ganze Hand ein Stück in die Tasten hinein, statt das Handgelenk zu drehen.</li>
+       <li>Schultern locker, Unterarm etwa waagerecht. Wenn etwas zieht oder spannt: absetzen, ausschütteln.</li></ul>
+       ${tip("Das Bild im Spiel zeigt die Lage der Hand ungefähr. Deine Hand ist anders groß: Hauptsache, jeder Finger erreicht seine Taste ohne Spannung.")}`,
+      `<h3>Die Übungen</h3>
+       <p>Im Menü unter <b>Akkorde</b>. Oben wählst du Grundton, Art, Umkehrung und Hand, darunter siehst du Noten, Tasten und Fingersatz.</p>
+       <ul><li><b>Lernen</b>: erst Finger für Finger, jede Taste einzeln. Dann aufbauen: einen Ton nach dem anderen drücken und liegen lassen. Zum Schluss alle gleichzeitig, dreimal.</li>
+       <li><b>Auf Zeit</b>: Der Name erscheint, die Uhr läuft, bis alle Töne liegen. Eine falsche Taste zählt als Fehler. Bestzeiten gibt es nur ohne Fehler.</li>
+       <li><b>Auswahl</b> für „Auf Zeit“: nur dieser Akkord, die Kadenz der Tonart, alle Dur- oder Moll-Akkorde, gemischt, im Quintenzirkel.</li>
+       <li><b>Hilfe</b>: mit Klaviatur und Hand, nur mit Noten, oder nur der Name. So wird aus Ablesen nach und nach Wissen.</li></ul>
+       ${tip("Ohne Piano geht es auch: Die Klaviatur auf dem Bildschirm lässt sich antippen. Die Oktave ist egal, gewertet wird die Taste.")}`,
     ] },
 
     { id: "modi", tab: "Üben", icon: "▶", colors: ["#ffa25e", "#e8621c"], title: "Einzeln, Lauf, Blindflug", pages: [
@@ -175,7 +233,7 @@ NT.book = (() => {
        <p>In der <b>Bibliothek</b> liegen vier Starter-Stücke, eigene lassen sich importieren. Der Modus <b>Stücke</b> zieht <b>Phrasen</b> daraus: kurze Ausschnitte von ein bis zwei Takten, an Taktgrenzen geschnitten, gewichtet nach dem, was zuletzt schwerfiel. Der Titel steht unter dem System, der Taktstrich davor.</p>
        <p><b>Ganz spielen</b> wertet ein Stück von vorn bis hinten. <b>Abspielen</b> lässt das Piano (oder den Synth) das Stück vorspielen, ohne Wertung.</p>
        <h3>Das Klaviersystem</h3>
-       ${fig("grand", 175, "Klaviersystem: oben die rechte Hand im Violinschlüssel, unten die linke im Bassschlüssel, hier mit einem Akkord.")}
+       ${fig("grand", 160, "Klaviersystem: oben die rechte Hand im Violinschlüssel, unten die linke im Bassschlüssel, hier mit einem Akkord.")}
        <p>Zwei Systeme mit einer <b>Klammer</b> gehören zusammen und werden gleichzeitig gelesen: oben die rechte Hand, unten die linke. Bei „beide Hände“ zählt jede Note in beiden Systemen.</p>`,
       `<h3>Akkorde</h3>
        <p>Ein <b>Akkord</b> sind mehrere Töne auf einmal: im System mehrere Köpfe an einem Hals, die <b>gleichzeitig</b> angeschlagen werden. Jeder Ton wird einzeln gewertet: zwei von drei getroffen heißt ein Fehler. Der <b>Dreiklang</b>, drei Töne im Terzabstand übereinander wie C E G, ist der Grundbaustein der Begleitung.</p>
@@ -235,20 +293,21 @@ NT.book = (() => {
     ] },
 
     { id: "glossar", tab: "Begriffe", icon: "Aa", colors: ["#5ee8b3", "#0f766e"], title: "Begriffe", pages: [
-      `<div class="ribbon display">Begriffe A bis E</div>
-       ${dl([["Akkord", "mehrere Töne gleichzeitig, im System übereinander an einem Hals."], ["Anschlagstärke", "wie fest die Taste gedrückt wurde (MIDI: Velocity, 1 bis 127). Bestimmt die Lautstärke."], ["Auflösungszeichen ♮", "hebt ein Kreuz oder B auf."], ["Blindflug", "Modus-Zusatz: die Note verschwindet vor der Linie, du spielst aus dem Kopf."], ["Bosse", "das letzte, etwas schwerere Level jeder Welt im Abenteuer."], ["bpm", "Schläge pro Minute, das Tempo."], ["Daumenuntersatz", "der Daumen geht unter der Hand durch, damit die Tonleiter weitergeht."], ["Dreiklang", "Akkord aus Grundton, Terz und Quinte, etwa C E G."], ["Dur, Moll", "die zwei Klangfarben der Tonarten: Dur hell, Moll dunkel; unterschieden durch die große oder kleine Terz."], ["Einzähler", "ein Takt Klicks vor der ersten Note."], ["Enharmonisch", "zwei Namen für dieselbe Taste, Fis und Ges."]])}`,
-      `<div class="ribbon display">Begriffe F bis K</div>
-       ${dl([["Fingersatz", "Ziffern 1 bis 5 für Daumen bis kleiner Finger."], ["Ganzton, Halbton", "Halbton: die nächste Taste. Ganzton: zwei Tasten weiter."], ["Geisternote", "zeigt bei Fehlern halbdurchsichtig rot, welche Note du gespielt hast."], ["Grundton", "der erste Ton der Tonart, nach dem sie heißt."], ["Hilfslinie", "kurze Linie für Töne über oder unter dem System."], ["Interface", "der Adapter zwischen Piano und iPad (hier das mioXC)."], ["Intervall", "Abstand zweier Töne, nach Buchstaben gezählt."], ["Klaviatur", "die Tastenreihe des Pianos."], ["Klaviersystem", "zwei Systeme mit Klammer, rechte und linke Hand."]])}`,
-      `<div class="ribbon display">Begriffe L bis P</div>
-       ${dl([["Legato, Staccato", "gebunden (die Töne gehen ineinander über) oder kurz abgesetzt."], ["Leitton", "der siebte Ton einer Tonart, einen Halbton unter dem Grundton, er drängt dorthin."], ["Metronom", "klickt auf jedem Schlag, betont auf der Eins."], ["MIDI", "Datenformat für Tastendaten zwischen Instrument und Rechner."], ["Modus", "eine Übungsart, etwa Lauf oder Quiz."], ["MusicXML", "Dateiformat für Noten, aus Programmen wie MuseScore."], ["Nachsitzen", "der Knopf „Fehler üben“ im Ergebnis: verfehlte Noten sofort nochmal."], ["Oktave", "Abstand von einem C zum nächsten, acht Buchstaben."], ["Phrase", "ein kurzer Ausschnitt aus einem Stück, hier ein bis zwei Takte."], ["Punktierung", "der Punkt hinter der Note verlängert sie um die Hälfte."]])}`,
-      `<div class="ribbon display">Begriffe Q bis S</div>
-       ${dl([["Quintenzirkel", "Ordnung der Tonarten nach Quinten und Anzahl der Vorzeichen."], ["Quote", "Anteil der richtigen Antworten, in Prozent."], ["Schlüssel", "legt fest, welcher Ton auf welcher Linie liegt: Violin- (G4) und Bassschlüssel (F3)."], ["Serie, Multi", "Treffer in Folge; ab 10, 20, 30 verdoppelt, verdreifacht, vervierfacht sich die XP."], ["Synth", "der eingebaute Klangerzeuger, wenn kein Piano klingt."]])}`,
+      `<div class="ribbon display">Begriffe A bis D</div>
+       ${dl([["Akkord", "mehrere Töne gleichzeitig, im System übereinander an einem Hals."], ["Anschlagstärke", "wie fest die Taste gedrückt wurde (MIDI: Velocity, 1 bis 127). Bestimmt die Lautstärke."], ["Arpeggio", "gebrochener Akkord: die Töne nacheinander statt zusammen."], ["Auflösungszeichen ♮", "hebt ein Kreuz oder B auf."], ["Blindflug", "Modus-Zusatz: die Note verschwindet vor der Linie, du spielst aus dem Kopf."], ["Bosse", "das letzte, etwas schwerere Level jeder Welt im Abenteuer."], ["bpm", "Schläge pro Minute, das Tempo."], ["chromatisch", "in Halbtonschritten, jede Taste wird mitgenommen."], ["Daumenuntersatz", "der Daumen geht unter der Hand durch, damit die Tonleiter weitergeht."], ["Dreiklang", "Akkord aus Grundton, Terz und Quinte, etwa C E G."], ["Dur, Moll", "die zwei Klangfarben der Tonarten: Dur hell, Moll dunkel; unterschieden durch die große oder kleine Terz."]])}`,
+      `<div class="ribbon display">Begriffe E bis H</div>
+       ${dl([["Einzähler", "ein Takt Klicks vor der ersten Note."], ["Enharmonisch", "zwei Namen für dieselbe Taste, Fis und Ges."], ["Fingersatz", "Ziffern 1 bis 5 für Daumen bis kleiner Finger."], ["Fünffingerlage", "fünf Finger auf fünf Nachbartasten, die Hand bleibt liegen."], ["Ganzton, Halbton", "Halbton: die nächste Taste. Ganzton: zwei Tasten weiter."], ["Geisternote", "zeigt bei Fehlern halbdurchsichtig rot, welche Note du gespielt hast."], ["Grundton", "der erste Ton der Tonart oder des Akkords, nach dem sie heißen."], ["Hilfslinie", "kurze Linie für Töne über oder unter dem System."]])}`,
+      `<div class="ribbon display">Begriffe I bis M</div>
+       ${dl([["Interface", "der Adapter zwischen Piano und iPad (hier das mioXC)."], ["Intervall", "Abstand zweier Töne, nach Buchstaben gezählt."], ["Kadenz", "die Akkorde der Stufen I, IV und V einer Tonart hintereinander."], ["Klaviatur", "die Tastenreihe des Pianos."], ["Klaviersystem", "zwei Systeme mit Klammer, rechte und linke Hand."], ["Legato, Staccato", "gebunden (die Töne gehen ineinander über) oder kurz abgesetzt."], ["Leitton", "der siebte Ton einer Tonart, einen Halbton unter dem Grundton, er drängt dorthin."], ["Metronom", "klickt auf jedem Schlag, betont auf der Eins."], ["MIDI", "Datenformat für Tastendaten zwischen Instrument und Rechner."], ["Modus", "eine Übungsart, etwa Lauf oder Quiz."], ["MusicXML", "Dateiformat für Noten, aus Programmen wie MuseScore."]])}`,
+      `<div class="ribbon display">Begriffe N bis S</div>
+       ${dl([["Nachsitzen", "der Knopf „Fehler üben“ im Ergebnis: verfehlte Noten sofort nochmal."], ["Oktave", "Abstand von einem C zum nächsten, acht Buchstaben."], ["Phrase", "ein kurzer Ausschnitt aus einem Stück, hier ein bis zwei Takte."], ["Punktierung", "der Punkt hinter der Note verlängert sie um die Hälfte."], ["Quintenzirkel", "Ordnung der Tonarten nach Quinten und Anzahl der Vorzeichen."], ["Quote", "Anteil der richtigen Antworten, in Prozent."], ["Schlüssel", "legt fest, welcher Ton auf welcher Linie liegt: Violin- (G4) und Bassschlüssel (F3)."], ["Septakkord", "Akkord aus vier Tönen: Dreiklang plus Septime."], ["Serie, Multi", "Treffer in Folge; ab 10, 20, 30 verdoppelt, verdreifacht, vervierfacht sich die XP."], ["Synth", "der eingebaute Klangerzeuger, wenn kein Piano klingt."]])}`,
       `<div class="ribbon display">Begriffe T bis Z</div>
-       ${dl([["Takt, Taktart", "Abschnitt zwischen Taktstrichen; die Taktart nennt die Schläge je Takt."], ["Tempo-Leiter", "Einstellung: das Tempo steigt nach guten Runden von selbst."], ["Tonart", "Tonvorrat und Grundton eines Stücks, erkennbar an der Vorzeichnung."], ["Treiber", "Zusatzsoftware für ein Gerät; iPad und Handy können keine installieren."], ["Vorzeichen, Vorzeichnung", "Kreuz oder B vor einer Note bzw. hinter dem Schlüssel für das ganze Stück."], ["Web MIDI", "die Schnittstelle, mit der eine Webseite das Piano hört. Chrome kann sie, Safari nicht."], ["XP, Level", "Erfahrungspunkte aus Treffern; das Level steigt mit ihnen."]])}`,
+       ${dl([["Takt, Taktart", "Abschnitt zwischen Taktstrichen; die Taktart nennt die Schläge je Takt."], ["Tempo-Leiter", "Einstellung: das Tempo steigt nach guten Runden von selbst."], ["Tonart", "Tonvorrat und Grundton eines Stücks, erkennbar an der Vorzeichnung."], ["Treiber", "Zusatzsoftware für ein Gerät; iPad und Handy können keine installieren."], ["Umkehrung", "derselbe Akkord mit einem anderen Ton unten."], ["vermindert, übermäßig", "Dreiklänge aus zwei kleinen bzw. zwei großen Terzen."], ["Vorzeichen, Vorzeichnung", "Kreuz oder B vor einer Note bzw. hinter dem Schlüssel für das ganze Stück."], ["Web MIDI", "die Schnittstelle, mit der eine Webseite das Piano hört. Chrome kann sie, Safari nicht."], ["XP, Level", "Erfahrungspunkte aus Treffern; das Level steigt mit ihnen."]])}`,
     ] },
   ];
   const byId = new Map(CHAPTERS.map(c => [c.id, c]));
-  const MODE_CHAPTER = { single: "modi", run: "modi", interval: "intervalle", rhythm: "rhythmus", scale: "tonleitern", phrase: "stuecke", piece: "stuecke", play: "stuecke", ear: "gehoer", quiz: "gehoer" };
+  const MODE_CHAPTER = { single: "modi", run: "modi", interval: "intervalle", rhythm: "rhythmus", scale: "tonleitern", phrase: "stuecke", piece: "stuecke", play: "stuecke", ear: "gehoer", quiz: "gehoer",
+    chord: "akkorde", chordLearn: "akkorde", chordTime: "akkorde", scaleLearn: "tonleitern", scaleTime: "tonleitern" };
 
   /* --- Figuren: der Notenzeichner malt auf kleine Canvases ---------------- */
   function base(canvas, spec) {
@@ -288,6 +347,20 @@ NT.book = (() => {
       c.fillStyle = "#1f1a16"; c.beginPath(); c.roundRect ? c.roundRect(bx, top, bw, bh, [0, 0, 4, 4]) : c.rect(bx, top, bw, bh); c.fill();
       if (blackNames) { c.fillStyle = "#ffd23f"; c.fillText(up, bx + bw / 2, top + bh * 0.42); c.fillStyle = "#9ad8ff"; c.fillText(down, bx + bw / 2, top + bh * 0.42 + kw * 0.26); }
     }
+  }
+  function chordsRow(canvas, chords, labels) {
+    const all = chords.flatMap(ch => ch.tones.map(t => t.midi));
+    const L = base(canvas, { staves: [Object.assign({ clef: "treble" }, stepsOf("treble", all), { above: 5 })], labels: false }); if (!L) return;
+    const x = slots(L, chords.length);
+    chords.forEach((ch, i) => {
+      let k = 0; const shift = new Map();
+      for (const t of ch.tones.slice().reverse()) if (t.accidental) shift.set(t, (k++ % 2) * 1.15);
+      for (const t of ch.tones) {
+        N.drawNote(L, 0, { diatonic: t.diatonic, dur: 4, accidental: t.accidental }, x(i), { accShift: shift.get(t) || 0 });
+        N.drawText(L, String(t.finger), x(i) + N.M.wholeW * L.GAP + L.GAP * 0.8, N.yFor(L, 0, t.diatonic), 0.8, K.FINGER_COL[t.finger]);
+      }
+      N.drawText(L, labels[i], x(i) + N.M.wholeW * L.GAP / 2, L.staves[0].topY - L.GAP * (i % 2 ? 3.0 : 1.9), 0.62, "#3b2f24");
+    });
   }
   const FIGS = {
     treble: c => row(c, "treble", [60, 62, 64, 65, 67, 69, 71, 72]),
@@ -338,6 +411,13 @@ NT.book = (() => {
       N.drawChord(L, 1, [noteOf(48, 4), noteOf(52, 4), noteOf(55, 4)], x(0), {});
       N.drawChord(L, 1, [noteOf(43, 4), noteOf(47, 4), noteOf(50, 4)], x(2), {});
     },
+    // Akkorde als Notenbild: mehrere Griffe nebeneinander, Fingersatz rechts neben den Köpfen, Name darüber.
+    inversions: c => chordsRow(c, [0, 1, 2].map(i => MU.chord(0, "dur", i, "r")), ["Grundstellung", "1. Umkehrung", "2. Umkehrung"]),
+    cadence: c => chordsRow(c, MU.cadence(0, "dur", "r"), ["I: C", "IV: F", "V: G", "I: C"]),
+    chordHand: c => { const ch = MU.chord(0, "dur", 0, "r"); K.draw(c, { low: 60, high: 83, naming: naming(), marks: ch.tones.map(t => ({ midi: t.midi, finger: t.finger, state: "target" })), hand: { hand: "r", tips: K.restingTips(ch.tones.map(t => ({ finger: t.finger, midi: t.midi })), "r") } }); },
+    fuenfHand: c => { const sc = MU.scaleNotes(0, "fuenfDur", 1, "r"), up = sc.notes.slice(0, sc.up); K.draw(c, { low: 60, high: 83, naming: naming(), marks: up.map(n => ({ midi: n.midi, finger: n.finger, state: "target" })), hand: { hand: "r", tips: up.map(n => ({ finger: n.finger, midi: n.midi, down: true })) } }); },
+    handL: c => K.drawHandIcon(c, "l"),
+    handR: c => K.drawHandIcon(c, "r"),
     flying: c => drawFlying(c, performance.now()),
   };
 
@@ -365,8 +445,8 @@ NT.book = (() => {
     const pages = ch.pages, total = Math.ceil(pages.length / 2), spread = Math.min(B.page, total - 1);
     B.page = spread;
     const left = pages[spread * 2] || "", right = pages[spread * 2 + 1] || "";
-    $("bookLeft").innerHTML = `<div class="pageBody">${left}</div>`;
-    $("bookRight").innerHTML = `<div class="pageBody">${right || `<div class="endMark">♪</div>`}</div>`;
+    $("bookLeft").innerHTML = `<div class="bookBody">${left}</div>`;
+    $("bookRight").innerHTML = `<div class="bookBody">${right || `<div class="endMark">♪</div>`}</div>`;
     $("bookLeft").scrollTop = 0; $("bookRight").scrollTop = 0;
     $("bookPageNo").textContent = `${ch.title} · Seite ${spread + 1} / ${total}`;
     $("bookPrev").disabled = spread === 0 && CHAPTERS.indexOf(ch) === 0;

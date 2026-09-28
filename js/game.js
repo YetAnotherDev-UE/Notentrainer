@@ -55,7 +55,8 @@ NT.game = (() => {
   function pickWeighted(pool, exclude) {
     if (!pool.length) return null;
     const byMidi = new Map();
-    for (const e of history) { if (!byMidi.has(e.midi)) byMidi.set(e.midi, []); byMidi.get(e.midi).push(e); }
+    // Akkord- und Zeitlauf-Zeilen tragen nur den Grundton und sagen nichts über einzelne Noten.
+    for (const e of history) { if (e.mode === "chord" || e.mode === "scaleTime") continue; if (!byMidi.has(e.midi)) byMidi.set(e.midi, []); byMidi.get(e.midi).push(e); }
     const weights = pool.map(m => {
       const seen = byMidi.get(m) || [];
       if (!seen.length) return 2;
@@ -134,9 +135,16 @@ NT.game = (() => {
     let i = 0;
     return { next: () => i < seq.length ? seq[i++] : null, length: seq.filter(g => !g.notes[0].isRest).length };
   }
-  function scaleSource(root, type, octaves) {
-    const seq = MU.scale(root, type, octaves); let i = 0;
-    return { next() { if (i >= seq.length) return null; const m = seq[i++]; return { notes: [noteFromMidi(m, 1)], advance: 1, bar: false }; }, length: seq.length };
+  // Tonleiter (oder Fünffingerlage, chromatisch, gebrochener Akkord) mit
+  // richtiger Schreibweise und dem Fingersatz über den Noten.
+  const scaleOf = c => MU.scaleNotes(c.scaleRoot % 12, c.scaleType, c.scaleOctaves, c.clef === "bass" ? "l" : "r", (c.scaleRoot % 12) + (c.clef === "bass" ? 48 : 60));
+  function scaleSource(c) {
+    const hand = c.clef === "bass" ? "l" : "r", seq = scaleOf(c).notes; let i = 0;
+    const label = n => c.labels === "octave" ? MU.nameOf(n.letter, n.alter, c.naming, n.octave) : c.labels === "name" ? MU.nameOf(n.letter, n.alter, c.naming) : null;
+    return { next() {
+      if (i >= seq.length) return null; const n = seq[i++];
+      return { notes: [{ midi: n.midi, diatonic: n.diatonic, dur: 1, accidental: n.accidental, hand, finger: n.finger, label: label(n) }], advance: 1, bar: false };
+    }, length: seq.length };
   }
   // Phrasen: ein bis zwei Takte aus einem gewählten Stück, gewichtet nach
   // Fehlern je (Stück, Takt), gefiltert nach Hand und Tonumfang. Mit `only`
@@ -229,9 +237,10 @@ NT.game = (() => {
       fingers = pieces.some(p => p && p.notes.some(n => n.finger));
     } else if (S.mode === "scale") {
       // MIDI 60 = C4: Violinschlüssel ab der vierten Oktave (+60), Bassschlüssel ab der dritten (+48).
-      const seq = MU.scale(c.scaleRoot + (c.clef === "bass" ? 48 : 60), c.scaleType, c.scaleOctaves);
-      staves = [Object.assign({ clef: c.clef }, stepsFor(c.clef, seq))];
-      fifths = MU.fifthsOf(c.scaleRoot % 12, c.scaleType === "dur" ? "dur" : "moll");
+      const sc = scaleOf(c);
+      staves = [Object.assign({ clef: c.clef }, stepsFor(c.clef, sc.notes.map(n => n.midi)))];
+      fifths = sc.key.fifths;
+      fingers = true;
     } else if (S.mode === "rhythm") {
       staves = [{ clef: c.clef, above: 0, below: 0 }];
       time = { beats: S.beatsPerBar, beatType: 4 };
@@ -515,7 +524,7 @@ NT.game = (() => {
     if (mode === "run") { S.source = randomSource(c.runLength || 24, S.pool || candidates()); S.total = c.runLength || 24; }
     else if (mode === "interval") { S.source = intervalSource(c.runLength || 24, S.pool || candidates(), c.intervalMax || 5); S.total = c.runLength || 24; }
     else if (mode === "rhythm") { S.source = rhythmSource(c.rhythmBars || 8, c.rhythmDurations || RHYTHM_SETS[c.rhythmSet] || RHYTHM_SETS[3], !!c.rhythmRests, S.beatsPerBar, c.clef === "bass" ? 50 : 71); S.total = S.source.length; }
-    else if (mode === "scale") { S.source = scaleSource(c.scaleRoot + (c.clef === "bass" ? 48 : 60), c.scaleType, c.scaleOctaves); S.total = S.source.length; }
+    else if (mode === "scale") { S.source = scaleSource(c); S.total = S.source.length; }
     else if (mode === "phrase") { S.source = phraseSource(S.pieces, S.hand, c.phrases || 6, opts.only || null); S.total = 0; }
     else if (mode === "play" || mode === "piece") { S.source = pieceSource(S.piece, S.hand); S.total = mode === "piece" ? NT.musicxml.notesFor(S.piece, S.hand).length : 0; }
     // Vorlauf in Schlägen, aber so gewählt, dass Achtel nicht zusammenkleben.

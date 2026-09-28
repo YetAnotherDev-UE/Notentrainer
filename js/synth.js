@@ -71,6 +71,37 @@ NT.synth = (() => {
     o.start(t); o.stop(t + len + 0.05);
   }
 
+  // Klänge der Oberfläche: leise und kurz, damit sie auch beim hundertsten
+  // Tippen nicht stören. tap (Knopf), menu (Menüknopf), back (zurück),
+  // open (etwas geht auf), page (Seite blättern), toggle (Auswahl).
+  function ui(kind) {
+    if (!fxEnabled) return;
+    const a = ctx(); if (!a) return;
+    const t = a.currentTime;
+    if (kind === "page") {
+      // Papier: ein kurzes Rauschen durch einen Bandpass
+      const len = Math.floor(a.sampleRate * 0.12), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+      src.buffer = buf; f.type = "bandpass"; f.frequency.setValueAtTime(1400, t); f.frequency.exponentialRampToValueAtTime(3200, t + 0.1); f.Q.value = 0.8;
+      g.gain.setValueAtTime(0.09, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+      src.connect(f); f.connect(g); g.connect(master); src.start(t);
+      return;
+    }
+    const o = a.createOscillator(), g = a.createGain();
+    o.connect(g); g.connect(master);
+    let len = 0.07, vol = 0.045;
+    if (kind === "menu") { o.type = "triangle"; o.frequency.setValueAtTime(523, t); o.frequency.setValueAtTime(784, t + 0.05); len = 0.13; vol = 0.06; }
+    else if (kind === "back") { o.type = "triangle"; o.frequency.setValueAtTime(587, t); o.frequency.exponentialRampToValueAtTime(392, t + 0.09); len = 0.11; }
+    else if (kind === "open") { o.type = "sine"; o.frequency.setValueAtTime(440, t); o.frequency.exponentialRampToValueAtTime(988, t + 0.12); len = 0.15; vol = 0.05; }
+    else if (kind === "toggle") { o.type = "sine"; o.frequency.setValueAtTime(880, t); len = 0.04; vol = 0.035; }
+    else { o.type = "sine"; o.frequency.setValueAtTime(700, t); o.frequency.exponentialRampToValueAtTime(920, t + 0.04); len = 0.06; }
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.start(t); o.stop(t + len + 0.03);
+  }
+
   // Metronom: kurzer heller Tick, die Betonung eine Terz hoeher und lauter.
   // Laeuft unabhaengig von "Synth an", das betrifft nur das Abspielen.
   function click(accent, when) {
@@ -86,7 +117,7 @@ NT.synth = (() => {
   // performance.now()-Millisekunden auf die Zeitachse des AudioContext.
   function timeFor(perfMs) { const a = ctx(); if (!a) return 0; return a.currentTime + (perfMs - performance.now()) / 1000; }
 
-  return { unlock, noteOn, noteOff, allOff, blip, click, timeFor,
+  return { unlock, noteOn, noteOff, allOff, blip, ui, click, timeFor,
            set enabled(v) { enabled = !!v; if (!enabled) allOff(); }, get enabled() { return enabled; },
            set fx(v) { fxEnabled = !!v; }, get fx() { return fxEnabled; },
            get context() { return ac; } };
