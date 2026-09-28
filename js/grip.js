@@ -51,15 +51,23 @@ NT.grip = (() => {
 
   /* --- Auswahl der Akkorde für „Auf Zeit" --------------------------------- */
   const SETS = {
-    one: "Nur dieser Akkord", cadence: "Kadenz in dieser Tonart (I IV V I)", durWhite: "Dur, weiße Grundtöne", dur: "Alle Dur-Akkorde",
+    one: "Nur dieser Akkord", inversions: "Dieser Akkord, alle Umkehrungen", cadence: "Kadenz in dieser Tonart (I IV V I)", durWhite: "Dur, weiße Grundtöne", dur: "Alle Dur-Akkorde",
     moll: "Alle Moll-Akkorde", durmoll: "Dur und Moll gemischt", circle: "Dur im Quintenzirkel", triads: "Alle Dreiklänge", sevenths: "Septakkorde", all: "Alle Arten",
   };
   function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
   function buildQueue(o) {
     const n = Math.max(4, o.count || 10), hand = o.hand, inv = o.inv || 0;
-    const mk = (root, type, i) => MU.chord(root, type, MU.CHORDS[type].steps.length === 3 ? (i == null ? inv : i) : 0, hand);
+    const mk = (root, type, i) => MU.chord(root, type, i == null ? inv : i, hand);
     const all12 = type => Array.from({ length: 12 }, (_, r) => [r, type]);
     let pool;
+    if (o.set === "inversions") {
+      // Grundstellung, dann jede Umkehrung hinauf und wieder zurück: 0 1 2 1 0 oder 0 1 2 3 2 1 0
+      const top = MU.CHORDS[o.type].steps.length - 1, cycle = [];
+      for (let i = 0; i <= top; i++) cycle.push(i);
+      for (let i = top - 1; i >= 1; i--) cycle.push(i);
+      const len = Math.ceil(Math.max(n, cycle.length + 1) / cycle.length) * cycle.length + 1;
+      return Array.from({ length: len }, (_, i) => mk(o.root, o.type, cycle[i % cycle.length]));
+    }
     if (o.set === "cadence") {
       const out = []; const t = (o.type === "moll" || o.type === "m7" || o.type === "dim") ? "moll" : "dur";
       while (out.length < n) for (const c of MU.cadence(o.root, t, hand)) out.push(c);
@@ -78,7 +86,10 @@ NT.grip = (() => {
     while (out.length < n) { if (!bag.length) bag = shuffle(pool.slice()); const [r, t] = bag.pop(); if (out.length && out[out.length - 1].rootPc === r && out[out.length - 1].type === t && pool.length > 1) { bag.unshift([r, t]); continue; } out.push(mk(r, t)); }
     return out;
   }
-  const chordLabel = ch => MU.chordTitle(ch.rootPc, ch.type, naming()) + (ch.inv ? ", " + MU.INVERSIONS[ch.inv] : "") + (ch.degree ? " · Stufe " + ch.degree : "");
+  // Name und Kürzel in der Schreibweise des Griffs selbst: In einer Kadenz gibt die Tonart den Grundton vor (Cis statt Des).
+  const spellOf = ch => [ch.rootLetter, ch.rootAlter];
+  const chordName = ch => MU.chordTitle(ch.rootPc, ch.type, naming(), spellOf(ch)) + (ch.inv ? ", " + MU.INVERSIONS[ch.inv] : "");
+  const chordLabel = ch => chordName(ch) + (ch.degree ? " · Stufe " + ch.degree : "");
 
   /* --- Start und Ende ------------------------------------------------------ */
   function start(kind, o) {
@@ -225,7 +236,7 @@ NT.grip = (() => {
     if (!st.complete) return;
     if (!st.bassOk) { say(`Richtige Töne, aber unten muss ${toneName(S.chord.tones[0])} liegen (${MU.INVERSIONS[S.chord.inv]}).`, "miss"); if (!S.bassWarned) { S.bassWarned = true; S.errors++; S.errorsThis++; hooks.sound("miss"); } return; }
     S.bassWarned = false;
-    const ms = t - S.t0, clean = S.errorsThis === 0, title = chordLabel(S.chord), plain = MU.chordTitle(S.chord.rootPc, S.chord.type, naming()) + (S.chord.inv ? ", " + MU.INVERSIONS[S.chord.inv] : "");
+    const ms = t - S.t0, clean = S.errorsThis === 0, title = chordLabel(S.chord), plain = chordName(S.chord);
     S.solved = true; S.times.push({ ms, clean, title });
     const row = { id: S.session + "-" + S.qi, session: S.session, t: Date.now(), mode: "chord", midi: 60 + S.chord.rootPc, chord: MU.chordSymbol(S.chord.rootPc, S.chord.type, "int"), shownAt: S.t0, hitAt: t, correct: clean };
     NT.game.history.push(row); NT.store.queue("events", row);
@@ -265,13 +276,34 @@ NT.grip = (() => {
     N.drawStaves(L);
     const x = L.contentLeft + (L.right - L.contentLeft) * 0.38;
     if (o.hidden) { N.drawText(L, "?", x + L.GAP, (L.staves[0].topY + L.staves[0].bottomY) / 2, 2.2, N.COL.muted); return; }
-    // Vorzeichen von oben nach unten abwechselnd nah und weiter links, sonst stoßen sie bei Terzen zusammen.
-    let k = 0; const shift = new Map();
-    for (const t of ch.tones.slice().reverse()) if (t.accidental) shift.set(t, (k++ % 2) * 1.15);
-    ch.tones.forEach((t, i) => {
-      const colour = o.colour ? o.colour(i, t) : N.COL.ink;
-      N.drawNote(L, 0, { diatonic: t.diatonic, dur: 4, accidental: t.accidental }, x, { colour, accShift: shift.get(t) || 0 });
-      N.drawText(L, String(t.finger), x + N.M.wholeW * L.GAP + L.GAP * 1.0, N.yFor(L, 0, t.diatonic), 0.95, K.FINGER_COL[t.finger]);
+    chordColumn(L, ch.tones, x, { colour: o.colour });
+  }
+  /* Ein Akkord als Säule im System, die Töne von unten nach oben.
+   * o: { colour(i, ton), size (Fingerzahl in Linienabständen), gap (Abstand der Fingerzahlen vom Kopf) } */
+  function chordColumn(L, tones, x, o) {
+    o = o || {};
+    // Vorzeichen stehen in Spalten links vom Akkord: von oben nach unten kommt jedes in die erste Spalte,
+    // in der es mit keinem anderen zusammenstößt (dafür braucht es eine Septime Abstand).
+    const accW = a => a === "dflat" ? 2 * N.M.accW.flat + 0.12 : a === "dsharp" ? 1.0 : N.M.accW[a];
+    const cols = [], shift = new Map();
+    for (const t of tones.slice().reverse()) {
+      if (!t.accidental) continue;
+      let c = 0; while (cols[c] && cols[c].some(u => Math.abs(u.diatonic - t.diatonic) < 6)) c++;
+      (cols[c] = cols[c] || []).push(t);
+    }
+    let off = 0;
+    for (const col of cols) { for (const t of col) shift.set(t, off); off += Math.max(...col.map(t => accW(t.accidental))) + 0.16; }
+    // Sekunden: Zwei Köpfe auf benachbarten Plätzen passen nicht übereinander, der obere rückt nach rechts.
+    const w = N.M.wholeW, aside = tones.map(() => false);
+    for (let i = 1; i < tones.length; i++) aside[i] = tones[i].diatonic - tones[i - 1].diatonic === 1 && !aside[i - 1];
+    // Die Fingerzahlen stehen rechts in einer Spalte; liegen zwei zu dicht, weichen beide gleich weit aus.
+    const size = o.size || 0.95, min = size * 0.95, at = tones.map(t => t.diatonic / 2);
+    for (let pass = 0; pass < 8; pass++) for (let i = 1; i < at.length; i++) { const d = at[i] - at[i - 1]; if (d < min) { at[i - 1] -= (min - d) / 2; at[i] += (min - d) / 2; } }
+    const fx = x + (aside.some(Boolean) ? 2 * w : w) * L.GAP + L.GAP * (o.gap || 1.0);
+    tones.forEach((t, i) => {
+      const colour = o.colour ? o.colour(i, t) : N.COL.ink, dx = aside[i] ? w : 0;
+      N.drawNote(L, 0, { diatonic: t.diatonic, dur: 4, accidental: t.accidental }, x + dx * L.GAP, { colour, accShift: (shift.get(t) || 0) + dx });
+      N.drawText(L, String(t.finger), fx, N.yFor(L, 0, t.diatonic) - (at[i] - t.diatonic / 2) * L.GAP, size, K.FINGER_COL[t.finger]);
     });
   }
   function scaleStaff(cv, sc, o) {
@@ -336,8 +368,8 @@ NT.grip = (() => {
     if (!S.kind) return;
     const set = (id, v) => { const el = $(id); if (el && el.textContent !== String(v)) el.textContent = v; };
     let step = "", name = "", best = null, title = "";
-    if (S.kind === "chordLearn") { const n = S.chord.tones.length, total = n + 4; step = Math.min(total, (S.phase === "single" ? S.j : S.phase === "build" ? n : n + 1 + S.reps) + 1) + "/" + total; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming()); title = "Akkord lernen · " + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
-    else if (S.kind === "chordTime") { step = (S.qi + 1) + "/" + S.queue.length; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming()); title = "Akkorde auf Zeit · " + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
+    if (S.kind === "chordLearn") { const n = S.chord.tones.length, total = n + 4; step = Math.min(total, (S.phase === "single" ? S.j : S.phase === "build" ? n : n + 1 + S.reps) + 1) + "/" + total; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming(), spellOf(S.chord)); title = "Akkord lernen · " + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
+    else if (S.kind === "chordTime") { step = (S.qi + 1) + "/" + S.queue.length; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming(), spellOf(S.chord)); title = "Akkorde auf Zeit · " + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
     else { step = Math.min(S.si + 1, S.seq.notes.length) + "/" + S.seq.notes.length; name = MU.scaleTitle(S.opts.root, S.opts.type, naming()); title = (S.kind === "scaleLearn" ? "Tonfolge lernen · " : "Tonfolge auf Zeit · ") + name; best = bestOf(scaleKey(S.opts)); }
     set("gripStep", step); set("gripErr", S.errors); set("gripName", name); set("gripTitle", title);
     set("gripBest", best == null ? "–" : secs(best));
@@ -397,7 +429,7 @@ NT.grip = (() => {
     if (legend) legend.innerHTML = [1, 2, 3, 4, 5].map(f => `<span class="fdot"><i style="background:${K.FINGER_COL[f]}">${f}</i>${K.FINGER_NAME[f]}</span>`).join("");
   }
 
-  return { start, stop, draw, onNoteOn, onNoteOff, bind, hooks, SETS, previewChord, previewScale, chordStaff, scaleStaff, bestOf, chordKey, scaleKey, secs, chordLabel,
+  return { start, stop, draw, onNoteOn, onNoteOff, bind, hooks, SETS, previewChord, previewScale, chordStaff, chordColumn, scaleStaff, bestOf, chordKey, scaleKey, secs, chordLabel,
            get running() { return S.running; }, get kind() { return S.kind; }, get state() { return S; },
            get records() { return records; }, set records(v) { records = v || {}; } };
 })();

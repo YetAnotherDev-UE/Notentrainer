@@ -230,7 +230,7 @@ NT.app = (() => {
   const ROOT12 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
   function gripOpts(which) {
     return which === "chord"
-      ? { root: settings.chordRoot, type: settings.chordType, inv: MU.CHORDS[settings.chordType].steps.length === 3 ? settings.chordInv : 0, hand: settings.gripHand, help: settings.gripHelp, set: settings.chordSet, count: settings.chordCount }
+      ? { root: settings.chordRoot, type: settings.chordType, inv: settings.chordInv < MU.CHORDS[settings.chordType].steps.length ? settings.chordInv : 0, hand: settings.gripHand, help: settings.gripHelp, set: settings.chordSet, count: settings.chordCount }
       : { root: settings.formRoot, type: settings.formType, octaves: /^fuenf/.test(settings.formType) ? 1 : settings.formOct, hand: settings.gripHand, help: settings.gripHelp };
   }
   function renderForms() {
@@ -242,7 +242,9 @@ NT.app = (() => {
     fill("chordSet", Object.keys(NT.grip.SETS).map(k => `<option value="${k}">${NT.grip.SETS[k]}</option>`).join(""), settings.chordSet);
     $("formRoot").innerHTML = ROOT12.map(r => { const k = MU.scaleKey(r, settings.formType); return `<option value="${r}">${MU.nameOf(k.letter, k.alter, nm)}</option>`; }).join(""); $("formRoot").value = settings.formRoot;
     fill("formType", Object.keys(MU.FORMS).map(k => `<option value="${k}">${MU.FORMS[k]}</option>`).join(""), settings.formType);
-    $("chordInv").value = c.inv; $("chordInv").disabled = MU.CHORDS[settings.chordType].steps.length !== 3;
+    // Die dritte Umkehrung gibt es nur bei Akkorden aus vier Tönen.
+    const third = $("chordInv").options[3]; third.disabled = third.hidden = MU.CHORDS[settings.chordType].steps.length < 4;
+    $("chordInv").value = c.inv;
     $("formOct").value = f.octaves; $("formOct").disabled = /^fuenf/.test(settings.formType);
     $("chordCount").value = settings.chordCount; $("gripHand").value = settings.gripHand; $("gripHelpSel").value = settings.gripHelp;
     // Vorschau: Noten, Klaviatur, Hand

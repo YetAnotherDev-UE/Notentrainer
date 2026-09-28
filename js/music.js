@@ -95,6 +95,7 @@ NT.music = (() => {
    * Buchstabe und Tonhöhe folgt das Vorzeichen. Selten ergibt das ein
    * doppeltes Vorzeichen (Fisis in H übermäßig, Heses in C°7).
    * ------------------------------------------------------------------ */
+  const ACCIDENTAL = { "0": "natural", "1": "sharp", "-1": "flat", "2": "dsharp", "-2": "dflat" };
   function spelled(letter, midi) {
     let octave = Math.floor(midi / 12) - 1;
     let alter = midi - midiOf(letter, 0, octave);
@@ -144,15 +145,17 @@ NT.music = (() => {
     six:  { name: "Dur mit Sexte", suffix: "6", steps: [0, 4, 7, 9], letters: [0, 2, 4, 5], roots: "dur" },
     m6:   { name: "Moll mit Sexte", suffix: "m6", steps: [0, 3, 7, 9], letters: [0, 2, 4, 5], roots: "moll" },
     dim7: { name: "verminderter Septakkord", suffix: "°7", steps: [0, 3, 6, 9], letters: [0, 2, 4, 6], roots: "dim" },
-    m7b5: { name: "halbverminderter Septakkord", suffix: "m7♭5", steps: [0, 3, 6, 10], letters: [0, 2, 4, 6], roots: "moll" },
+    m7b5: { name: "halbverminderter Septakkord", suffix: "m7♭5", steps: [0, 3, 6, 10], letters: [0, 2, 4, 6], roots: "dim" },
   };
-  const INVERSIONS = ["Grundstellung", "1. Umkehrung", "2. Umkehrung"];
+  const INVERSIONS = ["Grundstellung", "1. Umkehrung", "2. Umkehrung", "3. Umkehrung"];
   /* Fingersatz für einen Griff, aus den Abständen der Töne (recherchiert,
    * Standard der Klavierschulen): Dreiklang rechts 1 3 5, links 5 3 1. Liegt
    * oben eine Quarte (erste Umkehrung, sus2), nimmt die rechte Hand 1 2 5;
    * liegt sie unten (zweite Umkehrung, sus4), nimmt die linke 5 2 1. Ein
    * Sekundabstand am Rand verlangt den vierten Finger. Vierklang rechts
-   * 1 2 3 5, links 5 3 2 1. */
+   * 1 2 3 5, links 5 3 2 1, auch in den Umkehrungen; nur wenn die Sekunde
+   * oben liegt (erste Umkehrung des Septakkords), nimmt die rechte Hand
+   * 1 2 4 5, und wenn sie unten liegt (dritte Umkehrung), die linke 5 4 2 1. */
   function chordFingers(midis, hand) {
     const g = midis.slice(1).map((m, i) => m - midis[i]);
     if (midis.length === 3) {
@@ -165,14 +168,17 @@ NT.music = (() => {
     }
     return midis.map((m, i) => hand === "l" ? midis.length - i : i + 1);
   }
-  function chord(rootPc, type, inv, hand) {
-    const c = CHORDS[type] || CHORDS.dur, [rl, ra] = ROOTS[c.roots][rootPc];
+  // spell (optional): [Buchstabe, Vorzeichen] des Grundtons, wenn die Tonart ihn vorgibt (Kadenz); sonst gilt die Tabelle.
+  function chord(rootPc, type, inv, hand, spell) {
+    const c = CHORDS[type] || CHORDS.dur, [rl, ra] = spell || ROOTS[c.roots][rootPc];
     // Rechts um das mittlere C, links eine Oktave tiefer; hohe Grundtöne links noch eine tiefer, damit sie im System bleiben.
     const base = hand === "l" ? (rootPc >= 7 ? 36 : 48) + rootPc : 60 + rootPc;
     let tones = c.steps.map((s, i) => spelled((rl + c.letters[i]) % 7, base + s));
-    const k = c.steps.length === 3 ? Math.max(0, Math.min(2, inv || 0)) : 0;
+    // Ein Akkord hat so viele Umkehrungen wie Töne, weniger eine; was es nicht gibt, wird zur Grundstellung.
+    const k = inv > 0 && inv < c.steps.length ? Math.floor(inv) : 0;
     for (let i = 0; i < k; i++) { const t = tones.shift(); tones.push(spelled(t.letter, t.midi + 12)); }
-    if (tones[tones.length - 1].midi > (hand === "l" ? 67 : 84)) tones = tones.map(t => spelled(t.letter, t.midi - 12));
+    // Zu hoch geratene Umkehrungen rücken eine Oktave tiefer: links bis zum E über dem mittleren C, rechts bis zum dreigestrichenen C.
+    if (tones[tones.length - 1].midi > (hand === "l" ? 64 : 84)) tones = tones.map(t => spelled(t.letter, t.midi - 12));
     return finishChord({ type, rootPc, inv: k, hand, tones, rootLetter: rl, rootAlter: ra, pcs: c.steps.map(s => (rootPc + s) % 12) });
   }
   function finishChord(ch) {
@@ -192,20 +198,24 @@ NT.music = (() => {
   /* Kadenz: die drei Hauptakkorde einer Tonart, I IV V I, so gelegt, dass die
    * Hand fast liegen bleibt: I in Grundstellung, IV in der zweiten
    * Umkehrung (der Grundton der Tonart bleibt unten), V in der ersten
-   * Umkehrung. In Moll ist die V trotzdem ein Dur-Akkord (Leitton). */
+   * Umkehrung. In Moll ist die V trotzdem ein Dur-Akkord (Leitton).
+   * IV und V heißen nach der Tonart: ihr Grundton liegt drei bzw. vier
+   * Buchstaben über dem der Tonart, in Fis-Dur also H und Cis, nicht Des. */
   function cadence(rootPc, type, hand) {
     const minor = type !== "dur", t = minor ? "moll" : "dur";
     const I = chord(rootPc, t, 0, hand), near = I.tones[0].midi;
-    const IV = chordNear(chord((rootPc + 5) % 12, t, 2, hand), near);
-    const V = chordNear(chord((rootPc + 7) % 12, "dur", 1, hand), near);
+    const rootOf = (letters, pc) => { const l = (I.rootLetter + letters) % 7; return [l, spelled(l, 60 + pc).alter]; };
+    const IV = chordNear(chord((rootPc + 5) % 12, t, 2, hand, rootOf(3, (rootPc + 5) % 12)), near);
+    const V = chordNear(chord((rootPc + 7) % 12, "dur", 1, hand, rootOf(4, (rootPc + 7) % 12)), near);
     const I2 = chord(rootPc, t, 0, hand);
     [I, IV, V, I2].forEach((c, i) => { c.degree = ["I", "IV", "V", "I"][i]; });
     return [I, IV, V, I2];
   }
-  const chordRoot = (rootPc, type, naming) => { const c = CHORDS[type] || CHORDS.dur, [l, a] = ROOTS[c.roots][rootPc]; return nameOf(l, a, naming); };
-  const chordSymbol = (rootPc, type, naming) => chordRoot(rootPc, type, naming) + (CHORDS[type] || CHORDS.dur).suffix;
-  function chordTitle(rootPc, type, naming) {
-    const r = chordRoot(rootPc, type, naming);
+  // Namen: spell (optional) wie bei chord, für Akkorde, deren Grundton die Tonart vorgibt.
+  const chordRoot = (rootPc, type, naming, spell) => { const c = CHORDS[type] || CHORDS.dur, [l, a] = spell || ROOTS[c.roots][rootPc]; return nameOf(l, a, naming); };
+  const chordSymbol = (rootPc, type, naming, spell) => chordRoot(rootPc, type, naming, spell) + (CHORDS[type] || CHORDS.dur).suffix;
+  function chordTitle(rootPc, type, naming, spell) {
+    const r = chordRoot(rootPc, type, naming, spell);
     if (type === "dur") return r + "-Dur";
     if (type === "moll") return (naming === "de" ? r.charAt(0).toLowerCase() + r.slice(1) : r) + "-Moll";
     if (type === "dim") return r + " vermindert";
@@ -224,8 +234,19 @@ NT.music = (() => {
     dur: "Dur-Tonleiter", moll: "Moll-Tonleiter (natürlich)", harmonisch: "Moll-Tonleiter (harmonisch)",
     fuenfDur: "Fünffingerlage Dur", fuenfMoll: "Fünffingerlage Moll", chrom: "Chromatische Tonleiter",
     arpDur: "Gebrochener Dur-Akkord", arpMoll: "Gebrochener Moll-Akkord",
+    pentaDur: "Pentatonik Dur", pentaMoll: "Pentatonik Moll", blues: "Blues-Tonleiter",
   };
-  const isMinorForm = type => type === "moll" || type === "harmonisch" || type === "fuenfMoll" || type === "arpMoll";
+  const isMinorForm = type => type === "moll" || type === "harmonisch" || type === "fuenfMoll" || type === "arpMoll" || type === "pentaMoll" || type === "blues";
+  /* Tonleitern mit Lücken: Halbtöne und Buchstabenabstand ab dem Grundton.
+   * Pentatonik Dur ist die Dur-Tonleiter ohne vierte und siebte Stufe,
+   * Pentatonik Moll die Moll-Tonleiter ohne zweite und sechste. Die
+   * Blues-Tonleiter ist die Moll-Pentatonik mit einem eingeschobenen Ton
+   * zwischen vierter und fünfter Stufe (Blue Note, Index 3). */
+  const GAPPED = {
+    pentaDur:  { steps: [0, 2, 4, 7, 9], letters: [0, 1, 2, 4, 5] },
+    pentaMoll: { steps: [0, 3, 5, 7, 10], letters: [0, 2, 3, 4, 6] },
+    blues:     { steps: [0, 3, 5, 6, 7, 10], letters: [0, 2, 3, 3, 4, 6], blue: 3 },
+  };
   // Auf und wieder ab, ohne den Umkehrton doppelt.
   function scale(root, type, octaves) {
     const steps = SCALES[type] || SCALES.dur;
@@ -290,6 +311,52 @@ NT.music = (() => {
       return (pc === 5 || pc === 0) && i > 0 ? 2 : 1;
     });
   }
+  /* Fingersatz für Pentatonik und Blues-Tonleiter. Anders als bei Dur und
+   * Moll gibt es hier keine einheitliche Überlieferung, die Tabellen
+   * weichen voneinander ab (verglichen: pianoscales.org für die Pentatonik,
+   * freejazzlessons.com und Piano With Jonny für die Blues-Tonleiter).
+   * Deshalb gilt eine feste Regel, die mit den Tabellen in den meisten
+   * Tonarten übereinstimmt:
+   *  1. Die Hand greift abwechselnd drei und zwei Töne (Pentatonik) oder vier
+   *     und zwei bzw. drei und drei (Blues), jede Gruppe beginnt rechts mit
+   *     dem Daumen und endet links auf ihm.
+   *  2. Der Daumen spielt weiße Tasten. Auf eine schwarze kommt er nur, wenn
+   *     es nicht anders geht, und dann in einer Gruppe aus lauter schwarzen.
+   *  3. Ist der Grundton weiß, liegt der Daumen auf dem Grundton (rechts
+   *     1 2 3 · 1 2, links gespiegelt 3 2 1 · 3 2 1; Blues 1 2 3 4 · 1 2).
+   *  4. Sonst zählt, dass möglichst oft an einer schwarzen Taste unter-
+   *     oder übergesetzt wird.
+   * Gespeichert ist je Grundton (C, Des, D ... H) der Finger für jede Stufe
+   * der Tonleiter; Anfang und Ende werden wie bei den Tonleitern angepasst. */
+  const GAPPED_FINGERS = {
+    pentaDur:  { r: ["12312", "12123", "12312", "21231", "12312", "12312", "12312", "12312", "23121", "12312", "21231", "12312"],
+                 l: ["12132", "12132", "13212", "32121", "13212", "12132", "12132", "12132", "32121", "13212", "21321", "12132"] },
+    pentaMoll: { r: ["12312", "21231", "12312", "12312", "12312", "12312", "21231", "12312", "21231", "12312", "12312", "12123"],
+                 l: ["12132", "21321", "12132", "12132", "12132", "13212", "32121", "12132", "21321", "12132", "13212", "12132"] },
+    blues:     { r: ["123412", "212341", "123412", "123123", "123412", "123123", "212341", "123412", "412123", "123412", "123123", "123123"],
+                 l: ["121432", "214321", "121432", "132132", "121432", "132132", "432121", "121432", "212143", "121432", "213213", "132132"] },
+  };
+  function gappedFingers(rootPc, type, octaves, hand, midis) {
+    const pat = GAPPED_FINGERS[type][hand === "l" ? "l" : "r"][rootPc], n = pat.length, e = n * octaves, up = [];
+    for (let i = 0; i <= e; i++) up.push(+pat[i % n]);
+    const mixed = !midis.every(isBlack);   // in einer Tonleiter aus lauter schwarzen Tasten darf der Daumen auf Schwarz bleiben
+    if (hand === "l") {
+      if (up[0] === 1) up[0] = up[1] + 1;                 // unten beginnt die Hand mit dem äußeren Finger
+      if (up[e] === 1 && isBlack(midis[e]) && mixed) {    // oben kein Daumen auf der schwarzen Taste: die letzte Gruppe rückt einen Finger weiter
+        let k = e; while (k > 0 && up[k - 1] !== 1) k--;
+        if (e - k <= 2) for (let i = k; i <= e; i++) up[i]++;
+      }
+      if (up[e] === 4 && up[e - 1] === 1) up[e] = 2;
+    } else {
+      if (up[0] === 1 && isBlack(midis[0]) && mixed) {    // unten kein Daumen auf der schwarzen Taste
+        let k = 0; while (k < e && up[k + 1] !== 1) k++;
+        if (k <= 2) for (let i = 0; i <= k; i++) up[i]++;
+      }
+      if (up[0] === 4 && up[1] === 1) up[0] = 2;
+      if (up[e] === 1) up[e] = up[e - 1] + 1;             // oben endet die Hand mit dem äußeren Finger
+    }
+    return up;
+  }
   // Vorzeichnung und Schreibweise des Grundtons. es-Moll bekommt sechs B statt sechs Kreuze.
   function scaleKey(rootPc, type) {
     if (type === "chrom") return { fifths: 0, letter: ROOTS.dur[rootPc][0], alter: ROOTS.dur[rootPc][1], minor: false };
@@ -306,6 +373,9 @@ NT.music = (() => {
     if (type === "fuenfMoll") return "Fünffingerlage " + low + "-Moll";
     if (type === "arpDur") return r + "-Dur gebrochen";
     if (type === "arpMoll") return low + "-Moll gebrochen";
+    if (type === "pentaDur") return "Pentatonik " + r + "-Dur";
+    if (type === "pentaMoll") return "Pentatonik " + low + "-Moll";
+    if (type === "blues") return "Blues-Tonleiter in " + r;
     return type === "dur" ? r + "-Dur" : low + (type === "moll" ? "-Moll" : "-Moll harmonisch");
   }
   // Tonfolge richtig geschrieben: Vorzeichen nur, wo sie von der Vorzeichnung abweichen, dazu der Fingersatz.
@@ -314,7 +384,7 @@ NT.music = (() => {
     const key = scaleKey(rootPc, type);
     if (type === "fuenfDur" || type === "fuenfMoll") octaves = 1;
     if (base == null) base = hand === "l" ? ((octaves > 1 || rootPc >= 7) ? 36 : 48) + rootPc : (rootPc >= 7 ? 48 : 60) + rootPc;
-    let up = [], fingers;
+    let up = [], down = null, fingers;
     const fix = n => { const ka = keyAlterOf(n.letter, key.fifths); n.accidental = n.alter === ka ? null : n.alter === 0 ? "natural" : n.accidental; return n; };
     if (type === "chrom") {
       const midis = []; for (let i = 0; i <= 12 * octaves; i++) midis.push(base + i);
@@ -334,12 +404,30 @@ NT.music = (() => {
       const st = type === "fuenfDur" ? [0, 2, 4, 5, 7] : [0, 2, 3, 5, 7];
       up = st.map((s, i) => fix(spelled((key.letter + i) % 7, base + s)));
       fingers = hand === "l" ? [5, 4, 3, 2, 1] : [1, 2, 3, 4, 5];
+    } else if (GAPPED[type]) {
+      const g = GAPPED[type], n = g.steps.length;
+      /* Die Blue Note schreibt man aufwärts als erhöhte Quarte (F, Fis, G) und
+       * abwärts als erniedrigte Quinte (G, Ges, F), so braucht es kein
+       * Auflösungszeichen. Ergäbe das ein doppeltes Vorzeichen oder einen Ton
+       * wie Eis oder Ces, gilt die andere Schreibweise in beiden Richtungen. */
+      const plain = s => Math.abs(s.alter) <= 1 && !((s.letter === 2 || s.letter === 6) && s.alter === 1) && !((s.letter === 3 || s.letter === 0) && s.alter === -1);
+      const tone = (i, dir) => {
+        const k = i % n, m = base + 12 * Math.floor(i / n) + g.steps[k], letter = (key.letter + g.letters[k]) % 7;
+        if (k !== g.blue) return fix(spelled(letter, m));
+        const sharp = spelled(letter, m), flat = spelled((letter + 1) % 7, m);
+        return fix(dir > 0 ? (plain(sharp) || !plain(flat) ? sharp : flat) : (plain(flat) || !plain(sharp) ? flat : sharp));
+      };
+      for (let i = 0; i <= n * octaves; i++) up.push(tone(i, 1));
+      down = []; for (let i = n * octaves - 1; i >= 0; i--) down.push(tone(i, -1));
+      fingers = gappedFingers(rootPc, type, octaves, hand, up.map(x => x.midi));
     } else {
       const steps = SCALES[type]; let m = base;
       for (let i = 0; i <= 7 * octaves; i++) { up.push(fix(spelled((key.letter + i) % 7, m))); m += steps[i % 7]; }
       fingers = scaleFingers(rootPc, type, octaves, hand);
     }
-    const notes = up.concat(up.slice(0, -1).reverse().map(n => Object.assign({}, n)));
+    const notes = up.concat(down || up.slice(0, -1).reverse().map(n => Object.assign({}, n)));
+    // Steht derselbe Platz im System zweimal hintereinander in verschiedener Höhe (H, dann B), bekommt der zweite Ton sein Vorzeichen ausdrücklich.
+    for (let i = 1; i < notes.length; i++) if (notes[i].diatonic === notes[i - 1].diatonic && notes[i].alter !== notes[i - 1].alter) notes[i].accidental = ACCIDENTAL[notes[i].alter];
     const ff = fingers.concat(fingers.slice(0, -1).reverse());
     notes.forEach((n, i) => { n.finger = ff[i]; n.dur = 1; });
     return { key, notes, up: up.length, hand, type };
@@ -364,5 +452,5 @@ NT.music = (() => {
            keySignature, keyAlterOf, fifthsOf, keyName, minorName, INTERVAL_NAMES, intervalName,
            scale, SCALES, ROOT_NAMES, durationParts,
            spelled, nameOf, CHORDS, INVERSIONS, chord, chordFingers, cadence, chordRoot, chordSymbol, chordTitle,
-           FORMS, scaleFingers, scaleKey, scaleTitle, scaleNotes };
+           FORMS, GAPPED, scaleFingers, scaleKey, scaleTitle, scaleNotes };
 })();

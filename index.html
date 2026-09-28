@@ -13,7 +13,7 @@
   /* Notensymbole: Bravura, (c) Steinberg Media Technologies GmbH, SIL Open Font
      License 1.1, Lizenztext in Bravura-OFL.txt. Auf die benoetigten Glyphen
      gekuerzt und wegen des Reserved Font Name umbenannt. */
-  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260929e") format("opentype"); font-display: block; }
+  @font-face { font-family: "NotenSymbole"; src: url("fonts/NotenSymbole.otf?v=20260929l") format("opentype"); font-display: block; }
 
   :root {
     --ink: #f3f6ff; --muted: #a9bbe0; --card: rgba(8, 28, 68, .78); --line: rgba(255,255,255,.14);
@@ -416,7 +416,7 @@
   <div class="formsGrid">
     <div class="card formCard">
       <div class="formHead"><div class="cardHead display c1">Akkorde</div><div class="gripName display" id="chordName">C</div></div>
-      <div class="formSel"><select id="chordRoot"></select><select id="chordType"></select><select id="chordInv"><option value="0">Grundstellung</option><option value="1">1. Umkehrung</option><option value="2">2. Umkehrung</option></select></div>
+      <div class="formSel"><select id="chordRoot"></select><select id="chordType"></select><select id="chordInv"><option value="0">Grundstellung</option><option value="1">1. Umkehrung</option><option value="2">2. Umkehrung</option><option value="3">3. Umkehrung</option></select></div>
       <div class="formPrev"><div class="miniStage"><canvas id="chordPrevStaff"></canvas></div><div class="miniKeys"><canvas id="chordPrevKeys"></canvas></div></div>
       <p class="small" id="chordInfo"></p>
       <div class="btnRow"><button class="green" id="chordLearnBtn">Lernen</button><button class="gold" id="chordTimeBtn">Auf Zeit</button><select id="chordSet"></select><input type="number" id="chordCount" min="4" max="48" value="10" title="Wie viele Akkorde"></div>
@@ -622,7 +622,7 @@
     <h2 class="sec display">Tonleiter</h2>
     <div class="form">
       <div class="setRow"><label>Grundton</label><select id="set-scaleRoot"><option value="0">C</option><option value="1">Des</option><option value="2">D</option><option value="3">Es</option><option value="4">E</option><option value="5">F</option><option value="6">Fis</option><option value="7">G</option><option value="8">As</option><option value="9">A</option><option value="10">B</option><option value="11">H</option></select></div>
-      <div class="setRow"><label>Art</label><select id="set-scaleType"><option value="dur">Dur</option><option value="moll">Moll (natürlich)</option><option value="harmonisch">Moll (harmonisch)</option><option value="fuenfDur">Fünffingerlage Dur</option><option value="fuenfMoll">Fünffingerlage Moll</option><option value="chrom">Chromatisch</option><option value="arpDur">Gebrochener Dur-Akkord</option><option value="arpMoll">Gebrochener Moll-Akkord</option></select></div>
+      <div class="setRow"><label>Art</label><select id="set-scaleType"><option value="dur">Dur</option><option value="moll">Moll (natürlich)</option><option value="harmonisch">Moll (harmonisch)</option><option value="fuenfDur">Fünffingerlage Dur</option><option value="fuenfMoll">Fünffingerlage Moll</option><option value="chrom">Chromatisch</option><option value="arpDur">Gebrochener Dur-Akkord</option><option value="arpMoll">Gebrochener Moll-Akkord</option><option value="pentaDur">Pentatonik Dur</option><option value="pentaMoll">Pentatonik Moll</option><option value="blues">Blues-Tonleiter</option></select></div>
       <div class="setRow"><label>Oktaven</label><select id="set-scaleOctaves"><option value="1">1</option><option value="2">2</option></select></div>
     </div>
   </div>
@@ -630,20 +630,20 @@
 
 <div id="toast"></div>
 
-<script src="js/music.js?v=20260929e"></script>
-<script src="js/notation.js?v=20260929e"></script>
-<script src="js/keys.js?v=20260929e"></script>
-<script src="js/store.js?v=20260929e"></script>
-<script src="js/midi.js?v=20260929e"></script>
-<script src="js/synth.js?v=20260929e"></script>
-<script src="js/musicxml.js?v=20260929e"></script>
-<script src="js/charts.js?v=20260929e"></script>
-<script src="pieces/starter.js?v=20260929e"></script>
-<script src="js/story.js?v=20260929e"></script>
-<script src="js/quiz.js?v=20260929e"></script>
-<script src="js/book.js?v=20260929e"></script>
-<script src="js/game.js?v=20260929e"></script>
-<script src="js/grip.js?v=20260929e"></script>
-<script src="js/app.js?v=20260929e"></script>
+<script src="js/music.js?v=20260929l"></script>
+<script src="js/notation.js?v=20260929l"></script>
+<script src="js/keys.js?v=20260929l"></script>
+<script src="js/store.js?v=20260929l"></script>
+<script src="js/midi.js?v=20260929l"></script>
+<script src="js/synth.js?v=20260929l"></script>
+<script src="js/musicxml.js?v=20260929l"></script>
+<script src="js/charts.js?v=20260929l"></script>
+<script src="pieces/starter.js?v=20260929l"></script>
+<script src="js/story.js?v=20260929l"></script>
+<script src="js/quiz.js?v=20260929l"></script>
+<script src="js/book.js?v=20260929l"></script>
+<script src="js/game.js?v=20260929l"></script>
+<script src="js/grip.js?v=20260929l"></script>
+<script src="js/app.js?v=20260929l"></script>
 </body>
 </html>
