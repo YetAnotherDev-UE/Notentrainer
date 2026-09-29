@@ -17,7 +17,8 @@ window.NT = window.NT || {};
 NT.game = (() => {
   const N = NT.notation, MU = NT.music;
   const WINDOW = 150;
-  const TIMED = ["run", "interval", "rhythm", "scale", "phrase", "piece", "play"];
+  const ANCHOR_MS = 900;          // Gehör: Abstand zwischen Bezugston und gesuchtem Ton
+  const TIMED =["run", "interval", "rhythm", "scale", "phrase", "piece", "play"];
   const STATIC = ["single", "ear"];
   // Notenwerte je Rhythmus-Stufe (Einstellung), in Vierteln.
   const RHYTHM_SETS = { 1: [1, 2], 2: [1, 2, 4], 3: [1, 2, 0.5], 4: [1, 2, 0.5, 1.5], 5: [1, 2, 4, 0.5, 1.5] };
@@ -29,6 +30,8 @@ NT.game = (() => {
     particles: [], session: null, startedAt: 0, source: null, piece: null, pieces: [], hand: "r", preferFlat: false,
     leadBeats: 4, t0: 0, iois: [], vels: [], total: 0,
     countIn: 0, beatsPerBar: 4, nextClick: 0, countShown: null, anyPitch: false, pool: null, level: null, sessionRow: null, aborted: false,
+    path: null,                    // Schlüssel der Lernpfad-Stufe ("ear:ceg") oder null
+    anchor: null, legend: null, lit: null, litTimer: 0, introTimer: 0, pairTimer: 0, armedAt: 0,   // Gehör: Bezugston, Töne der Stufe, was gerade klingt
   };
   const history = [];             // alle events (Verlauf + Sitzung), fürs Gewichten und die Statistik
   let settings = null;            // von app.js gesetzt (gemeinsames Objekt)
@@ -91,25 +94,35 @@ NT.game = (() => {
   // Intervalle: jede Note ist relativ zur vorigen beschriftet (Sekunde
   // aufwärts, Terz abwärts). Die erste Note ist ein Orientierungston mit
   // Namen. Nur weisse Tasten, gezählt wird der Buchstabenabstand.
-  function intervalSource(count, pool, maxIv) {
+  // only (optional): nur diese Abstände (1 = Sekunde ... 7 = Oktave), für die
+  // Stufen des Lernpfads. help = false: keine Beschriftung ausser am Anker.
+  function intervalSource(count, pool, maxIv, only, help) {
     const white = pool.filter(m => !MU.isBlack(m));
     if (white.length < 2) return randomSource(count, pool);
     const maxSteps = Math.max(1, (maxIv || 5) - 1);
-    const anchors = [60, 67, 53, 72, 48, 55, 65].filter(m => white.includes(m));
-    let prev = anchors.length ? anchors[Math.floor(Math.random() * anchors.length)] : white[Math.floor(Math.random() * white.length)];
+    const allowed = d => only && only.length ? only.includes(Math.abs(d)) : d !== 0 && Math.abs(d) <= maxSteps;
+    const dia = m => MU.spell(m).diatonic;
+    // Der Anker soll eine Note sein, von der aus es weitergeht.
+    const canMove = m => white.some(q => allowed(dia(q) - dia(m)));
+    const anchors = [60, 67, 53, 72, 48, 55, 65].filter(m => white.includes(m) && canMove(m));
+    const starts = anchors.length ? anchors : white.filter(canMove).length ? white.filter(canMove) : white;
+    let prev = starts[Math.floor(Math.random() * starts.length)], before = null;
     let n = 0;
     return { next() {
       if (n >= count) return null;
       let note;
-      if (n === 0) { note = noteFromMidi(prev, 1); note.label = fullName(prev); }
+      if (n === 0) { note = noteFromMidi(prev, 1); note.label = fullName(prev); note.anchor = true; }
       else {
-        const pd = MU.spell(prev).diatonic;
-        const opts = white.filter(m => { const d = MU.spell(m).diatonic - pd; return d !== 0 && Math.abs(d) <= maxSteps; });
+        const pd = dia(prev);
+        let opts = white.filter(m => allowed(dia(m) - pd));
+        // Meist geht es weiter statt gleich zurück, sonst pendelt die Folge zwischen zwei Tönen. Nicht immer, damit sie unberechenbar bleibt.
+        if (opts.length > 1 && before != null && Math.random() < 0.65) opts = opts.filter(m => m !== before);
         const m = opts.length ? pickWeighted(opts, prev) : pickWeighted(white, prev);
-        const d = MU.spell(m).diatonic - pd;
+        const d = dia(m) - pd;
         note = noteFromMidi(m, 1);
-        note.label = (d > 0 ? "↑ " : "↓ ") + MU.intervalName(d);
-        prev = m;
+        note.label = help === false ? null : (d > 0 ? "↑ " : "↓ ") + MU.intervalName(d);
+        note.plain = help === false;
+        before = prev; prev = m;
       }
       n++;
       return { notes: [note], advance: 1, bar: false };
@@ -224,7 +237,8 @@ NT.game = (() => {
   const usesPieces = () => S.mode === "phrase" || S.mode === "play" || S.mode === "piece";
   function buildSpec() {
     const c = cfg();
-    const labels = labelsOn();
+    // Gehör zeigt den gefundenen Ton mit Namen, Intervalle den Anker: beide brauchen den Platz über dem System.
+    const labels = labelsOn() || S.mode === "ear" || S.mode === "interval";
     let staves, fifths = 0, time = null, fingers = false;
     if (usesPieces()) {
       const pieces = S.mode === "phrase" ? S.pieces : [S.piece];
@@ -246,6 +260,7 @@ NT.game = (() => {
       time = { beats: S.beatsPerBar, beatType: 4 };
     } else {
       staves = [Object.assign({ clef: c.clef }, stepsFor(c.clef, S.pool || candidates()))];
+      if (S.legend) staves[0].below = (staves[0].below || 0) + 2;     // Platz für das Wort unter dem Bezugston
     }
     S.preferFlat = fifths < 0;
     // Platz für den Phrasentitel unter dem letzten System.
@@ -260,6 +275,7 @@ NT.game = (() => {
     row.id = S.session + "-" + (S.hits + S.misses + S.strays + history.length);
     row.session = S.session; row.t = Date.now(); row.mode = S.mode;
     if (S.level) row.level = S.level.id;
+    if (S.path) row.path = S.path;
     history.push(row); NT.store.queue("events", row);
   }
   function reward(hit) {
@@ -284,14 +300,50 @@ NT.game = (() => {
 
   /* --- Einzeln und Gehör ------------------------------------------------ */
   function nextTarget() {
-    const m = pickWeighted(S.pool || candidates(), S.target);
+    const pool = S.pool || candidates();
+    // Bei wenigen Tönen darf derselbe zweimal kommen: Mit zwei Tönen wäre die Antwort sonst immer „der andere“.
+    const m = pickWeighted(pool, pool.length <= 2 || (S.mode === "ear" && pool.length <= 4) ? null : S.target);
     S.target = m; S.targetShownAt = now(); S.ghost = null; S.flash = null; S.hint = null;
-    if (S.mode === "ear") { clearTimeout(S.replayTimer); S.replayTimer = setTimeout(() => { if (S.running && S.target === m) hooks.play({ midi: m, dur: 1.5 }); }, 250); }
+    if (S.mode === "ear") {
+      // Gewertet wird erst, wenn der gesuchte Ton erklungen ist.
+      S.armedAt = now() + 250 + (S.anchor != null ? ANCHOR_MS : 0); S.targetShownAt = S.armedAt;
+      clearTimeout(S.replayTimer); S.replayTimer = setTimeout(() => { if (S.running && S.target === m) soundTarget(m); }, 250);
+    }
     draw();
   }
-  function replay() { if (S.mode === "ear" && S.target != null && S.running) hooks.play({ midi: S.target, dur: 1.5 }); }
+  // Was gerade klingt, leuchtet im System kurz auf: ein Ton der Stufe oder das Fragezeichen.
+  function light(what, ms) { S.lit = what; clearTimeout(S.litTimer); S.litTimer = setTimeout(() => { S.lit = null; if (S.running) draw(); }, ms); draw(); }
+  // Gehör: erst der Bezugston (falls die Stufe einen hat), dann der gesuchte Ton.
+  function soundTarget(m) {
+    clearTimeout(S.pairTimer);
+    const target = () => { light("target", 800); hooks.play({ midi: m, dur: 1.5, ms: 1000 }); };
+    if (S.anchor == null) { target(); return; }
+    light(S.anchor, 700); hooks.play({ midi: S.anchor, dur: 1, ms: 700 });
+    S.pairTimer = setTimeout(() => { if (S.running && S.target === m) target(); }, ANCHOR_MS);
+  }
+  function replay() { if (S.mode === "ear" && S.target != null && S.running) soundTarget(S.target); }
+  // Die Töne der Stufe vorstellen: Einer nach dem anderen erklingt und leuchtet im System auf.
+  function introduce() {
+    const tones = S.legend.slice(); let i = 0;
+    hooks.feedback("", "Das sind die Töne dieser Stufe. Hör zu und schau, wo sie liegen.");
+    const step = () => {
+      if (!S.running) return;
+      if (i >= tones.length) {
+        S.introTimer = setTimeout(() => {
+          if (!S.running) return;
+          hooks.feedback("", S.anchor != null ? "Jetzt du: Erst kommt der Bezugston, dann der gesuchte Ton. Such seine Taste." : "Jetzt du: Hör den Ton und such seine Taste.");
+          nextTarget();
+        }, 400);
+        return;
+      }
+      const m = tones[i++]; light(m, 750); hooks.play({ midi: m, dur: 1, ms: 700 });
+      S.introTimer = setTimeout(step, 850);
+    };
+    S.introTimer = setTimeout(step, 700);
+  }
   function judgeSingle(midi, velocity) {
     if (S.target == null || S.nextTimer) return;
+    if (S.mode === "ear" && now() < S.armedAt) return;
     const correct = midi === S.target;
     record({ midi: S.target, shownAt: S.targetShownAt, hitAt: now(), playedMidi: midi, correct, velocity });
     reward(correct);
@@ -335,7 +387,8 @@ NT.game = (() => {
       for (const n of g.notes) {
         S.lane.push({ id: S.planned++, midi: n.midi, diatonic: n.diatonic, accidental: n.accidental, dur: n.dur, hand: n.hand,
                       isRest: !!n.isRest, dueAt, state: n.isRest ? "rest" : "pending", playedAt: 0, playedMidi: 0, velocity: 0,
-                      piece: n.piece, measure: n.measure, sounded: false, label: n.label || null, finger: n.finger || null });
+                      piece: n.piece, measure: n.measure, sounded: false, label: n.label || null, finger: n.finger || null,
+                      anchor: !!n.anchor, plain: !!n.plain });
       }
       S.lastBeat += g.advance;
     }
@@ -413,6 +466,21 @@ NT.game = (() => {
   }
 
   /* --- Zeichnen ---------------------------------------------------------- */
+  // Wo die stehende Note sitzt. Zeigt das Gehör links die Töne der Stufe, rückt das Fragezeichen nach rechts.
+  const staticX = L => L.contentLeft + (L.right - L.contentLeft) * (S.legend ? 0.76 : 0.42);
+  // Gehör im Lernpfad: links im System stehen die Töne, die vorkommen können,
+  // blass und mit Namen. Was gerade klingt, leuchtet blau; unter dem Bezugston steht sein Wort.
+  function drawLegend(L) {
+    const tones = S.legend, GAP = L.GAP, s = L.staves[0];
+    const from = L.contentLeft + GAP * 0.8, room = (L.right - L.contentLeft) * 0.62 - GAP * 0.8;
+    const stepW = Math.min(GAP * (tones.some(MU.isBlack) ? 3.1 : 2.7), room / Math.max(1, tones.length));
+    tones.forEach((m, i) => {
+      const sp = MU.spell(m, false), x = from + i * stepW, lit = S.lit === m, isAnchor = m === S.anchor;
+      const colour = lit ? N.COL.played : isAnchor ? N.COL.label : N.COL.muted;
+      N.drawNote(L, 0, { diatonic: sp.diatonic, dur: 4, accidental: sp.alter === 1 ? "sharp" : null }, x, { colour, label: MU.shortName(m, cfg().naming, false), labelColour: colour });
+      if (isAnchor) N.drawText(L, "Bezugston", x + N.M.wholeW * GAP / 2, Math.max(s.bottomY + GAP * 1.3, N.yFor(L, 0, sp.diatonic) + GAP * 1.5), 0.62, colour);
+    });
+  }
   function colourOf(n) {
     return n.state === "hit" ? N.COL.ok : n.state === "miss" ? N.COL.miss : n.state === "played" ? N.COL.played : N.COL.ink;
   }
@@ -422,14 +490,15 @@ NT.game = (() => {
     N.drawStaves(L);
     const t = now();
     if (STATIC.includes(S.mode)) {
+      if (S.legend) drawLegend(L);
       if (S.target != null) {
         const n = noteFromMidi(S.target, 1);
-        const x = L.contentLeft + (L.right - L.contentLeft) * 0.42;
+        const x = staticX(L);
         const colour = S.flash === "ok" ? N.COL.ok : S.flash === "miss" ? N.COL.miss : N.COL.ink;
         const hidden = S.mode === "ear" && S.flash !== "ok";
         if (hidden) {
           const s = L.staves[0];
-          N.drawText(L, "?", x + N.M.headW * L.GAP / 2, (s.topY + s.bottomY) / 2, 2.2, S.flash === "miss" ? N.COL.miss : N.COL.muted);
+          N.drawText(L, "?", x + N.M.headW * L.GAP / 2, (s.topY + s.bottomY) / 2, 2.2, S.flash === "miss" ? N.COL.miss : S.lit === "target" ? N.COL.played : N.COL.muted);
           if (S.hint) N.drawText(L, S.hint === "höher" ? "▲ höher" : "▼ tiefer", x + L.GAP * 2.6, (s.topY + s.bottomY) / 2, 1.0, N.COL.miss, "left");
         } else N.drawNote(L, 0, n, x, { colour, label: S.mode === "ear" ? fullName(S.target) : labelFor(S.target) });
         if (cfg().ghost || S.mode === "ear") N.drawGhost(L, 0, S.ghost, x, S.preferFlat);
@@ -461,7 +530,9 @@ NT.game = (() => {
         if (hideMs && pitched.every(n => n.state === "pending") && g.dueAt - t < hideMs) continue;
         const anyMiss = pitched.find(n => n.state === "miss"), allHit = pitched.every(n => n.state === "hit");
         const colour = pitched.length === 1 ? colourOf(pitched[0]) : anyMiss ? N.COL.miss : allHit ? N.COL.ok : pitched.some(n => n.state === "played") ? N.COL.played : N.COL.ink;
-        N.drawChord(L, g.si, pitched, x, { colour, label: labelsOn() ? pitched.map(n => n.label || labelFor(n.midi)).join(" ") : null, finger: pitched.length === 1 ? pitched[0].finger : null });
+        // Der Anker der Intervalle behält seinen Namen immer; Noten „ohne Hilfe“ bleiben unbeschriftet.
+        const on = labelsOn(), label = pitched.map(n => n.anchor ? n.label : n.plain || !on ? null : n.label || labelFor(n.midi)).filter(Boolean).join(" ") || null;
+        N.drawChord(L, g.si, pitched, x, { colour, label, finger: pitched.length === 1 ? pitched[0].finger : null });
         if (cfg().ghost) for (const n of pitched) if (n.state === "miss" && n.playedMidi > 0 && !S.anyPitch) N.drawGhost(L, g.si, n.playedMidi, x, S.preferFlat);
       }
       N.unclip();
@@ -474,7 +545,7 @@ NT.game = (() => {
   function burst(midi, si) {
     const L = S.L; if (!L) return;
     const s = MU.spell(midi, S.preferFlat);
-    const x = STATIC.includes(S.mode) ? L.contentLeft + (L.right - L.contentLeft) * 0.42 + L.GAP * 0.6 : L.nowX;
+    const x = STATIC.includes(S.mode) ? staticX(L) + L.GAP * 0.6 : L.nowX;
     const y = N.yFor(L, si || 0, s.diatonic);
     const colours = ["#22c55e", "#facc15", "#38bdf8", "#f472b6", "#a78bfa"];
     for (let i = 0; i < 14; i++) {
@@ -512,17 +583,22 @@ NT.game = (() => {
     S.mode = mode; S.cfg = Object.assign({}, settings, opts.override || {});
     S.piece = opts.piece || null; S.pieces = opts.pieces || []; S.hand = opts.hand || S.cfg.hand || "r";
     S.pool = opts.pool && opts.pool.length ? opts.pool.slice() : null; S.level = opts.level || null;
+    S.path = opts.path ? opts.path.key : null;
     S.session = NT.store.newId(); S.startedAt = Date.now(); S.sessionRow = null; S.aborted = false;
     resetCounters();
     S.lane = []; S.bars = []; S.lastBeat = 0; S.planned = 0; S.spawnedAll = false; S.target = null; S.ghost = null; S.flash = null; S.hint = null;
     S.anyPitch = mode === "rhythm";
     S.limit = STATIC.includes(mode) ? (S.cfg.singleCount || 0) : 0;
     const c = S.cfg;
+    // Gehör im Lernpfad: Bezugston und die Töne der Stufe als Legende (der Bezugston gehört immer dazu).
+    const ear = mode === "ear";
+    S.anchor = ear && c.earAnchor != null ? c.earAnchor : null; S.lit = null; S.armedAt = 0;
+    S.legend = ear && c.earLegend && S.pool ? Array.from(new Set(S.pool.concat(S.anchor != null ? [S.anchor] : []))).sort((a, b) => a - b) : null;
     S.beatsPerBar = mode === "rhythm" ? 4 : (mode === "play" || mode === "piece") && S.piece ? S.piece.time.beats : mode === "phrase" && S.pieces.length ? S.pieces[0].time.beats : 4;
     S.spec = null; relayout();
-    if (STATIC.includes(mode)) { S.running = true; nextTarget(); hooks.hud(hudState()); return; }
+    if (STATIC.includes(mode)) { S.running = true; hooks.hud(hudState()); if (ear && c.earIntro && S.legend) { draw(); introduce(); } else nextTarget(); return; }
     if (mode === "run") { S.source = randomSource(c.runLength || 24, S.pool || candidates()); S.total = c.runLength || 24; }
-    else if (mode === "interval") { S.source = intervalSource(c.runLength || 24, S.pool || candidates(), c.intervalMax || 5); S.total = c.runLength || 24; }
+    else if (mode === "interval") { S.source = intervalSource(c.runLength || 24, S.pool || candidates(), c.intervalMax || 5, c.intervalOnly || null, S.path ? c.labels !== "off" : undefined); S.total = c.runLength || 24; }
     else if (mode === "rhythm") { S.source = rhythmSource(c.rhythmBars || 8, c.rhythmDurations || RHYTHM_SETS[c.rhythmSet] || RHYTHM_SETS[3], !!c.rhythmRests, S.beatsPerBar, c.clef === "bass" ? 50 : 71); S.total = S.source.length; }
     else if (mode === "scale") { S.source = scaleSource(c); S.total = S.source.length; }
     else if (mode === "phrase") { S.source = phraseSource(S.pieces, S.hand, c.phrases || 6, opts.only || null); S.total = 0; }
@@ -560,18 +636,19 @@ NT.game = (() => {
     S.rafId = requestAnimationFrame(tick);
   }
   function sessionRow() {
-    return { id: S.session, startedAt: S.startedAt, endedAt: Date.now(), mode: S.mode, hits: S.hits, misses: S.misses, xp: S.xpGained, bestStreak: S.bestStreak, bpm: cfg().bpm, level: S.level ? S.level.id : undefined };
+    return { id: S.session, startedAt: S.startedAt, endedAt: Date.now(), mode: S.mode, hits: S.hits, misses: S.misses, xp: S.xpGained, bestStreak: S.bestStreak, bpm: cfg().bpm, level: S.level ? S.level.id : undefined, path: S.path || undefined };
   }
+  function clearEarTimers() { clearTimeout(S.introTimer); clearTimeout(S.pairTimer); clearTimeout(S.litTimer); S.lit = null; }
   function finish() {
     if (!S.running) return;
-    S.running = false; cancelAnimationFrame(S.rafId); clearTimeout(S.replayTimer); clearTimeout(S.nextTimer); S.nextTimer = 0;
+    S.running = false; cancelAnimationFrame(S.rafId); clearTimeout(S.replayTimer); clearTimeout(S.nextTimer); S.nextTimer = 0; clearEarTimers();
     hooks.count(null);
     if (S.mode !== "play") { S.sessionRow = sessionRow(); NT.store.put("sessions", S.sessionRow); }
     hooks.finish(results());
   }
   function stop(silent) {
     if (!S.running) return;
-    S.running = false; cancelAnimationFrame(S.rafId); clearTimeout(S.ghostTimer); clearTimeout(S.replayTimer); clearTimeout(S.nextTimer); S.nextTimer = 0;
+    S.running = false; cancelAnimationFrame(S.rafId); clearTimeout(S.ghostTimer); clearTimeout(S.replayTimer); clearTimeout(S.nextTimer); S.nextTimer = 0; clearEarTimers();
     hooks.count(null);
     S.aborted = true;
     if (S.mode === "play") { if (!silent) hooks.finish(results()); return; }
@@ -601,7 +678,7 @@ NT.game = (() => {
     const missed = S.anyPitch ? [] : Array.from(new Set(mine.filter(e => !e.correct).map(e => e.midi)));
     const badMeasures = Array.from(new Set(mine.filter(e => !e.correct && e.piece != null && e.measure != null).map(e => e.piece + ":" + e.measure)));
     return { mode: S.mode, hits: S.hits, misses: S.misses, accuracy: accuracy(), xp: S.xpGained, bestStreak: S.bestStreak, avgOff, avgReact, evenness, weakest,
-             missed, badMeasures, total: S.total || S.limit || 0, level: S.level, bpm: cfg().bpm, timed: TIMED.includes(S.mode) && S.mode !== "play",
+             missed, badMeasures, total: S.total || S.limit || 0, level: S.level, path: S.path, bpm: cfg().bpm, timed: TIMED.includes(S.mode) && S.mode !== "play",
              sessionRow: S.sessionRow, aborted: S.aborted, playback: S.mode === "play" };
   }
 

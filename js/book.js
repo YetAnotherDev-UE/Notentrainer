@@ -29,7 +29,7 @@ NT.book = (() => {
        <ul><li><b>Abenteuer</b>: eine Karte mit Welten und Levels, von zwei Tönen bis zum ganzen Stück. Jedes Level bringt seine Regeln mit, du musst nichts einstellen.</li>
        <li><b>Frei üben</b>: die Modi einzeln, mit deinen Einstellungen (Schlüssel, Umfang, Tempo).</li></ul>
        <h3>Die Modi in einem Satz</h3>
-       <ul><li><b>Einzeln</b>: eine Note steht, du hast Zeit.</li><li><b>Lauf</b>: Noten kommen von rechts, triff sie an der roten Linie.</li><li><b>Intervalle</b>: lies die Bewegung von Note zu Note.</li><li><b>Rhythmus</b>: nur der Zeitpunkt zählt, jede Taste.</li><li><b>Stücke</b>: kurze Ausschnitte aus echten Stücken.</li><li><b>Akkorde</b>: Griffe und Tonleitern mit Fingersatz.</li><li><b>Gehör</b>: Ton hören, Taste finden.</li><li><b>Quiz</b>: Fragen antippen, ganz ohne Klavier.</li></ul>
+       <ul><li><b>Einzeln</b>: eine Note steht, du hast Zeit.</li><li><b>Lauf</b>: Noten kommen von rechts, triff sie an der roten Linie.</li><li><b>Intervalle</b>: lies die Bewegung von Note zu Note, mit Lernpfad.</li><li><b>Rhythmus</b>: nur der Zeitpunkt zählt, jede Taste.</li><li><b>Stücke</b>: kurze Ausschnitte aus echten Stücken.</li><li><b>Akkorde</b>: Griffe und Tonleitern mit Fingersatz.</li><li><b>Gehör</b>: Ton hören, Taste finden, mit Lernpfad.</li><li><b>Quiz</b>: Fragen antippen, ganz ohne Klavier.</li></ul>
        <p>Unklares Wort? Das letzte Lesezeichen <b>Begriffe</b> erklärt alle kurz.</p>`,
       `<h3>Der Spielbildschirm</h3>
        <div class="shot"><div class="hud mini"><div class="hudItem c1"><b class="display">12</b><span>Serie</span></div><div class="hudItem c3"><b class="display">×2</b><span>Multi</span></div><div class="hudItem c4"><b class="display">94 %</b><span>Treffer</span></div><div class="hudItem c2"><b class="display">+240</b><span>XP</span></div></div></div>
@@ -178,6 +178,13 @@ NT.book = (() => {
        <h3>Der Modus Intervalle</h3>
        <p>Über jeder Note steht die Bewegung zur vorigen, etwa „↑ Terz“. Die erste Note ist ein <b>Anker</b> mit Namen (meist C4, G4, F3 oder C5). Nur weiße Tasten. Einstellung „Intervalle bis“: Terz, Quinte oder Oktave.</p>
        ${tip("Das Quiz „Intervalle“ fragt den Abstand zweier Noten ab, ohne Klavier. Gut für unterwegs.")}`,
+      `<h3>Der Lernpfad</h3>
+       <p>Im Menü öffnet <b>Intervalle</b> eine Stufenleiter. Jedes Intervall kommt in drei Schritten: erst <b>allein</b> (etwa nur Terzen), dann <b>gemischt</b> mit den bekannten, dann <b>ohne Hilfe</b>. Ohne Hilfe fällt die Beschriftung über den Noten weg, nur der Anker behält seinen Namen. Dann liest du den Abstand selbst aus dem System.</p>
+       <ul><li>Reihenfolge: Sekunde, Terz, Quarte, Quinte, Sexte, Septime, Oktave. Danach dasselbe im Bassschlüssel, zum Schluss schneller.</li>
+       <li><b>Sterne</b> gibt es nach der Quote, dem Anteil richtiger Noten: einen ab 60 %, zwei ab 80 %, drei ab 95 %. Ab zwei Sternen öffnet sich die nächste Stufe.</li>
+       <li>Geschaffte Stufen lassen sich wiederholen: in der Reihe antippen.</li>
+       <li><b>Frei üben</b> startet den Modus mit deinen Einstellungen.</li></ul>
+       ${tip("Schau auf die Form, nicht auf die Namen: Linie zu Linie oder Linie zu Zwischenraum, und wie viele Linien dazwischen liegen.")}`,
     ] },
 
     { id: "akkorde", tab: "Akkorde", icon: "♬", colors: ["#fda4af", "#e11d48"], title: "Akkorde", pages: [
@@ -272,8 +279,15 @@ NT.book = (() => {
     { id: "gehoer", tab: "Gehör", icon: "?", colors: ["#b79bff", "#7c3aed"], title: "Gehör und Quiz", pages: [
       `<div class="ribbon display">Gehör</div>
        <p>Das Piano (oder der Synth, der eingebaute Klangerzeuger) spielt einen Ton, im System steht nur ein <b>Fragezeichen</b>. Finde die Taste. Liegst du daneben, sagt die Anzeige <b>höher</b> oder <b>tiefer</b> und der Ton kommt nochmal. <b>Nochmal hören</b> spielt ihn jederzeit erneut.</p>
-       <p>Der Tonumfang kommt aus den Einstellungen. Tipp: Erst grob einordnen, ob der Ton hoch, mittel oder tief liegt, dann suchen. Ein Vergleichston hilft: spiel C4 und höre, ob der gesuchte Ton darüber oder darunter liegt.</p>
-       ${tip("Reaktionszeit zählt auch hier: schnelles Erkennen ist das Ziel, nicht nur richtiges.")}`,
+       <p>Im Menü öffnet <b>Gehör</b> den Lernpfad (nächste Seite). <b>Frei üben</b> nimmt stattdessen den Tonumfang aus den Einstellungen. Tipp: Erst grob einordnen, ob der Ton hoch, mittel oder tief liegt, dann suchen.</p>
+       ${tip("Lass dir Zeit. Für die Sterne zählt nur, ob die Taste stimmt, nicht wie schnell du bist.")}`,
+      `<h3>Der Lernpfad</h3>
+       <p>Töne nach dem Gehör zu finden ist schwer und braucht Geduld. Darum geht der Lernpfad in vielen kleinen Stufen vor, jede ändert nur eine Sache. Die erste hat zwei Töne, C und G. Dann kommt nach und nach ein Ton dazu.</p>
+       <ul><li><b>Töne der Stufe</b>: Links im System stehen blass die Töne, die vorkommen können. Zu Beginn werden sie einmal vorgespielt, der klingende leuchtet blau.</li>
+       <li><b>Bezugston</b>: Vor jeder Frage erklingt ein bekannter Ton zum Vergleich, meist das C. Du hörst also zwei Töne: erst das C, dann den gesuchten. In späteren Stufen fällt er weg, dann ist der Ton davor dein Vergleich.</li>
+       <li><b>Sterne</b> gibt es nach der Quote: einen ab 60 %, zwei ab 80 %, drei ab 95 %. Ab zwei Sternen öffnet sich die nächste Stufe.</li>
+       <li>Geschaffte Stufen lassen sich wiederholen: in der Reihe antippen.</li></ul>
+       ${tip("Bleib ruhig lange auf einer Stufe, das Ohr lernt durch Wiederholung. Mitsummen hilft: Wer einen Ton summen kann, findet ihn auch auf den Tasten.")}`,
       `<h3>Quiz</h3>
        <p>Ganz ohne Klavier, also auch am Handy unterwegs:</p>
        <ul><li><b>Notennamen</b>: eine Note im System, den Buchstaben antippen. Mit Piano zählt auch die Taste, dann mit Oktave.</li>
@@ -317,11 +331,11 @@ NT.book = (() => {
 
     { id: "glossar", tab: "Begriffe", icon: "Aa", colors: ["#5ee8b3", "#0f766e"], title: "Begriffe", pages: [
       `<div class="ribbon display">Begriffe A bis C</div>
-       ${dl([["Akkord", "mehrere Töne gleichzeitig, im System übereinander an einem Hals."], ["Anschlagstärke", "wie fest die Taste gedrückt wurde (MIDI: Velocity, 1 bis 127). Bestimmt die Lautstärke."], ["Arpeggio", "gebrochener Akkord: die Töne nacheinander statt zusammen."], ["Auflösungszeichen ♮", "hebt ein Kreuz oder B auf."], ["Blindflug", "Modus-Zusatz: die Note verschwindet vor der Linie, du spielst aus dem Kopf."], ["Blue Note", "der eingeschobene Ton der Blues-Tonleiter, er reibt sich mit seinen Nachbarn."], ["Blues-Tonleiter", "Moll-Pentatonik mit Blue Note, sechs Töne je Oktave."], ["Bosse", "das letzte, etwas schwerere Level jeder Welt im Abenteuer."], ["bpm", "Schläge pro Minute, das Tempo."], ["chromatisch", "in Halbtonschritten, jede Taste wird mitgenommen."]])}`,
+       ${dl([["Akkord", "mehrere Töne gleichzeitig, im System übereinander an einem Hals."], ["Anschlagstärke", "wie fest die Taste gedrückt wurde (MIDI: Velocity, 1 bis 127). Bestimmt die Lautstärke."], ["Arpeggio", "gebrochener Akkord: die Töne nacheinander statt zusammen."], ["Auflösungszeichen ♮", "hebt ein Kreuz oder B auf."], ["Bezugston", "ein bekannter Ton, der im Gehör-Modus vor dem gesuchten erklingt, zum Vergleichen."], ["Blindflug", "Modus-Zusatz: die Note verschwindet vor der Linie, du spielst aus dem Kopf."], ["Blue Note", "der eingeschobene Ton der Blues-Tonleiter, er reibt sich mit seinen Nachbarn."], ["Blues-Tonleiter", "Moll-Pentatonik mit Blue Note, sechs Töne je Oktave."], ["Bosse", "das letzte, etwas schwerere Level jeder Welt im Abenteuer."], ["bpm", "Schläge pro Minute, das Tempo."], ["chromatisch", "in Halbtonschritten, jede Taste wird mitgenommen."]])}`,
       `<div class="ribbon display">Begriffe D bis G</div>
        ${dl([["Daumenuntersatz", "der Daumen geht unter der Hand durch, damit die Tonleiter weitergeht."], ["Dreiklang", "Akkord aus Grundton, Terz und Quinte, etwa C E G."], ["Dur, Moll", "die zwei Klangfarben der Tonarten: Dur hell, Moll dunkel; unterschieden durch die große oder kleine Terz."], ["Einzähler", "ein Takt Klicks vor der ersten Note."], ["Enharmonisch", "zwei Namen für dieselbe Taste, Fis und Ges."], ["Fingersatz", "Ziffern 1 bis 5 für Daumen bis kleiner Finger."], ["Fünffingerlage", "fünf Finger auf fünf Nachbartasten, die Hand bleibt liegen."], ["Ganzton, Halbton", "Halbton: die nächste Taste. Ganzton: zwei Tasten weiter."], ["Geisternote", "zeigt bei Fehlern halbdurchsichtig rot, welche Note du gespielt hast."], ["Grundton", "der erste Ton der Tonart oder des Akkords, nach dem sie heißen."]])}`,
       `<div class="ribbon display">Begriffe H bis L</div>
-       ${dl([["Hilfslinie", "kurze Linie für Töne über oder unter dem System."], ["improvisieren", "frei spielen, ohne Noten, aus dem Augenblick heraus."], ["Interface", "der Adapter zwischen Piano und iPad (hier das mioXC)."], ["Intervall", "Abstand zweier Töne, nach Buchstaben gezählt."], ["Kadenz", "die Akkorde der Stufen I, IV und V einer Tonart hintereinander."], ["Klaviatur", "die Tastenreihe des Pianos."], ["Klaviersystem", "zwei Systeme mit Klammer, rechte und linke Hand."], ["Legato, Staccato", "gebunden (die Töne gehen ineinander über) oder kurz abgesetzt."], ["Leitton", "der siebte Ton einer Tonart, einen Halbton unter dem Grundton, er drängt dorthin."]])}`,
+       ${dl([["Hilfslinie", "kurze Linie für Töne über oder unter dem System."], ["improvisieren", "frei spielen, ohne Noten, aus dem Augenblick heraus."], ["Interface", "der Adapter zwischen Piano und iPad (hier das mioXC)."], ["Intervall", "Abstand zweier Töne, nach Buchstaben gezählt."], ["Kadenz", "die Akkorde der Stufen I, IV und V einer Tonart hintereinander."], ["Klaviatur", "die Tastenreihe des Pianos."], ["Klaviersystem", "zwei Systeme mit Klammer, rechte und linke Hand."], ["Legato, Staccato", "gebunden (die Töne gehen ineinander über) oder kurz abgesetzt."], ["Leitton", "der siebte Ton einer Tonart, einen Halbton unter dem Grundton, er drängt dorthin."], ["Lernpfad", "Stufenleiter für Gehör und Intervalle: Jede Stufe ändert nur eine Sache, ab zwei Sternen geht es weiter."]])}`,
       `<div class="ribbon display">Begriffe M bis P</div>
        ${dl([["Metronom", "klickt auf jedem Schlag, betont auf der Eins."], ["MIDI", "Datenformat für Tastendaten zwischen Instrument und Rechner."], ["Modus", "eine Übungsart, etwa Lauf oder Quiz."], ["MusicXML", "Dateiformat für Noten, aus Programmen wie MuseScore."], ["Nachsitzen", "der Knopf „Fehler üben“ im Ergebnis: verfehlte Noten sofort nochmal."], ["Oktave", "Abstand von einem C zum nächsten, acht Buchstaben."], ["Pentatonik", "Tonleiter aus fünf Tönen je Oktave, ohne Halbtonschritte."], ["Phrase", "ein kurzer Ausschnitt aus einem Stück, hier ein bis zwei Takte."], ["Punktierung", "der Punkt hinter der Note verlängert sie um die Hälfte."]])}`,
       `<div class="ribbon display">Begriffe Q bis S</div>

@@ -8,7 +8,7 @@ window.NT = window.NT || {};
 
 NT.app = (() => {
   const $ = id => document.getElementById(id);
-  const G = NT.game, MU = NT.music, N = NT.notation, ST = NT.story;
+  const G = NT.game, MU = NT.music, N = NT.notation, ST = NT.story, PT = NT.paths;
 
   const DEFAULTS = { clef: "treble", keys: "white", naming: "de", low: 60, high: 81, hand: "r", bpm: 80,
     runLength: 24, phrases: 6, labels: "name", ghost: true, sound: true, fx: true, shake: true, playback: "auto",
@@ -21,6 +21,7 @@ NT.app = (() => {
   const pieces = [];               // geparste Stücke (Starter + importierte)
   let progress = { xp: 0 };
   let story = { levels: {} };      // Abenteuer-Fortschritt, kv "story"
+  let paths = {};                  // Lernpfade, kv "paths": { ear: { stufe: { stars, best, attempts } }, interval: { ... } }
   let device = { pedal: {} };
   const pedalLive = { sustain: { down: false, value: 0 }, sostenuto: { down: false, value: 0 }, soft: { down: false, value: 0 } };
   const PEDAL_CC = { 64: "sustain", 66: "sostenuto", 67: "soft" };
@@ -30,7 +31,7 @@ NT.app = (() => {
   let current = "home";
   let lastMode = "single", lastOpts = {}, lastResults = null;
   let storyLevel = null;           // das Level, das gerade läuft (oder null beim freien Üben)
-  let bookReturn = "home", bookLevel = null;   // wohin „Zurück“ im Handbuch führt
+  let bookReturn = "home", bookLevel = null, bookPath = null;   // wohin „Zurück“ im Handbuch führt
   let plan = null;                 // Aufwärmprogramm: { steps: [{mode, opts}], i }
 
   /* --- Level ------------------------------------------------------------- */
@@ -74,6 +75,12 @@ NT.app = (() => {
     const cur = ST.current(story), tot = ST.totals(story);
     $("storyHint").textContent = tot.done >= tot.count ? "Alle Welten geschafft. Sterne sammeln!" : `Welt ${cur.world.n} · Level ${cur.index}: ${cur.title}`;
     $("storyStars").textContent = "★ " + tot.stars;
+    // Lernpfade: die Stufe steht am Knopf des Modus
+    for (const mode of Object.keys(PT.PATHS)) {
+      const el = $(mode + "Hint"); if (!el) continue;
+      const c = PT.current(paths, mode), t = PT.totals(paths, mode);
+      el.textContent = t.done >= t.count ? `Lernpfad geschafft · ★ ${t.stars}` : `Lernpfad · Stufe ${c.n} von ${t.count}`;
+    }
     // Heute: Tagesziel, Serie, Empfehlung
     const td = todayStats();
     $("todayCount").textContent = td.today; $("todayGoal").textContent = td.goal || "∞";
@@ -209,10 +216,50 @@ NT.app = (() => {
   }
   function closeModal() { const m = $("levelModal"); if (m && !m.hidden) m.hidden = true; }
   // Handbuch aus dem Spiel oder von der Level-Karte: merkt sich den Rueckweg.
-  function openBook(chapter, from, level) {
-    bookReturn = from || "home"; bookLevel = level || null;
-    NT.book.open(chapter, 0);
+  // path: { mode, step }, wenn es von einer Stufe des Lernpfads kommt.
+  function openBook(chapter, from, level, path) {
+    bookReturn = from || "home"; bookLevel = level || null; bookPath = path || null;
+    // Von einer Stufe aus gleich den Aufschlag mit der Seite „Der Lernpfad“ zeigen.
+    NT.book.open(chapter, path && path.mode === "interval" ? 1 : 0);
     show("book");
+  }
+
+  /* --- Lernpfade: die Stufenleiter eines Modus ------------------------------ */
+  const pathOf = opts => opts && opts.path && !opts.level ? PT.find(opts.path.key) : null;   // { path, step } der laufenden Runde
+  function openPath(mode, step) {
+    const p = PT.get(mode); if (!p) return;
+    const cur = PT.current(paths, mode), tot = PT.totals(paths, mode);
+    const sel = step && PT.isUnlocked(paths, mode, step) ? step : cur;
+    const e = PT.entry(paths, mode, sel);
+    const pills = p.steps.map(s => {
+      const open = PT.isUnlocked(paths, mode, s), st = PT.starsOf(paths, mode, s);
+      const cls = ["pstep", open ? "" : "locked", st >= 2 ? "done" : "", s === cur ? "current" : "", s === sel ? "sel" : ""].filter(Boolean).join(" ");
+      return `<button class="${cls}" data-step="${s.id}" ${open ? "" : "disabled"} title="${s.title}"><span class="display">${s.n}</span><i>${"★".repeat(st)}</i></button>`;
+    }).join("");
+    $("levelCard").innerHTML = `
+      <div class="levelHead" style="--wa:${p.colors[0]};--wb:${p.colors[1]}"><div class="small">Lernpfad · ${tot.done} von ${tot.count} Stufen geschafft · ★ ${tot.stars}</div><div class="display">${p.title}</div></div>
+      <div class="levelBody">
+        <div class="pathSteps">${pills}</div>
+        <div class="pathTitle display">Stufe ${sel.n}: ${sel.title}</div>
+        <p style="margin:4px 0 0">${PT.describe(mode, sel, settings.naming)}</p>
+        <div class="goalRow">${PT.STARS.map((th, i) => `<span class="goal"><b>${"★".repeat(i + 1)}</b> ab ${th} %</span>`).join("")}<span class="goal">Weiter ab <b>★★</b></span></div>
+        ${sel.tip ? `<p class="small muted" style="margin:6px 0">${sel.tip}</p>` : ""}
+        <p class="small" style="margin:6px 0">${e ? `Bisher: ${starText(e.stars)} · beste Quote ${e.best} % · ${e.attempts} ${e.attempts === 1 ? "Versuch" : "Versuche"}` : "Noch nicht gespielt."}</p>
+        <div class="actions"><button class="gold display" id="pathGo">Los!</button><button class="ghostBtn" id="pathFree">Frei üben</button><button class="ghostBtn" id="pathHelp">Erklärung</button><button class="ghostBtn" id="levelClose">Schließen</button></div>
+      </div>`;
+    $("levelModal").hidden = false;
+    $("pathGo").addEventListener("click", () => { closeModal(); startPath(mode, sel); });
+    $("pathFree").addEventListener("click", () => { closeModal(); startMode(mode); });
+    $("pathHelp").addEventListener("click", () => openBook(NT.book.forMode(mode), "home", null, { mode, step: sel }));
+    $("levelClose").addEventListener("click", closeModal);
+    const strip = $("levelCard").querySelector(".pathSteps");
+    strip.addEventListener("click", ev => { const b = ev.target.closest("button[data-step]"); if (b && !b.disabled) openPath(mode, p.steps.find(s => s.id === b.dataset.step)); });
+    // Die gewählte Stufe in Sicht holen, wenn die Reihe umbricht und scrollt.
+    const mark = strip.querySelector(".sel"); if (mark && mark.offsetTop + mark.offsetHeight > strip.clientHeight) strip.scrollTop = mark.offsetTop - strip.clientHeight / 2;
+  }
+  function startPath(mode, step) {
+    plan = null;
+    startMode(mode, PT.optsFor(mode, step).opts);
   }
   function startLevel(l) {
     const { mode, opts } = ST.optsFor(l, pieces);
@@ -293,8 +340,9 @@ NT.app = (() => {
     $("tempoRow").hidden = G.STATIC.includes(mode) || !!(opts.override && opts.override.bpm);
     $("hearBtn").hidden = mode !== "ear";
     $("hud").classList.toggle("hidden", mode === "play");
-    $("feedback").className = "feedback"; $("feedback").textContent = (lvl && lvl.tip) ? lvl.tip : MODE_HINT[mode] || "";
-    $("stopBtn").textContent = G.STATIC.includes(mode) && !lvl ? "Beenden" : "Abbrechen";
+    const pth = pathOf(opts);
+    $("feedback").className = "feedback"; $("feedback").textContent = (lvl && lvl.tip) ? lvl.tip : (pth && pth.step.tip) ? pth.step.tip : MODE_HINT[mode] || "";
+    $("stopBtn").textContent = G.STATIC.includes(mode) && !lvl && !pth ? "Beenden" : "Abbrechen";
     NT.synth.unlock();
     G.start(mode, opts);
   }
@@ -315,7 +363,8 @@ NT.app = (() => {
 
   // Abspielen: Piano über MIDI-Ausgang, sonst Synth.
   function playNote(n) {
-    const durMs = Math.max(80, n.dur * (60000 / settings.bpm) * 0.9);
+    // ms: feste Dauer (Gehör), sonst aus Notenwert und Tempo
+    const durMs = n.ms || Math.max(80, n.dur * (60000 / settings.bpm) * 0.9);
     const port = settings.playback !== "synth" ? NT.midi.output() : null;
     if (port && settings.playback !== "synth") {
       NT.midi.send(port, [0x90, n.midi, 90]);
@@ -332,10 +381,17 @@ NT.app = (() => {
     lastResults = res;
     if (res.playback) { show(lastOpts.fromLibrary ? "library" : "home"); return; }
     if (res.aborted && storyLevel) { storyLevel = null; show("story"); alertBox("Level abgebrochen, kein Stern."); return; }
+    const pth = storyLevel ? null : pathOf(lastOpts);
+    if (res.aborted && pth) { show("home"); openPath(pth.path.mode, pth.step); alertBox("Stufe abgebrochen, kein Stern."); return; }
     if (res.aborted) plan = null;
     let stars = null, bonus = 0, ladder = null, planText = null;
     const lvl = storyLevel;
-    if (lvl) {
+    if (pth) {
+      // Lernpfad: Sterne aus der Quote, das Beste je Stufe bleibt stehen.
+      stars = PT.note(paths, pth.path.mode, pth.step, res); NT.store.kvSet("paths", paths);
+      bonus = stars * 10;
+      if (res.sessionRow) NT.store.put("sessions", Object.assign(res.sessionRow, { stars }));
+    } else if (lvl) {
       stars = ST.starsFor(lvl, res);
       const p = story.levels[lvl.id] || { stars: 0, best: 0, attempts: 0 };
       p.attempts++; p.stars = Math.max(p.stars, stars); p.best = Math.max(p.best, Math.round((res.accuracy || 0) * 100)); p.at = Date.now();
@@ -351,27 +407,29 @@ NT.app = (() => {
     }
     if (plan) { plan.i++; if (plan.i < plan.steps.length) planText = `Aufwärmen: Runde ${plan.i} von ${plan.steps.length} geschafft.`; else { planText = "Aufwärmen abgeschlossen."; plan = null; } }
     progress.xp += res.xp + bonus; NT.store.kvSet("progress", progress);
-    renderResults(res, { level: lvl, stars, bonus, ladder, planText });
+    renderResults(res, { level: lvl, path: pth, stars, bonus, ladder, planText });
     show("results");
   }
   let starTimers = [];
+  // x: { level (Abenteuer) oder path ({ path, step }, Lernpfad), stars, bonus, ladder, planText }
   function renderResults(r, x) {
     x = x || {};
-    const li = levelInfo(), lvl = x.level || null;
+    const li = levelInfo(), lvl = x.level || null, pth = x.path || null, starred = !!(lvl || pth), goals = lvl ? lvl.stars : PT.STARS;
     $("resTitle").textContent = r.title ? r.title : r.accuracy == null ? "Nichts gespielt"
-      : lvl ? (x.stars >= 3 ? "Perfekt!" : x.stars >= 2 ? "Level geschafft!" : x.stars === 1 ? "Fast!" : "Noch nicht")
+      : starred ? (x.stars >= 3 ? "Perfekt!" : x.stars >= 2 ? (lvl ? "Level geschafft!" : "Stufe geschafft!") : x.stars === 1 ? "Fast!" : "Noch nicht")
       : r.accuracy >= 0.9 ? "Stark!" : r.accuracy >= 0.7 ? "Gut gemacht" : "Weiter üben";
-    const sub = lvl ? `Welt ${lvl.world.n} · Level ${lvl.index}: ${lvl.title}` : r.kind ? "Quiz: " + NT.quiz.KIND_TITLE[r.kind] : x.planText || "";
+    const sub = lvl ? `Welt ${lvl.world.n} · Level ${lvl.index}: ${lvl.title}` : pth ? `${pth.path.title} · Stufe ${pth.step.n}: ${pth.step.title}`
+      : r.kind ? "Quiz: " + NT.quiz.KIND_TITLE[r.kind] : x.planText || "";
     $("resSub").hidden = !sub; $("resSub").textContent = sub;
     // Sterne: nacheinander aufleuchten, mit Klang.
-    const stars = $("resStars"); stars.hidden = !lvl;
+    const stars = $("resStars"); stars.hidden = !starred;
     for (const t of starTimers) clearTimeout(t); starTimers = [];
     stars.querySelectorAll("span").forEach(s => s.classList.remove("lit"));
-    if (lvl) {
+    if (starred) {
       stars.querySelectorAll("span").forEach((s, i) => { if (i < x.stars) starTimers.push(setTimeout(() => { s.classList.add("lit"); sound("star"); }, 350 + i * 380)); });
       starTimers.push(setTimeout(() => sound(x.stars >= 2 ? "win" : "lose"), 350 + Math.max(0, x.stars) * 380 + 120));
       $("resGoal").hidden = false;
-      $("resGoal").textContent = (x.stars < 3 ? `Für ${x.stars + 1 === 1 ? "einen Stern" : x.stars + 1 + " Sterne"} brauchst du ${lvl.stars[x.stars]} %.` : "Alle drei Sterne, besser geht es nicht.")
+      $("resGoal").textContent = (x.stars < 3 ? `Für ${x.stars + 1 === 1 ? "einen Stern" : x.stars + 1 + " Sterne"} brauchst du ${goals[x.stars]} %.` : "Alle drei Sterne, besser geht es nicht.")
         + (x.bonus ? ` Bonus: +${x.bonus} XP.` : "") + (x.stars < 2 ? " Ab zwei Sternen geht es weiter." : "");
     } else $("resGoal").hidden = true;
     $("resHits").textContent = r.hits; $("resMisses").textContent = r.misses;
@@ -389,15 +447,15 @@ NT.app = (() => {
     $("formsBtn").hidden = !r.grip;
     $("resWeak").innerHTML = weak.length ? weak.map(w => `<span class="chip miss">${MU.name(w.midi, settings.naming)} · ${w.bad}/${w.n}</span>`).join("") : "<span class='muted'>Keine Fehler, nichts zu bemängeln.</span>";
     // Knöpfe je nach Lage
-    const next = lvl ? ST.next(lvl) : null;
-    $("nextBtn").hidden = !(lvl && x.stars >= 2 && next);
-    if (next) $("nextBtn").textContent = "Weiter: " + next.title;
-    $("mapBtn").hidden = !lvl;
+    const next = lvl ? ST.next(lvl) : pth ? PT.next(pth.path.mode, pth.step) : null;
+    $("nextBtn").hidden = !(starred && x.stars >= 2 && next);
+    if (next) $("nextBtn").textContent = lvl ? "Weiter: " + next.title : `Weiter: Stufe ${next.n}`;
+    $("mapBtn").hidden = !starred; $("mapBtn").textContent = pth ? "Stufen" : "Karte";
     $("planBtn").hidden = !(plan && plan.i < plan.steps.length);
     if (plan) $("planBtn").textContent = `Weiter (${plan.i + 1}/${plan.steps.length})`;
     const canRetry = !lvl && !plan && !r.aborted && ((r.missed && r.missed.length) || (r.badMeasures && r.badMeasures.length)) && ["run", "interval", "single", "ear", "phrase", "piece"].includes(r.mode);
     $("retryBtn").hidden = !canRetry;
-    $("againBtn").textContent = lvl && x.stars < 2 ? "Nochmal versuchen" : "Nochmal";
+    $("againBtn").textContent = starred && x.stars < 2 ? "Nochmal versuchen" : "Nochmal";
   }
   // Nachsitzen: verfehlte Noten als kurzer Lauf, verfehlte Takte als Phrasen.
   function retryMisses() {
@@ -407,9 +465,11 @@ NT.app = (() => {
       startMode("phrase", { pieces: ps, hand: lastOpts.hand || settings.hand, only: new Set(r.badMeasures),
                             override: Object.assign({}, lastOpts.override || {}, { phrases: Math.min(12, r.badMeasures.length * 2) }), title: "Nachsitzen" });
     } else if (r.missed.length) {
-      const pool = r.missed.slice(), mode = ["single", "ear"].includes(r.mode) ? r.mode : "run";
+      const mode = ["single", "ear"].includes(r.mode) ? r.mode : "run";
+      // Gehör braucht Auswahl: Mit ein, zwei Tönen wäre die Antwort klar. Dann bleibt der Tonvorrat der Runde, verfehlte Töne kommen ohnehin öfter dran.
+      const pool = mode === "ear" && r.missed.length < 3 ? (lastOpts.pool ? lastOpts.pool.slice() : null) : r.missed.slice();
       const ov = Object.assign({}, lastOpts.override || {});
-      if (mode === "run") ov.runLength = Math.max(8, pool.length * 3); else ov.singleCount = Math.max(6, pool.length * 3);
+      if (mode === "run") ov.runLength = Math.max(8, r.missed.length * 3); else ov.singleCount = Math.max(6, r.missed.length * 3);
       startMode(mode, { pool, override: ov, title: "Nachsitzen" });
     }
   }
@@ -469,7 +529,7 @@ NT.app = (() => {
     const H = G.history;
     const hits = H.filter(e => e.correct).length;
     const sessions = new Map();
-    for (const e of H) { const s = sessions.get(e.session) || { n: 0, hits: 0, t: e.t, mode: e.mode, level: e.level }; s.n++; if (e.correct) s.hits++; s.t = Math.min(s.t, e.t); sessions.set(e.session, s); }
+    for (const e of H) { const s = sessions.get(e.session) || { n: 0, hits: 0, t: e.t, mode: e.mode, level: e.level, path: e.path }; s.n++; if (e.correct) s.hits++; s.t = Math.min(s.t, e.t); sessions.set(e.session, s); }
     const tot = ST.totals(story);
     $("statTotals").innerHTML = `<div class="fig"><b>${H.length}</b><span>Noten</span></div><div class="fig"><b>${H.length ? Math.round(100 * hits / H.length) + " %" : "–"}</b><span>Treffer</span></div><div class="fig"><b>${sessions.size}</b><span>Sitzungen</span></div><div class="fig"><b>${levelInfo().level}</b><span>Level</span></div><div class="fig"><b>${tot.stars}</b><span>Sterne</span></div>`;
     const byNote = new Map();
@@ -482,8 +542,8 @@ NT.app = (() => {
     }).join("") : "<p class='muted'>Noch keine Daten.</p>";
     const list = Array.from(sessions.entries()).sort((a, b) => b[1].t - a[1].t).slice(0, 12);
     $("statSessions").innerHTML = list.length ? list.map(([id, s]) => {
-      const lv = s.level ? ST.levelById(s.level) : null;
-      return `<div class="row"><span>${new Date(s.t).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })}</span><span class="tag">${lv ? "Abenteuer " + lv.index : MODE_TITLE[s.mode] || s.mode}</span><span>${s.n} Noten</span><b>${Math.round(100 * s.hits / s.n)} %</b></div>`;
+      const lv = s.level ? ST.levelById(s.level) : null, pt = s.path ? PT.find(s.path) : null;
+      return `<div class="row"><span>${new Date(s.t).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })}</span><span class="tag">${lv ? "Abenteuer " + lv.index : pt ? pt.path.title + " · Stufe " + pt.step.n : MODE_TITLE[s.mode] || s.mode}</span><span>${s.n} Noten</span><b>${Math.round(100 * s.hits / s.n)} %</b></div>`;
     }).join("") : "";
     const p = device.pedal;
     $("statPedal").textContent = Object.keys(p).filter(k => p[k].seen).length ? "Pedal: " + Object.keys(p).filter(k => p[k].seen).map(k => `${PEDAL_NAME[k]}: ${p[k].between ? "stufenlos, Werte " + p[k].min + "–" + p[k].max : "Schalter"}`).join(" · ") : "Pedal: noch nichts erkannt.";
@@ -561,6 +621,8 @@ NT.app = (() => {
         for (const [id, p] of Object.entries(r.value.levels)) { const mine = story.levels[id]; if (!mine || (p.stars || 0) > mine.stars) story.levels[id] = Object.assign({ stars: 0, best: 0, attempts: 0 }, mine || {}, p); }
         NT.store.kvSet("story", story);
       }
+      // Lernpfade: je Stufe das Beste behalten.
+      for (const r of (data.kv || [])) if (r && r.key === "paths" && r.value) { PT.merge(paths, r.value); NT.store.kvSet("paths", paths); }
       // Bestzeiten: je Eintrag die schnellere behalten.
       for (const r of (data.kv || [])) if (r && r.key === "records" && r.value) {
         const mine = NT.grip.records;
@@ -648,6 +710,7 @@ NT.app = (() => {
     if (typeof settings.labels === "boolean") settings.labels = settings.labels ? "name" : "off";
     progress = (await NT.store.kvGet("progress")) || { xp: 0 };
     story = (await NT.store.kvGet("story")) || { levels: {} }; if (!story.levels) story.levels = {};
+    paths = (await NT.store.kvGet("paths")) || {};
     device = (await NT.store.kvGet("device")) || { pedal: {} };
     await loadHistory();
     NT.synth.enabled = settings.sound; NT.synth.fx = settings.fx;
@@ -664,20 +727,25 @@ NT.app = (() => {
 
     // Menü
     document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { NT.synth.unlock(); if (b.dataset.go === "book") { bookReturn = "home"; bookLevel = null; } show(b.dataset.go); }));
-    $("helpBtn").addEventListener("click", () => openBook(NT.book.forMode(G.mode), storyLevel ? "story" : "home", storyLevel));
-    $("bookBack").addEventListener("click", () => { const to = bookReturn, l = bookLevel; bookReturn = "home"; bookLevel = null; show(to); if (to === "story" && l) openLevel(l); });
+    $("helpBtn").addEventListener("click", () => { const pth = pathOf(lastOpts); openBook(NT.book.forMode(G.mode), storyLevel ? "story" : "home", storyLevel, pth ? { mode: pth.path.mode, step: pth.step } : null); });
+    $("bookBack").addEventListener("click", () => {
+      const to = bookReturn, l = bookLevel, p = bookPath; bookReturn = "home"; bookLevel = null; bookPath = null;
+      show(to);
+      if (to === "story" && l) openLevel(l); else if (to === "home" && p) openPath(p.mode, p.step);
+    });
     document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
       const mode = b.dataset.mode;
       if (mode === "phrase") { const sel = selectedPieces(); if (!sel.length) { alertBox("Erst Stücke in der Bibliothek auswählen."); show("library"); return; } startMode("phrase", { pieces: sel, hand: settings.hand }); }
+      else if (PT.has(mode)) { NT.synth.unlock(); openPath(mode); }      // Modi mit Lernpfad: erst die Stufenleiter, dort auch „Frei üben“
       else startMode(mode);
     }));
     $("storyBtn").addEventListener("click", () => { NT.synth.unlock(); show("story"); });
     $("recoBtn").addEventListener("click", () => NT.synth.unlock());
     $("warmBtn").addEventListener("click", () => { NT.synth.unlock(); startWarmup(); });
     $("stopBtn").addEventListener("click", () => {
-      const lvl = storyLevel;
+      const lvl = storyLevel, pth = lvl ? null : pathOf(lastOpts);
       if (G.running) G.stop(false);   // hat schon etwas gezählt: Ergebnis bzw. Karte über hooks.finish
-      if (current === "play") { storyLevel = null; show(lvl ? "story" : lastOpts && lastOpts.fromForms ? "forms" : "home"); }
+      if (current === "play") { storyLevel = null; show(lvl ? "story" : lastOpts && lastOpts.fromForms ? "forms" : "home"); if (pth) openPath(pth.path.mode, pth.step); }
     });
     $("hearBtn").addEventListener("click", () => G.replay());
     $("againBtn").addEventListener("click", () => { if (String(lastMode).startsWith("grip:")) startGrip(lastMode.slice(5), lastOpts); else startMode(lastMode, lastOpts); });
@@ -707,12 +775,20 @@ NT.app = (() => {
       NT.synth.unlock();
       NT.synth.ui(b.classList.contains("back") || b.id === "levelClose" ? "back"
         : b.classList.contains("tab") || b.classList.contains("pgBtn") ? "page"
-        : b.classList.contains("node") || b.id === "levelGo" || b.id === "storyBtn" ? "open"
+        : b.classList.contains("node") || b.id === "levelGo" || b.id === "pathGo" || b.id === "storyBtn" ? "open"
         : b.classList.contains("menuBtn") ? "menu" : "tap");
     }, true);
     document.addEventListener("change", e => { if (settings.fx && e.target.matches("select, input[type=checkbox]")) NT.synth.ui("toggle"); }, true);
-    $("nextBtn").addEventListener("click", () => { const n = storyLevel ? ST.next(storyLevel) : null; if (n) startLevel(n); else show("story"); });
-    $("mapBtn").addEventListener("click", () => { storyLevel = null; show("story"); });
+    $("nextBtn").addEventListener("click", () => {
+      const pth = storyLevel ? null : pathOf(lastOpts);
+      if (pth) { const n = PT.next(pth.path.mode, pth.step); if (n) startPath(pth.path.mode, n); else { show("home"); openPath(pth.path.mode); } return; }
+      const n = storyLevel ? ST.next(storyLevel) : null; if (n) startLevel(n); else show("story");
+    });
+    $("mapBtn").addEventListener("click", () => {
+      const pth = storyLevel ? null : pathOf(lastOpts);
+      if (pth) { show("home"); openPath(pth.path.mode); return; }
+      storyLevel = null; show("story");
+    });
     $("planBtn").addEventListener("click", () => { if (plan && plan.i < plan.steps.length) startMode(plan.steps[plan.i].mode, plan.steps[plan.i].opts); });
     $("retryBtn").addEventListener("click", retryMisses);
     $("connectBtn").addEventListener("click", () => { $("connectBtn").hidden = true; NT.midi.init(); });
@@ -755,7 +831,7 @@ NT.app = (() => {
     $("importBtn").addEventListener("change", e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ""; });
     $("wipeBtn").addEventListener("click", () => {
       const b = $("wipeBtn");
-      if (b.dataset.armed) { NT.store.wipe().then(() => { G.history.length = 0; progress = { xp: 0 }; story = { levels: {} }; NT.grip.records = {}; renderStats(); alertBox("Verlauf gelöscht."); }); b.dataset.armed = ""; b.textContent = "Verlauf löschen"; return; }
+      if (b.dataset.armed) { NT.store.wipe().then(() => { G.history.length = 0; progress = { xp: 0 }; story = { levels: {} }; paths = {}; NT.grip.records = {}; renderStats(); alertBox("Verlauf gelöscht."); }); b.dataset.armed = ""; b.textContent = "Verlauf löschen"; return; }
       b.dataset.armed = "1"; b.textContent = "Wirklich löschen? Nochmal tippen"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "Verlauf löschen"; }, 4000);
     });
 
@@ -784,5 +860,6 @@ NT.app = (() => {
   async function keepAwake() { if (!navigator.wakeLock || wakeLock) return; try { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } catch (e) {} }
 
   document.addEventListener("DOMContentLoaded", init);
-  return { settings, pieces, show, startMode, startGrip, startLevel, openLevel, get story() { return story; }, get midiState() { return midiState; } };
+  return { settings, pieces, show, startMode, startGrip, startLevel, openLevel, openPath, startPath,
+           get story() { return story; }, get paths() { return paths; }, get midiState() { return midiState; } };
 })();
