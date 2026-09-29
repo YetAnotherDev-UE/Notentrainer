@@ -28,6 +28,7 @@ NT.grip = (() => {
   const hooks = { finish: () => {}, sound: () => {}, saveRecords: () => {} };
   const naming = () => (settings && settings.naming) || "de";
   const isChord = () => S.kind === "chordLearn" || S.kind === "chordTime";
+  const pathKey = () => (S.opts && S.opts.path && S.opts.path.key) || null;     // Stufe des Lernpfads, falls die Runde dazugehört
 
   /* --- Bestzeiten --------------------------------------------------------- */
   const chordKey = ch => ["c", ch.type, ch.rootPc, ch.inv, ch.hand].join("|");
@@ -60,6 +61,19 @@ NT.grip = (() => {
     const mk = (root, type, i) => MU.chord(root, type, i == null ? inv : i, hand);
     const all12 = type => Array.from({ length: 12 }, (_, r) => [r, type]);
     let pool;
+    // Feste Liste (Lernpfad): Einträge [Grundton, Art, Umkehrung], der Reihe nach oder gemischt.
+    if (o.set === "list" && o.list && o.list.length) {
+      if (o.order === "cycle") return Array.from({ length: n }, (_, i) => { const c = o.list[i % o.list.length]; return mk(c[0], c[1], c[2] || 0); });
+      const same = (a, b) => a[0] === b[0] && a[1] === b[1] && (a[2] || 0) === (b[2] || 0);
+      const out = []; let bag = [], last = null;
+      while (out.length < n) {
+        if (!bag.length) bag = shuffle(o.list.slice());
+        const c = bag.pop();
+        if (last && same(c, last) && o.list.length > 1) { bag.unshift(c); continue; }
+        out.push(mk(c[0], c[1], c[2] || 0)); last = c;
+      }
+      return out;
+    }
     if (o.set === "inversions") {
       // Grundstellung, dann jede Umkehrung hinauf und wieder zurück: 0 1 2 1 0 oder 0 1 2 3 2 1 0
       const top = MU.CHORDS[o.type].steps.length - 1, cycle = [];
@@ -113,7 +127,7 @@ NT.grip = (() => {
   function finish() {
     S.running = false; cancelAnimationFrame(S.raf);
     const total = S.hits + S.misses;
-    const res = { mode: S.kind === "chordTime" ? "chord" : S.kind, grip: true, hits: S.hits, misses: S.misses, accuracy: total ? S.hits / total : null, xp: S.xp, bestStreak: S.bestStreak,
+    const res = { mode: S.kind === "chordTime" ? "chord" : S.kind, grip: true, path: pathKey(), hits: S.hits, misses: S.misses, accuracy: total ? S.hits / total : null, xp: S.xp, bestStreak: S.bestStreak,
       avgOff: null, avgReact: null, evenness: null, weakest: [], missed: [], badMeasures: [], timed: false, aborted: false, total };
     if (S.kind === "chordTime") {
       const clean = S.times.filter(t => t.clean), all = S.times;
@@ -130,7 +144,7 @@ NT.grip = (() => {
       res.title = S.errors === 0 ? "Sauber durch!" : "Durch, mit Fehlern";
       res.timingText = `${title}: ${secs(ms)}, das sind ${(S.stamps.length / Math.max(0.001, ms / 1000)).toFixed(1).replace(".", ",")} Töne je Sekunde. Abstände ±${Math.round(sd)} ms.` + (S.errors ? " Bestzeiten zählen nur ohne Fehler." : "");
       res.sub = "Tonfolge auf Zeit";
-      const row = { id: S.session + "-0", session: S.session, t: Date.now(), mode: "scaleTime", midi: 60 + S.opts.root, form: S.opts.type, shownAt: S.stamps[0] || 0, hitAt: S.stamps[S.stamps.length - 1] || 0, correct: S.errors === 0 };
+      const row = { id: S.session + "-0", session: S.session, t: Date.now(), mode: "scaleTime", midi: 60 + S.opts.root, form: S.opts.type, shownAt: S.stamps[0] || 0, hitAt: S.stamps[S.stamps.length - 1] || 0, correct: S.errors === 0, path: pathKey() || undefined };
       NT.game.history.push(row); NT.store.queue("events", row);
     } else {
       res.title = "Geschafft!";
@@ -138,7 +152,8 @@ NT.grip = (() => {
       res.timingText = S.errors ? `${S.errors} ${S.errors === 1 ? "falsche Taste" : "falsche Tasten"} unterwegs. Beim nächsten Mal langsamer und genauer.` : "Ohne eine falsche Taste. Jetzt auf Zeit?";
     }
     res.note = S.newRecords.length ? "Neue Bestzeit: " + S.newRecords.slice(0, 3).map(x => x.text).join(" · ") + (S.newRecords.length > 3 ? ` und ${S.newRecords.length - 3} weitere` : "") : "";
-    NT.store.put("sessions", { id: S.session, startedAt: S.startedAt, endedAt: Date.now(), mode: res.mode, hits: S.hits, misses: S.misses, xp: S.xp, bestStreak: S.bestStreak });
+    res.sessionRow = { id: S.session, startedAt: S.startedAt, endedAt: Date.now(), mode: res.mode, hits: S.hits, misses: S.misses, xp: S.xp, bestStreak: S.bestStreak, path: pathKey() || undefined };
+    NT.store.put("sessions", res.sessionRow);
     hooks.finish(res);
   }
 
@@ -238,7 +253,7 @@ NT.grip = (() => {
     S.bassWarned = false;
     const ms = t - S.t0, clean = S.errorsThis === 0, title = chordLabel(S.chord), plain = chordName(S.chord);
     S.solved = true; S.times.push({ ms, clean, title });
-    const row = { id: S.session + "-" + S.qi, session: S.session, t: Date.now(), mode: "chord", midi: 60 + S.chord.rootPc, chord: MU.chordSymbol(S.chord.rootPc, S.chord.type, "int"), shownAt: S.t0, hitAt: t, correct: clean };
+    const row = { id: S.session + "-" + S.qi, session: S.session, t: Date.now(), mode: "chord", midi: 60 + S.chord.rootPc, chord: MU.chordSymbol(S.chord.rootPc, S.chord.type, "int"), shownAt: S.t0, hitAt: t, correct: clean, path: pathKey() || undefined };
     NT.game.history.push(row); NT.store.queue("events", row);
     const rec = clean ? noteRecord(chordKey(S.chord), ms, plain) : false;
     reward(clean);
@@ -368,9 +383,10 @@ NT.grip = (() => {
     if (!S.kind) return;
     const set = (id, v) => { const el = $(id); if (el && el.textContent !== String(v)) el.textContent = v; };
     let step = "", name = "", best = null, title = "";
-    if (S.kind === "chordLearn") { const n = S.chord.tones.length, total = n + 4; step = Math.min(total, (S.phase === "single" ? S.j : S.phase === "build" ? n : n + 1 + S.reps) + 1) + "/" + total; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming(), spellOf(S.chord)); title = "Akkord lernen · " + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
-    else if (S.kind === "chordTime") { step = (S.qi + 1) + "/" + S.queue.length; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming(), spellOf(S.chord)); title = "Akkorde auf Zeit · " + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
-    else { step = Math.min(S.si + 1, S.seq.notes.length) + "/" + S.seq.notes.length; name = MU.scaleTitle(S.opts.root, S.opts.type, naming()); title = (S.kind === "scaleLearn" ? "Tonfolge lernen · " : "Tonfolge auf Zeit · ") + name; best = bestOf(scaleKey(S.opts)); }
+    const pre = S.opts && S.opts.pathTitle ? S.opts.pathTitle + " · " : null;      // im Lernpfad steht die Stufe vorn
+    if (S.kind === "chordLearn") { const n = S.chord.tones.length, total = n + 4; step = Math.min(total, (S.phase === "single" ? S.j : S.phase === "build" ? n : n + 1 + S.reps) + 1) + "/" + total; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming(), spellOf(S.chord)); title = (pre ? pre + "Lernen · " : "Akkord lernen · ") + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
+    else if (S.kind === "chordTime") { step = (S.qi + 1) + "/" + S.queue.length; name = MU.chordSymbol(S.chord.rootPc, S.chord.type, naming(), spellOf(S.chord)); title = (pre || "Akkorde auf Zeit · ") + chordLabel(S.chord); best = bestOf(chordKey(S.chord)); }
+    else { step = Math.min(S.si + 1, S.seq.notes.length) + "/" + S.seq.notes.length; name = MU.scaleTitle(S.opts.root, S.opts.type, naming()); title = (pre ? pre + (S.kind === "scaleLearn" ? "Lernen · " : "Auf Zeit · ") : S.kind === "scaleLearn" ? "Tonfolge lernen · " : "Tonfolge auf Zeit · ") + name; best = bestOf(scaleKey(S.opts)); }
     set("gripStep", step); set("gripErr", S.errors); set("gripName", name); set("gripTitle", title);
     set("gripBest", best == null ? "–" : secs(best));
     $("gripTimeBox").hidden = S.kind === "chordLearn" || S.kind === "scaleLearn";

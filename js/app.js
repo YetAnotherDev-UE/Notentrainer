@@ -16,7 +16,7 @@ NT.app = (() => {
     metronome: false, countIn: true, lookahead: 0, tempoLadder: false, dailyGoal: 100,
     intervalMax: 5, rhythmBars: 8, rhythmSet: 3, rhythmRests: false, quizCount: 20, quizKind: "note",
     chordRoot: 0, chordType: "dur", chordInv: 0, chordSet: "one", chordCount: 10, gripHand: "r", gripHelp: "full",
-    formRoot: 0, formType: "dur", formOct: 1 };
+    formRoot: 0, formType: "dur", formOct: 1, formsPath: "chord" };
   const settings = Object.assign({}, DEFAULTS);
   const pieces = [];               // geparste Stücke (Starter + importierte)
   let progress = { xp: 0 };
@@ -220,7 +220,7 @@ NT.app = (() => {
   function openBook(chapter, from, level, path) {
     bookReturn = from || "home"; bookLevel = level || null; bookPath = path || null;
     // Von einer Stufe aus gleich den Aufschlag mit der Seite „Der Lernpfad“ zeigen.
-    NT.book.open(chapter, path && path.mode === "interval" ? 1 : 0);
+    NT.book.open(chapter, path ? ({ interval: 1, chord: 3, scale: 3 }[path.mode] || 0) : 0);
     show("book");
   }
 
@@ -228,38 +228,57 @@ NT.app = (() => {
   const pathOf = opts => opts && opts.path && !opts.level ? PT.find(opts.path.key) : null;   // { path, step } der laufenden Runde
   function openPath(mode, step) {
     const p = PT.get(mode); if (!p) return;
+    if (p.partner && settings.formsPath !== mode) { settings.formsPath = mode; saveSettings(); }
     const cur = PT.current(paths, mode), tot = PT.totals(paths, mode);
-    const sel = step && PT.isUnlocked(paths, mode, step) ? step : cur;
+    const sel = step || cur, open = PT.isUnlocked(paths, mode, sel);
     const e = PT.entry(paths, mode, sel);
-    const pills = p.steps.map(s => {
-      const open = PT.isUnlocked(paths, mode, s), st = PT.starsOf(paths, mode, s);
-      const cls = ["pstep", open ? "" : "locked", st >= 2 ? "done" : "", s === cur ? "current" : "", s === sel ? "sel" : ""].filter(Boolean).join(" ");
-      return `<button class="${cls}" data-step="${s.id}" ${open ? "" : "disabled"} title="${s.title}"><span class="display">${s.n}</span><i>${"★".repeat(st)}</i></button>`;
+    // Abschnitte: oben als Reihe, darunter die Stufen des gewählten Abschnitts
+    const groups = p.groups.map(g => {
+      const t = PT.totals(paths, mode, g), first = p.steps.find(x => x.group === g);
+      const cls = ["pgroup", g === sel.group ? "sel" : "", t.done >= t.count ? "done" : "", PT.isUnlocked(paths, mode, first) ? "" : "locked"].filter(Boolean).join(" ");
+      return `<button class="${cls}" data-group="${g}">${g} <small>${t.done}/${t.count}</small></button>`;
     }).join("");
+    const pills = p.steps.filter(x => x.group === sel.group).map(x => {
+      const ok = PT.isUnlocked(paths, mode, x), st = PT.starsOf(paths, mode, x);
+      const cls = ["pstep", ok ? "" : "locked", st >= 2 ? "done" : "", x === cur ? "current" : "", x === sel ? "sel" : ""].filter(Boolean).join(" ");
+      return `<button class="${cls}" data-step="${x.id}" title="${x.title}"><span class="display">${x.n}</span><i>${"★".repeat(st)}</i></button>`;
+    }).join("");
+    const before = p.steps[sel.index - 1];
+    const swap = p.partner ? `<div class="pathSwap">${[mode, p.partner].sort().map(m => `<button class="${m === mode ? "sel" : ""}" data-swap="${m}">${PT.get(m).title}</button>`).join("")}</div>` : "";
     $("levelCard").innerHTML = `
-      <div class="levelHead" style="--wa:${p.colors[0]};--wb:${p.colors[1]}"><div class="small">Lernpfad · ${tot.done} von ${tot.count} Stufen geschafft · ★ ${tot.stars}</div><div class="display">${p.title}</div></div>
+      <div class="levelHead" style="--wa:${p.colors[0]};--wb:${p.colors[1]}"><div class="small">Lernpfad · ${tot.done} von ${tot.count} Stufen geschafft · ★ ${tot.stars}</div><div class="pathHeadRow"><div class="display">${p.title}</div>${swap}</div></div>
       <div class="levelBody">
+        ${p.groups.length > 1 ? `<div class="pathGroups">${groups}</div>` : ""}
         <div class="pathSteps">${pills}</div>
         <div class="pathTitle display">Stufe ${sel.n}: ${sel.title}</div>
         <p style="margin:4px 0 0">${PT.describe(mode, sel, settings.naming)}</p>
         <div class="goalRow">${PT.STARS.map((th, i) => `<span class="goal"><b>${"★".repeat(i + 1)}</b> ab ${th} %</span>`).join("")}<span class="goal">Weiter ab <b>★★</b></span></div>
         ${sel.tip ? `<p class="small muted" style="margin:6px 0">${sel.tip}</p>` : ""}
         <p class="small" style="margin:6px 0">${e ? `Bisher: ${starText(e.stars)} · beste Quote ${e.best} % · ${e.attempts} ${e.attempts === 1 ? "Versuch" : "Versuche"}` : "Noch nicht gespielt."}</p>
-        <div class="actions"><button class="gold display" id="pathGo">Los!</button><button class="ghostBtn" id="pathFree">Frei üben</button><button class="ghostBtn" id="pathHelp">Erklärung</button><button class="ghostBtn" id="levelClose">Schließen</button></div>
+        ${open ? "" : `<p class="small" style="color:var(--c2);margin:6px 0">Gesperrt: Hol dir erst zwei Sterne in Stufe ${before.n} (${before.title}).</p>`}
+        <div class="actions">${open ? `<button class="gold display" id="pathGo">Los!</button>` : ""}<button class="ghostBtn" id="pathFree">Frei üben</button><button class="ghostBtn" id="pathHelp">Erklärung</button><button class="ghostBtn" id="levelClose">Schließen</button></div>
       </div>`;
     $("levelModal").hidden = false;
-    $("pathGo").addEventListener("click", () => { closeModal(); startPath(mode, sel); });
-    $("pathFree").addEventListener("click", () => { closeModal(); startMode(mode); });
-    $("pathHelp").addEventListener("click", () => openBook(NT.book.forMode(mode), "home", null, { mode, step: sel }));
+    const from = current === "forms" ? "forms" : "home";
+    const go = $("pathGo"); if (go) go.addEventListener("click", () => { closeModal(); startPath(mode, sel); });
+    $("pathFree").addEventListener("click", () => { closeModal(); if (p.free === "forms") show("forms"); else startMode(mode); });
+    $("pathHelp").addEventListener("click", () => openBook(NT.book.forMode(mode), from, null, { mode, step: sel }));
     $("levelClose").addEventListener("click", closeModal);
-    const strip = $("levelCard").querySelector(".pathSteps");
-    strip.addEventListener("click", ev => { const b = ev.target.closest("button[data-step]"); if (b && !b.disabled) openPath(mode, p.steps.find(s => s.id === b.dataset.step)); });
-    // Die gewählte Stufe in Sicht holen, wenn die Reihe umbricht und scrollt.
-    const mark = strip.querySelector(".sel"); if (mark && mark.offsetTop + mark.offsetHeight > strip.clientHeight) strip.scrollTop = mark.offsetTop - strip.clientHeight / 2;
+    // Die Reihen werden mit jeder Karte neu gebaut, die Lauscher hängen deshalb an ihnen und nicht an der Karte.
+    const on = (q, fn) => { const el = $("levelCard").querySelector(q); if (el) el.addEventListener("click", ev => { const b = ev.target.closest("button"); if (b) fn(b); }); };
+    on(".pathSteps", b => openPath(mode, p.steps.find(x => x.id === b.dataset.step)));
+    on(".pathSwap", b => { if (b.dataset.swap !== mode) openPath(b.dataset.swap); });
+    on(".pathGroups", b => {
+      if (b.dataset.group === sel.group) return;
+      // In einen Abschnitt springen: zur aktuellen Stufe, wenn sie dort liegt, sonst zur letzten offenen oder zur ersten.
+      const inGroup = p.steps.filter(x => x.group === b.dataset.group), openOnes = inGroup.filter(x => PT.isUnlocked(paths, mode, x));
+      openPath(mode, inGroup.includes(cur) ? cur : openOnes.length ? openOnes[openOnes.length - 1] : inGroup[0]);
+    });
   }
   function startPath(mode, step) {
     plan = null;
-    startMode(mode, PT.optsFor(mode, step).opts);
+    const o = PT.optsFor(mode, step);
+    if (o.engine === "grip") startGrip(o.kind, o.opts); else startMode(o.mode, o.opts);
   }
   function startLevel(l) {
     const { mode, opts } = ST.optsFor(l, pieces);
@@ -294,6 +313,7 @@ NT.app = (() => {
     $("chordInv").value = c.inv;
     $("formOct").value = f.octaves; $("formOct").disabled = /^fuenf/.test(settings.formType);
     $("chordCount").value = settings.chordCount; $("gripHand").value = settings.gripHand; $("gripHelpSel").value = settings.gripHelp;
+    for (const [id, m] of [["chordPathBtn", "chord"], ["scalePathBtn", "scale"]]) { const t = PT.totals(paths, m); $(id).textContent = t.done >= t.count ? "Lernpfad ★ " + t.stars : `Lernpfad · Stufe ${PT.current(paths, m).n}`; }
     // Vorschau: Noten, Klaviatur, Hand
     const ch = NT.grip.previewChord($("chordPrevStaff"), $("chordPrevKeys"), c);
     const sc = NT.grip.previewScale($("formPrevStaff"), $("formPrevKeys"), f);
@@ -314,8 +334,15 @@ NT.app = (() => {
   }
   function gripFinish(res) {
     lastResults = res;
-    progress.xp += res.xp; NT.store.kvSet("progress", progress);
-    renderResults(res, { planText: res.sub, ladder: res.note });
+    const pth = pathOf(lastOpts);
+    let stars = null, bonus = 0;
+    if (pth) {
+      stars = PT.note(paths, pth.path.mode, pth.step, res); NT.store.kvSet("paths", paths);
+      bonus = stars * 10;
+      if (res.sessionRow) NT.store.put("sessions", Object.assign(res.sessionRow, { stars }));
+    }
+    progress.xp += res.xp + bonus; NT.store.kvSet("progress", progress);
+    renderResults(res, { planText: res.sub, ladder: res.note, path: pth, stars, bonus });
     show("results");
   }
   const MODE_HINT = { single: "Spiel die angezeigte Note.", ear: "Hör den Ton und such die Taste. Nach einem Fehler sagt die Anzeige, ob es höher oder tiefer geht.",
@@ -415,7 +442,7 @@ NT.app = (() => {
   function renderResults(r, x) {
     x = x || {};
     const li = levelInfo(), lvl = x.level || null, pth = x.path || null, starred = !!(lvl || pth), goals = lvl ? lvl.stars : PT.STARS;
-    $("resTitle").textContent = r.title ? r.title : r.accuracy == null ? "Nichts gespielt"
+    $("resTitle").textContent = r.title && !starred ? r.title : r.accuracy == null ? "Nichts gespielt"
       : starred ? (x.stars >= 3 ? "Perfekt!" : x.stars >= 2 ? (lvl ? "Level geschafft!" : "Stufe geschafft!") : x.stars === 1 ? "Fast!" : "Noch nicht")
       : r.accuracy >= 0.9 ? "Stark!" : r.accuracy >= 0.7 ? "Gut gemacht" : "Weiter üben";
     const sub = lvl ? `Welt ${lvl.world.n} · Level ${lvl.index}: ${lvl.title}` : pth ? `${pth.path.title} · Stufe ${pth.step.n}: ${pth.step.title}`
@@ -444,7 +471,7 @@ NT.app = (() => {
     $("resLevel").textContent = "Level " + li.level; $("resLevelBar").style.width = Math.round(li.pct * 100) + "%";
     const weak = r.weakest || [];
     $("resWeakWrap").hidden = r.mode === "rhythm" || r.kind === "key" || r.kind === "interval" || !!r.grip;
-    $("formsBtn").hidden = !r.grip;
+    $("formsBtn").hidden = !r.grip || !!pth;
     $("resWeak").innerHTML = weak.length ? weak.map(w => `<span class="chip miss">${MU.name(w.midi, settings.naming)} · ${w.bad}/${w.n}</span>`).join("") : "<span class='muted'>Keine Fehler, nichts zu bemängeln.</span>";
     // Knöpfe je nach Lage
     const next = lvl ? ST.next(lvl) : pth ? PT.next(pth.path.mode, pth.step) : null;
@@ -731,7 +758,7 @@ NT.app = (() => {
     $("bookBack").addEventListener("click", () => {
       const to = bookReturn, l = bookLevel, p = bookPath; bookReturn = "home"; bookLevel = null; bookPath = null;
       show(to);
-      if (to === "story" && l) openLevel(l); else if (to === "home" && p) openPath(p.mode, p.step);
+      if (to === "story" && l) openLevel(l); else if (p) openPath(p.mode, p.step);
     });
     document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
       const mode = b.dataset.mode;
@@ -740,6 +767,9 @@ NT.app = (() => {
       else startMode(mode);
     }));
     $("storyBtn").addEventListener("click", () => { NT.synth.unlock(); show("story"); });
+    $("formsMenuBtn").addEventListener("click", () => { NT.synth.unlock(); openPath(PT.has(settings.formsPath) ? settings.formsPath : "chord"); });
+    $("chordPathBtn").addEventListener("click", () => openPath("chord"));
+    $("scalePathBtn").addEventListener("click", () => openPath("scale"));
     $("recoBtn").addEventListener("click", () => NT.synth.unlock());
     $("warmBtn").addEventListener("click", () => { NT.synth.unlock(); startWarmup(); });
     $("stopBtn").addEventListener("click", () => {
@@ -762,8 +792,12 @@ NT.app = (() => {
     $("formLearnBtn").addEventListener("click", () => startGrip("scaleLearn"));
     $("formTimeBtn").addEventListener("click", () => startGrip("scaleTime"));
     $("formTempoBtn").addEventListener("click", () => startMode("scale", { override: { scaleRoot: settings.formRoot, scaleType: settings.formType, scaleOctaves: /^fuenf/.test(settings.formType) ? 1 : settings.formOct, clef: settings.gripHand === "l" ? "bass" : "treble" }, title: MU.scaleTitle(settings.formRoot, settings.formType, settings.naming), fromForms: true }));
-    $("gripStop").addEventListener("click", () => { NT.grip.stop(); show("forms"); });
-    $("gripHelp").addEventListener("click", () => openBook(NT.grip.kind && NT.grip.kind.startsWith("chord") ? "akkorde" : "tonleitern", "forms"));
+    $("gripStop").addEventListener("click", () => {
+      const pth = pathOf(lastOpts);
+      NT.grip.stop();
+      if (pth) { show("home"); openPath(pth.path.mode, pth.step); alertBox("Stufe abgebrochen, kein Stern."); } else show("forms");
+    });
+    $("gripHelp").addEventListener("click", () => { const pth = pathOf(lastOpts); openBook(NT.grip.kind && NT.grip.kind.startsWith("chord") ? "akkorde" : "tonleitern", pth ? "home" : "forms", null, pth ? { mode: pth.path.mode, step: pth.step } : null); });
     $("formsHelp").addEventListener("click", () => openBook("akkorde", "forms"));
     for (const id of ["gripStaff", "gripKeys"]) new ResizeObserver(() => { if (current === "grip") NT.grip.draw(); }).observe($(id));
     for (const id of ["chordPrevKeys", "formPrevKeys"]) new ResizeObserver(() => { if (current === "forms") renderForms(); }).observe($(id));
@@ -774,7 +808,7 @@ NT.app = (() => {
       if (b.classList.contains("ans") || b.id === "hearBtn") return;       // dort klingt schon die Wertung bzw. der Ton
       NT.synth.unlock();
       NT.synth.ui(b.classList.contains("back") || b.id === "levelClose" ? "back"
-        : b.classList.contains("tab") || b.classList.contains("pgBtn") ? "page"
+        : b.classList.contains("tab") || b.classList.contains("pgBtn") || b.classList.contains("pgroup") || b.dataset.swap ? "page"
         : b.classList.contains("node") || b.id === "levelGo" || b.id === "pathGo" || b.id === "storyBtn" ? "open"
         : b.classList.contains("menuBtn") ? "menu" : "tap");
     }, true);
